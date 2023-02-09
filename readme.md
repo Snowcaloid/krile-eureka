@@ -2,6 +2,14 @@
 
 Created usign Python.
 
+## Requirements
+
+PostgreSQL DB "Snowcaloid"
+postgres=# CREATE DATABASE Snowcaloid;
+postgres=# CREATE USER snowcaloid with encrypted password \<password\>;
+postgres=# grant all privileges on database Snowcaloid to snowcaloid;
+postgres=# grant all on schema public to Snowcaloid;
+
 ## Troubleshooting
 
 ### Updating the discord API

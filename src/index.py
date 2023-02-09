@@ -1,19 +1,17 @@
-# bot.py
 import os
 
-import discord
 from dotenv import load_dotenv
+from bot import snowcaloid
+import commands
+
+commands.so_that_import_works()
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-intents = discord.Intents.default()
-intents.message_content = True
-
-client = discord.Client(intents=intents)
-
-@client.event
+@snowcaloid.event
 async def on_ready():
-    print(f'{client.user} has connected to Discord!')
+    await snowcaloid.tree.sync()
+    print(f'{snowcaloid.user} has connected to Discord!')
 
-client.run(TOKEN)
+snowcaloid.run(TOKEN)

@@ -105,3 +105,6 @@ dist
 
 # environment
 bot-env/
+
+# python cache
+*__pycache__*
