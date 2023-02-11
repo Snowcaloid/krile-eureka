@@ -5,6 +5,7 @@ class ColumnType:
     DATE = 'DATE'
     BOOLEAN = 'BOOLEAN'
     VARCHAR = 'VARCHAR'
+    BIGINT = 'BIGINT'
     
 class ColumnFlag:
     NONE = ''
@@ -50,7 +51,7 @@ class TableDefinition:
                         flags = ' '.join([flags, flag])
                     else:
                         flags = flag
-                    
+
             if columns:
                 columns = ','.join([columns, f'ADD COLUMN IF NOT EXISTS {column.name} {column.type}{len} {flags}'])
             else:

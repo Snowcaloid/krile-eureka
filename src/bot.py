@@ -3,7 +3,6 @@ from discord.ext import commands
 from views import PersistentView
 from buttons import RoleSelectionButton
 from data.runtime_data import RuntimeData
-from typing_extensions import Self
 
 class Snowcaloid(commands.Bot):
     data: RuntimeData = None
