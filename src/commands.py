@@ -6,11 +6,11 @@ from discord.app_commands import check, Choice
 from buttons import RoleSelectionButton
 from views import PersistentView
 from data.query import QueryType
-from data.schedule_post_data import Error_Missing_Schedule_Post
+from data.schedule_post_data import Error_Missing_Schedule_Post, Error_Cannot_Remove_Schedule
 from data.table.schedule import ScheduleType
 from calendar import monthrange, month_abbr
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, Union
 
 class DateValueError(ValueError):
     pass
@@ -18,7 +18,7 @@ class DateValueError(ValueError):
 class TimeValueError(ValueError):
     pass
 
-def permission_admin(interaction: Interaction):
+def permission_admin(interaction: Union[Interaction, InteractionResponse]) -> bool:
     for role in interaction.user.roles:
         if role.permissions.administrator:
             return True
@@ -127,6 +127,23 @@ async def schedule_add(interaction: InteractionResponse, type: str,
         await interaction.response.send_message(f'The date format is not correct. If you start typing in format DD-MM-YYYY, auto-fill will help you.', ephemeral=True)
     except TimeValueError:
         await interaction.response.send_message(f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.', ephemeral=True)
+    
+@snowcaloid.tree.command(name = "schedule_remove", description = "Remove a schedule entry.")
+@check(permission_admin)
+async def schedule_remove(interaction: InteractionResponse, id: int):
+    try:
+        await snowcaloid.data.schedule_posts.remove_entry(snowcaloid.data.db, snowcaloid, interaction.guild_id, interaction.user.id, permission_admin(interaction), id)
+        await interaction.response.send_message(f'Run #{id} has been deleted.')
+    except Error_Missing_Schedule_Post:
+        await interaction.response.send_message('This server has no schedule post. This is required for scheduling.', ephemeral=True)
+    except Error_Cannot_Remove_Schedule:
+        await interaction.response.send_message(f'Run #{id} is not owned by you and you do not have the sufficient rights to remove it.', ephemeral=True)
+    except IndexError:
+        await interaction.response.send_message(f'The run #{id} doesn\'t exist.', ephemeral=True)
+        
+###################################################################################
+# autocomplete
+###################################################################################
 
 @schedule_add.autocomplete('type')
 async def autocomplete_schedule_type(interaction: Interaction, current: str):

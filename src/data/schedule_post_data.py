@@ -7,6 +7,9 @@ from discord.ext.commands import Bot
 class Error_Missing_Schedule_Post(Exception):
     pass
 
+class Error_Cannot_Remove_Schedule(Exception):
+    pass
+
 class DateSeparatedScheduleData:
     _list: List[ScheduleData]
     date: date
@@ -26,15 +29,45 @@ class SchedulePost:
         self.channel = channel
         self.post = post
         self._list = []
+    
+    def contains(self, id: int) -> bool:
+        return self.get_entry(id)
+    
+    def get_entry(self, id: int) -> ScheduleData:
+        for data in self._list:
+            if data.id == id:
+                return data
+        return None
+    
+    def remove(self, id: int):
+        for data in self._list:
+            if data.id == id:
+                self._list.remove(data)
         
     def add_entry(self, db: Database, user: int, type: ScheduleType, timestamp: datetime, description: str = '') -> int:
-        self._list.append(ScheduleData(user, type, timestamp, description))        
+        entry = ScheduleData(user, type, timestamp, description)
+        self._list.append(entry)        
         if db:
             db.connect()
             try:
-                return db.query(f'insert into schedule (schedule_post, user_id, type, timestamp, description) values ({self.post}, {user}, \'{type}\', {pg_timestamp(timestamp)}, \'{description}\') returning id')
+                id = db.query(f'insert into schedule (schedule_post, user_id, type, timestamp, description) values ({self.post}, {user}, \'{type}\', {pg_timestamp(timestamp)}, \'{description}\') returning id')
+                entry.id = id
+                return id
             finally:
                 db.disconnect()
+    
+    async def remove_entry(self, db: Database, bot: Bot, user: int, admin: bool, id: int):
+        self.remove(id)
+        db.connect()
+        try:
+            u = db.query(f'select user from schedule where id={id}')[0][0]
+            if u == user or admin:
+                db.query(f'delete from schedule where id={id}')
+                await self.update_post(bot)
+            else:
+                raise Error_Cannot_Remove_Schedule()
+        finally:
+            db.disconnect()
                 
     def split_per_date(self) -> List[DateSeparatedScheduleData]:
         result = []
@@ -47,10 +80,7 @@ class SchedulePost:
                 
         return result
                 
-    async def update_post(self, bot: Bot):
-        if not self._list:
-            return
-        
+    async def update_post(self, bot: Bot):        
         for guild in bot.guilds:
             if guild.id == self.guild:
                 for channel in await guild.fetch_channels():
@@ -92,6 +122,12 @@ class SchedulePostData():
         else:
             raise Error_Missing_Schedule_Post() 
         
+    async def remove_entry(self, db: Database, bot: Bot, guild: int, user: int, admin: bool, id: int):
+        if self.contains(guild):
+            await self.get_post(guild).remove_entry(db, bot, user, admin, id)
+        else:
+            raise Error_Missing_Schedule_Post() 
+        
     async def update_post(self, guild: int, bot: Bot):
         if self.contains(guild): 
             await self.get_post(guild).update_post(bot)
@@ -112,8 +148,9 @@ class SchedulePostData():
             self._list.clear()
             for gld_record in db.query('select guild_id, schedule_channel, schedule_post from guilds'):
                 schedule_post = SchedulePost(gld_record[0], gld_record[1], gld_record[2])
-                for sch_record in db.query(f'select user_id, type, timestamp, description from schedule where schedule_post={gld_record[2]}'):
-                    schedule_post.add_entry(None, sch_record[0], sch_record[1], sch_record[2], sch_record[3])
+                for sch_record in db.query(f'select id, user_id, type, timestamp, description from schedule where schedule_post={gld_record[2]}'):
+                    schedule_post.add_entry(None, sch_record[1], sch_record[2], sch_record[3], sch_record[4])
+                    schedule_post.id = sch_record[0]
                     
                 self._list.append(schedule_post)
                 await schedule_post.update_post(bot)
