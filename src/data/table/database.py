@@ -1,9 +1,14 @@
+from enum import Enum
 import psycopg2
 import os
 from datetime import datetime
 
 def pg_timestamp(timestamp: datetime):
     return timestamp.strftime("\'%Y-%m-%d %H:%M\'")
+
+class DatabaseOperation(Enum):
+    ADDED = 0
+    EDITED = 1
 
 class Database:
     _connection_counter: int = 0

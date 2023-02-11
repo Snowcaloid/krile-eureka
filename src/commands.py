@@ -4,10 +4,11 @@ from discord.channel import TextChannel
 from discord.ui import View, Button
 from discord.app_commands import check, Choice
 from buttons import RoleSelectionButton
+from data.table.database import DatabaseOperation
 from views import PersistentView
 from data.query import QueryType
 from data.schedule_post_data import Error_Missing_Schedule_Post, Error_Cannot_Remove_Schedule
-from data.table.schedule import ScheduleType
+from data.table.schedule import ScheduleType, schedule_type_desc
 from calendar import monthrange, month_abbr
 from datetime import date, datetime
 from typing import Optional, Union
@@ -141,11 +142,23 @@ async def schedule_remove(interaction: InteractionResponse, id: int):
     except IndexError:
         await interaction.response.send_message(f'The run #{id} doesn\'t exist.', ephemeral=True)
         
+@snowcaloid.tree.command(name = "schedule_channel", description = "Set the channel for specific type of events.")
+@check(permission_admin)
+async def schedule_channel(interaction: InteractionResponse, type: str, channel: TextChannel):
+    if not type in ScheduleType._value2member_map_:
+        return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
+    op = snowcaloid.data.guild_data.set_schedule_channel(snowcaloid.data.db, interaction.guild_id, type, channel.id)
+    if op == DatabaseOperation.EDITED:
+        await interaction.response.send_message(f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
+    else:
+        await interaction.response.send_message(f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".', ephemeral=True)
+        
 ###################################################################################
 # autocomplete
 ###################################################################################
 
 @schedule_add.autocomplete('type')
+@schedule_channel.autocomplete('type')
 async def autocomplete_schedule_type(interaction: Interaction, current: str):
     return [
         Choice(name='BA Normal Run',  value=ScheduleType.BA_NORMAL.value),
