@@ -2,10 +2,12 @@ from typing import List
 
 class ColumnType:
     INTEGER = 'INTEGER'
-    DATE = 'DATE'
+    TIMESTAMP = 'TIMESTAMP'
     BOOLEAN = 'BOOLEAN'
     VARCHAR = 'VARCHAR'
     BIGINT = 'BIGINT'
+    SERIAL = 'SERIAL'
+    TEXT = 'TEXT'
     
 class ColumnFlag:
     NONE = ''
@@ -13,29 +15,33 @@ class ColumnFlag:
     UNIQUE = 'UNIQUE'
 
 class ColumnDefinition:
-    name: str = ''
-    type: str = ''
-    length: int = 0
-    flags: List[ColumnFlag] = [ColumnFlag.NONE]
-    def __init__(self, name: str, type: ColumnType, length: int = 0, flags: List[ColumnFlag] = []):
+    name: str
+    type: str
+    length: int
+    flags: List[ColumnFlag]
+    references: str
+    def __init__(self, name: str, type: ColumnType, length: int = 0, flags: List[ColumnFlag] = [], references: str = ''):
         self.name = name
         self.type = type
         self.length = length
         self.flags = flags
+        self.references = references
         
 class TableDefinition:
-    _name: str = ''
-    _columns: List[ColumnDefinition] = []
+    _name: str
+    _columns: List[ColumnDefinition]
     
     def __init__(self, name: str):
         self._name = name
+        self._columns = []
         self.init_definitions()
 
     def init_definitions(self):
         pass
     
-    def define_field(self, name: str, type: ColumnType, length: int = 0, flags: List[ColumnFlag] = [ColumnFlag.NONE]):
-        self._columns.append(ColumnDefinition(name, type, length, flags)) 
+    def define_field(self, name: str, type: ColumnType, length: int = 0, 
+                     flags: List[ColumnFlag] = [ColumnFlag.NONE], references: str = ''):
+        self._columns.append(ColumnDefinition(name, type, length, flags, references)) 
         
     def to_sql_create(self) -> str:
         return f'CREATE TABLE IF NOT EXISTS {self._name}()'
@@ -51,14 +57,22 @@ class TableDefinition:
                         flags = ' '.join([flags, flag])
                     else:
                         flags = flag
-
+                
             if columns:
-                columns = ','.join([columns, f'ADD COLUMN IF NOT EXISTS {column.name} {column.type}{len} {flags}'])
+                columns = ",\n".join([columns, f'add column if not exists {column.name} {column.type}{len} {flags}'])
             else:
-                columns = f'ADD COLUMN IF NOT EXISTS {column.name} {column.type}{len} {flags}'
+                columns = f'add column if not exists {column.name} {column.type}{len} {flags}'
+            
+            if column.references:
+                if columns:
+                    columns = ",\n".join([columns, f'drop constraint if exists c_{column.name}'])
+                else:
+                    columns = f'drop constraint if exists c_{column.name}'
+                    
+                columns = ",\n".join([columns, f'add constraint c_{column.name} foreign key({column.name}) references {column.references}'])
         
-        new_line = "\n"    
-        return f'ALTER TABLE {self._name}{new_line}{columns}'
+        new_line = "\n"  
+        return f'alter table {self._name}{new_line}{columns}'
         
 class TableDefinitions:
     DEFINITIONS: List[TableDefinition] = []

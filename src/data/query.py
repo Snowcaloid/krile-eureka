@@ -5,8 +5,8 @@ class QueryType:
     ROLE_POST = 1
 
 class QueryData:
-    user: int = 0
-    type: QueryType = QueryType.NONE
+    user: int
+    type: QueryType
     
     def __init__(self, user: int, type: QueryType) -> None:
         self.user = user
@@ -17,11 +17,12 @@ class QueryOwner:
         pass
     
 class Query:
-    _list: List[QueryData] = []
-    _owner: QueryOwner = None
+    _list: List[QueryData] 
+    _owner: QueryOwner
     
     def __init__(self, owner: QueryOwner):
         self._owner = owner
+        self._list = []
     
     def start(self, user: int, type: QueryType) -> bool:
         if user in self._list:

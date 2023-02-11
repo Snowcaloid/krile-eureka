@@ -1,5 +1,9 @@
 import psycopg2
 import os
+from datetime import datetime
+
+def pg_timestamp(timestamp: datetime):
+    return timestamp.strftime("\'%Y-%m-%d %H:%M\'")
 
 class Database:
     _connection_counter: int = 0
@@ -32,6 +36,8 @@ class Database:
             self._cursor.execute(query)
             if 'select' in query:
                 return self._cursor.fetchall()
+            elif 'returning' in query:
+                return self._cursor.fetchone()[0]
             else:
                 return []
         finally:

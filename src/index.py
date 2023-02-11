@@ -11,6 +11,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 @snowcaloid.event
 async def on_ready():
+    await snowcaloid.data.load_db_data(snowcaloid)
     await snowcaloid.tree.sync()
     print(f'{snowcaloid.user} has connected to Discord!')
 

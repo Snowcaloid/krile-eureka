@@ -6,22 +6,23 @@ from data.table.register import RegisterTables
 from data.table.database import Database
 from data.table.definition import TableDefinitions
 from data.table.buttons import ButtonData
+from discord.ext.commands import Bot
         
 class RuntimeData(QueryOwner):
-    _loaded_view: List[ButtonData] = []
-    db: Database = None
-    role_posts: RolePostData = None
-    schedule_posts: SchedulePostData = None
-    query: Query = None
+    _loaded_view: List[ButtonData]
+    db: Database
+    role_posts: RolePostData
+    schedule_posts: SchedulePostData
+    query: Query
     
     def __init__(self):
         RegisterTables.register()
+        self._loaded_view = []
         self.db = Database()
         self.init_db()
-        self.role_posts = RolePostData()
+        self.role_posts     = RolePostData()
         self.schedule_posts = SchedulePostData()
         self.query          = Query(self)
-        self.load_db_data()
 
     def finish_query(self, user: int, type: QueryType) -> None:
         if type == QueryType.ROLE_POST:
@@ -37,7 +38,7 @@ class RuntimeData(QueryOwner):
         finally:
             self.db.disconnect()
             
-    def load_db_data(self):
+    async def load_db_data(self, bot: Bot):
         for record in self.db.query('select * from buttons'):
             self._loaded_view.append(ButtonData(record[0], record[1]))
-        self.schedule_posts.load(self.db)
+        await self.schedule_posts.load(bot, self.db)

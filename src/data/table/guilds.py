@@ -12,7 +12,6 @@ class GuildData:
         self.schedule_post = schedule_post
     
 class GuildTable(TableDefinition):
-    _columns: List[ColumnDefinition] = []
     def init_definitions(self):
         self.define_field('guild_id', ColumnType.BIGINT, 0, [ColumnFlag.UNIQUE, ColumnFlag.PRIMARY_KEY])
         self.define_field('schedule_channel', ColumnType.BIGINT)
