@@ -154,6 +154,17 @@ async def schedule_channel(interaction: InteractionResponse, type: str, channel:
         await interaction.response.send_message(f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
     else:
         await interaction.response.send_message(f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".', ephemeral=True)
+
+@snowcaloid.tree.command(name = "schedule_party_leaders", description = "Set the channel for party leader posts.")
+@check(permission_admin)
+async def schedule_party_leaders(interaction: InteractionResponse, type: str, channel: TextChannel):
+    if not type in ScheduleType._value2member_map_:
+        return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
+    op = snowcaloid.data.guild_data.set_party_leader_channel(snowcaloid.data.db, interaction.guild_id, type, channel.id)
+    if op == DatabaseOperation.EDITED:
+        await interaction.response.send_message(f'You have changed the party leader recruitment channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
+    else:
+        await interaction.response.send_message(f'You have set #{channel.name} as the party leader recruitment channel for type "{schedule_type_desc(type)}".', ephemeral=True)
         
 ###################################################################################
 # autocomplete
@@ -161,6 +172,7 @@ async def schedule_channel(interaction: InteractionResponse, type: str, channel:
 
 @schedule_add.autocomplete('type')
 @schedule_channel.autocomplete('type')
+@schedule_party_leaders.autocomplete('type')
 async def autocomplete_schedule_type(interaction: Interaction, current: str):
     return [
         Choice(name='BA Normal Run',  value=ScheduleType.BA_NORMAL.value),

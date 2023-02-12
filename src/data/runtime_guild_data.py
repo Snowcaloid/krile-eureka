@@ -33,9 +33,9 @@ class RuntimeGuildData:
             gd = db.query('select guild_id, schedule_channel, schedule_post from guilds')
             for gd_record in gd:
                 guild_data = GuildData(gd_record[0], gd_record[1], gd_record[2])
-                cd = db.query(f'select type, channel_id from channels where guild_id={guild_data.guild_id}')
+                cd = db.query(f'select type, channel_id, is_pl_channel from channels where guild_id={guild_data.guild_id}')
                 for cd_record in cd:
-                    guild_data.channels.append(ChannelData(guild_data.guild_id, cd_record[0], cd_record[1]))
+                    guild_data._channels.append(ChannelData(guild_data.guild_id, cd_record[0], cd_record[1], cd_record[2]))
                 self._list.append(guild_data)
         finally:
             db.disconnect()
@@ -55,7 +55,8 @@ class RuntimeGuildData:
         if not self.contains(guild):
             self.init(db, guild)
         
-        self.get_data(guild).channels.append(ChannelData(guild, type, channel))
+        self.get_data(guild).remove_channel(type=type)
+        self.get_data(guild).add_channel(channel, type)
         db.connect()
         try:
             if db.query(f'select channel_id from channels where guild_id={guild} and type=\'{type}\''):
@@ -63,6 +64,23 @@ class RuntimeGuildData:
                 return DatabaseOperation.EDITED
             else:
                 db.query(f'insert into channels (guild_id, type, channel_id) values ({str(guild)}, \'{str(type)}\', {str(channel)})')
+                return DatabaseOperation.ADDED
+        finally:
+            db.disconnect()
+    
+    def set_party_leader_channel(self, db: Database, guild: int, type: ScheduleType, channel: int) -> DatabaseOperation:
+        if not self.contains(guild):
+            self.init(db, guild)
+        
+        self.get_data(guild).remove_channel(type=type)
+        self.get_data(guild).add_channel(channel, type, True)
+        db.connect()
+        try:
+            if db.query(f'select channel_id from channels where guild_id={guild} and type=\'{type}\' and is_pl_channel'):
+                db.query(f'update channels set channel_id={channel} where guild_id={guild} and type=\'{type}\' and is_pl_channel')
+                return DatabaseOperation.EDITED
+            else:
+                db.query(f'insert into channels (guild_id, type, channel_id, is_pl_channel) values ({str(guild)}, \'{str(type)}\', {str(channel)}, true)')
                 return DatabaseOperation.ADDED
         finally:
             db.disconnect()
