@@ -5,6 +5,8 @@ from data.table.schedule import ScheduleType, ScheduleData, schedule_type_desc
 from datetime import datetime, date
 from discord.ext.commands import Bot
 
+from utils import unix_time
+
 class Error_Missing_Schedule_Post(Exception): pass
 class Error_Cannot_Remove_Schedule(Exception): pass
 class Error_Invalid_Schedule_Id(Exception): pass
@@ -145,7 +147,7 @@ class SchedulePost:
                                 schedule_on_day = ''
                                 for entry in data._list:
                                     schedule_on_day = "\n".join([schedule_on_day,
-                                                                entry.timestamp.strftime("%H:%M") + f' CET: {schedule_type_desc(entry.type)} (Leader: {guild.get_member(entry.owner).name})'])
+                                                                entry.timestamp.strftime("%H:%M") + f' ST ({unix_time(entry.timestamp)} LT): {schedule_type_desc(entry.type)} (Leader: {guild.get_member(entry.owner).name})'])
                                     if entry.description:
                                         schedule_on_day += f' [{entry.description}]'
                                 embed.add_field(name=data.date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))
