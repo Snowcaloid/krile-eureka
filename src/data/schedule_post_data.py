@@ -54,7 +54,7 @@ class SchedulePost:
             db.connect()
             try:
                 id = db.query(f'insert into schedule (schedule_post, owner, type, timestamp, description, pass_main, pass_supp) ' +
-                              f'values ({self.post}, {owner}, \'{type}\', {pg_timestamp(timestamp)}, \'{description}\', {entry.pass_main}, {entry.pass_supp}) returning id')
+                              f'values ({self.post}, {owner}, \'{type}\', {pg_timestamp(timestamp)}, \'{description}\', {str(int(entry.pass_main))}, {str(int(entry.pass_supp))}) returning id')
                 entry.id = id
                 return id
             finally:

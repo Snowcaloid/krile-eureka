@@ -42,7 +42,7 @@ class RuntimeData(QueryOwner):
             self.db.disconnect()
             
     async def load_db_data(self, bot: Bot):
-        await self.schedule_posts.load(bot, self.db)
         self.guild_data.load(self.db)
+        await self.schedule_posts.load(bot, self.db)
         for record in self.db.query('select * from buttons'):
             self._loaded_view.append(ButtonData(record[0], record[1]))

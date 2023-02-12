@@ -41,6 +41,7 @@ class ScheduleData:
         result = 0
         for i in range(0, 3):
             result += randint(0, 9) * (10^i)
+        return result
     
     def generate_passcode(self, also_support: bool):
         self.pass_main = self._gen_pass()

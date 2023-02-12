@@ -10,7 +10,7 @@ class GuildData:
     
     def __init__(self, guild_id: int, schedule_channel: int, schedule_post: int):
         self.guild_id = guild_id
-        self.schedule_post = schedule_channel
+        self.schedule_channel = schedule_channel
         self.schedule_post = schedule_post
         self.channels = []
     

@@ -52,27 +52,33 @@ class TableDefinition:
             len = f'({str(column.length)})' if column.length > 0 else '' 
             flags = ''
             for flag in column.flags:
-                if flag != ColumnFlag.NONE:
+                if not flag in [ColumnFlag.NONE, ColumnFlag.PRIMARY_KEY]:
                     if flags:
                         flags = ' '.join([flags, flag])
                     else:
                         flags = flag
                 
             if columns:
-                columns = ",\n".join([columns, f'add column if not exists {column.name} {column.type}{len} {flags}'])
+                columns = ", ".join([columns, f'add column if not exists {column.name} {column.type}{len} {flags}'])
             else:
                 columns = f'add column if not exists {column.name} {column.type}{len} {flags}'
             
+            if ColumnFlag.PRIMARY_KEY in column.flags:
+                txt = f'drop constraint if exists {self._name}_pkey, add primary key ({column.name})'
+                if columns:
+                    columns = ", ".join([columns, txt])
+                else:
+                    columns = txt
+            
             if column.references:
                 if columns:
-                    columns = ",\n".join([columns, f'drop constraint if exists c_{column.name}'])
+                    columns = ", ".join([columns, f'drop constraint if exists c_{column.name}'])
                 else:
                     columns = f'drop constraint if exists c_{column.name}'
                     
-                columns = ",\n".join([columns, f'add constraint c_{column.name} foreign key({column.name}) references {column.references}'])
-        
-        new_line = "\n"  
-        return f'alter table {self._name}{new_line}{columns}'
+                columns = ", ".join([columns, f'add constraint c_{column.name} foreign key({column.name}) references {column.references}'])
+          
+        return f'alter table {self._name} {columns}'
         
 class TableDefinitions:
     DEFINITIONS: List[TableDefinition] = []
