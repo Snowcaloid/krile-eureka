@@ -16,8 +16,10 @@ class RuntimeData(QueryOwner):
     schedule_posts: SchedulePostData
     guild_data: RuntimeGuildData
     query: Query
+    ready: bool
     
     def __init__(self):
+        self.ready = False
         RegisterTables.register()
         self._loaded_view = []
         self.db = Database()
@@ -50,3 +52,4 @@ class RuntimeData(QueryOwner):
         await self.schedule_posts.load(bot, self.db)
         for record in self.db.query('select * from buttons'):
             self._loaded_view.append(ButtonData(record[0], record[1]))
+        self.ready = True
