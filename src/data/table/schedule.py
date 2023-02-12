@@ -1,4 +1,5 @@
 from enum import Enum
+import math
 from data.table.definition import TableDefinition, ColumnType, ColumnFlag, ColumnDefinition
 from typing import List
 from datetime import datetime
@@ -39,14 +40,15 @@ class ScheduleData:
     
     def _gen_pass(self) -> int:
         result = 0
-        for i in range(0, 3):
-            result += randint(0, 9) * (10^i)
+        for i in range(0, 4):
+            result += randint(0, 9) * (math.pow(10, i))
         return result
     
     def generate_passcode(self, also_support: bool):
         self.pass_main = self._gen_pass()
         if also_support:
-            self.pass_supp = self._gen_pass()
+            while self.pass_supp == self.pass_main:
+                self.pass_supp = self._gen_pass()
     
 class ScheduleTable(TableDefinition):
     _columns: List[ColumnDefinition] = []

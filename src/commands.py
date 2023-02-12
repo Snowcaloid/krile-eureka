@@ -1,5 +1,6 @@
 from bot import snowcaloid
 from discord import Interaction, InteractionResponse, Embed
+from discord.member import Member
 from discord.channel import TextChannel
 from discord.ui import View, Button
 from discord.app_commands import check, Choice
@@ -7,11 +8,11 @@ from buttons import RoleSelectionButton
 from data.table.database import DatabaseOperation
 from views import PersistentView
 from data.query import QueryType
-from data.schedule_post_data import Error_Missing_Schedule_Post, Error_Cannot_Remove_Schedule
+from data.schedule_post_data import Error_Insufficient_Permissions, Error_Invalid_Date, Error_Invalid_Schedule_Id, Error_Missing_Schedule_Post, Error_Cannot_Remove_Schedule
 from data.table.schedule import ScheduleType, schedule_type_desc
 from calendar import monthrange, month_abbr
 from datetime import date, datetime
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 class DateValueError(ValueError):
     pass
@@ -166,11 +167,57 @@ async def schedule_party_leaders(interaction: InteractionResponse, type: str, ch
     else:
         await interaction.response.send_message(f'You have set #{channel.name} as the party leader recruitment channel for type "{schedule_type_desc(type)}".', ephemeral=True)
         
+@snowcaloid.tree.command(name = "schedule_edit", description = "Add an entry to the schedule.")
+@check(permission_admin)
+async def schedule_edit(interaction: InteractionResponse, id: int, type: Optional[str] = '', owner: Optional[str] = '',
+                        event_date: Optional[str] = '', event_time: Optional[str] = '', description: Optional[str] = '', passcode: Optional[bool] = True):
+    try:
+        dt = None
+        tm = None
+        if event_date:
+            try:
+                dt = datetime.strptime(event_date, "%d-%b-%Y")
+            except:
+                raise DateValueError()
+        if event_time:
+            try:
+                tm = datetime.strptime(event_time, "%H:%M")
+            except:
+                raise TimeValueError()
+        if dt and tm:
+            date = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
+            if date < datetime.now():
+                return await interaction.response.send_message(f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.', ephemeral=True)
+        if type and not type in ScheduleType._value2member_map_:
+            return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
+        snowcaloid.data.schedule_posts.edit_entry(snowcaloid.data.db,
+                                                id,
+                                                interaction.guild_id, 
+                                                int(owner or 0),
+                                                type, dt, tm, description, passcode,
+                                                permission_admin(interaction))
+        await snowcaloid.data.schedule_posts.update_post(interaction.guild_id, snowcaloid)
+        await interaction.response.send_message(f'The run #{str(id)} has been adjusted.')
+    except Error_Invalid_Date:
+        await interaction.response.send_message(f'Date is invalid or not in future. Use autocomplete.', ephemeral=True)
+    except Error_Missing_Schedule_Post:
+        await interaction.response.send_message('This server has no schedule post. This is required for scheduling.', ephemeral=True)
+    except Error_Invalid_Schedule_Id:
+        await interaction.response.send_message(f'The run #{id} does\'t exist.', ephemeral=True)
+    except Error_Insufficient_Permissions:
+        await interaction.response.send_message('You\'re not allowed to change this run\'s properties. Only the run creator or an admin can do this.', ephemeral=True)
+    except DateValueError:
+        await interaction.response.send_message(f'The date format is not correct. If you start typing in format DD-MM-YYYY, auto-fill will help you.', ephemeral=True)
+    except TimeValueError:
+        await interaction.response.send_message(f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.', ephemeral=True)
+
+        
 ###################################################################################
 # autocomplete
 ###################################################################################
 
 @schedule_add.autocomplete('type')
+@schedule_edit.autocomplete('type')
 @schedule_channel.autocomplete('type')
 @schedule_party_leaders.autocomplete('type')
 async def autocomplete_schedule_type(interaction: Interaction, current: str):
@@ -180,7 +227,21 @@ async def autocomplete_schedule_type(interaction: Interaction, current: str):
         Choice(name='BA Special Run', value=ScheduleType.BA_SPECIAL.value)        
     ]
     
+@schedule_edit.autocomplete('owner')
+async def autocomplete_owner(interaction: Interaction, current: str):
+    result: List[Choice] = []
+    for member in interaction.guild.members:
+        for role in member.roles:
+            if role.permissions.administrator or 'Raid Lead' in role.name:
+                name = member.name
+                if member.nick:
+                    name = f'{member.nick} [{name}]'
+                result.append(Choice(name=name, value=str(member.id)))
+                break
+    return result
+    
 @schedule_add.autocomplete('event_date')
+@schedule_edit.autocomplete('event_date')
 async def autocomplete_schedule_date(interaction: Interaction, current: str):
     result = []
     if len(current) >= 2 and current[0:2].isdigit(): 
@@ -196,6 +257,7 @@ async def autocomplete_schedule_date(interaction: Interaction, current: str):
     return result      
 
 @schedule_add.autocomplete('event_time')
+@schedule_edit.autocomplete('event_time')
 async def autocomplete_schedule_time(interaction: Interaction, current: str):
     result = []
     if len(current) >= 2 and current[0:2].isdigit(): 

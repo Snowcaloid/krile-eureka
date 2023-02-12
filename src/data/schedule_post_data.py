@@ -1,15 +1,15 @@
-from typing import List
+from typing import List, Union
 from data.runtime_guild_data import RuntimeGuildData
 from data.table.database import Database, pg_timestamp
 from data.table.schedule import ScheduleType, ScheduleData, schedule_type_desc
 from datetime import datetime, date
 from discord.ext.commands import Bot
 
-class Error_Missing_Schedule_Post(Exception):
-    pass
-
-class Error_Cannot_Remove_Schedule(Exception):
-    pass
+class Error_Missing_Schedule_Post(Exception): pass
+class Error_Cannot_Remove_Schedule(Exception): pass
+class Error_Invalid_Schedule_Id(Exception): pass
+class Error_Insufficient_Permissions(Exception): pass
+class Error_Invalid_Date(Exception): pass
 
 class DateSeparatedScheduleData:
     _list: List[ScheduleData]
@@ -45,7 +45,7 @@ class SchedulePost:
             if data.id == id:
                 self._list.remove(data)
         
-    def add_entry(self, db: Database, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> int:
+    def add_entry(self, db: Database, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> Union[int, ScheduleData]:
         entry = ScheduleData(owner, type, timestamp, description)
         if auto_passcode and not type in [ScheduleType.BA_RECLEAR.value, ScheduleType.BA_SPECIAL.value]:
             entry.generate_passcode(type in [ScheduleType.BA_NORMAL.value])
@@ -59,6 +59,52 @@ class SchedulePost:
                 return id
             finally:
                 db.disconnect()
+        else:
+            return entry
+    
+    def edit_entry(self, db: Database, id: int, owner: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
+        entry = self.get_entry(id)
+        if entry:
+            if owner == entry.owner or is_admin:
+                set_str = ''
+                if date or time:
+                    old_timestamp = entry.timestamp
+                    if date:
+                        entry.timestamp = datetime(year=date.year, month=date.month, day=date.day, hour=entry.timestamp.hour, minute=entry.timestamp.minute)
+                    if time:
+                        entry.timestamp = datetime(year=entry.timestamp.year, month=entry.timestamp.month, day=entry.timestamp.day, hour=time.hour, minute=time.minute)
+                    if entry.timestamp < datetime.now():
+                        entry.timestamp = old_timestamp
+                        raise Error_Invalid_Date()
+                    set_str += f'timestamp={pg_timestamp(entry.timestamp)}'
+                if passcode:
+                    entry.generate_passcode(True)
+                else:
+                    entry.pass_main = 0
+                    entry.pass_supp = 0
+                if set_str:
+                    set_str += f', pass_main={str(entry.pass_main)}, pass_supp={str(entry.pass_supp)} '
+                else:
+                    set_str += f'pass_main={str(entry.pass_main)}, pass_supp={str(entry.pass_supp)} '
+                if owner:
+                    entry.owner = owner
+                    set_str += f', owner={str(owner)}'
+                if type:
+                    entry.type = type
+                    set_str += f', type=\'{type}\''
+                if description:
+                    entry.description = description 
+                    set_str += f', description=\'{description}\''      
+                if db:
+                    db.connect()
+                    try:
+                        db.query(f'update schedule set {set_str} where id={id}')
+                    finally:
+                        db.disconnect()
+            else:
+                raise Error_Insufficient_Permissions()
+        else:
+            raise Error_Invalid_Schedule_Id()
     
     async def remove_entry(self, db: Database, bot: Bot, owner: int, admin: bool, id: int):
         self.remove(id)
@@ -130,6 +176,12 @@ class SchedulePostData():
             return self.get_post(guild).add_entry(db, owner, type, timestamp, description)
         else:
             raise Error_Missing_Schedule_Post() 
+    
+    def edit_entry(self, db: Database, id: int, guild: int, owner: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
+        if self.contains(guild): 
+            return self.get_post(guild).edit_entry(db, id, owner, type, date, time, description, passcode, is_admin)
+        else:
+            raise Error_Missing_Schedule_Post() 
         
     async def remove_entry(self, db: Database, bot: Bot, guild: int, owner: int, admin: bool, id: int):
         if self.contains(guild):
@@ -154,8 +206,8 @@ class SchedulePostData():
             for guild_data in self.guild_data._list:
                 schedule_post = SchedulePost(guild_data.guild_id, guild_data.schedule_channel, guild_data.schedule_post)
                 for sch_record in db.query(f'select id, owner, type, timestamp, description from schedule where schedule_post={guild_data.schedule_post}'):
-                    schedule_post.add_entry(None, sch_record[1], sch_record[2], sch_record[3], sch_record[4])
-                    schedule_post.id = sch_record[0]
+                    entry = schedule_post.add_entry(None, sch_record[1], sch_record[2], sch_record[3], sch_record[4])
+                    entry.id = sch_record[0]
                 self._list.append(schedule_post)
                 await schedule_post.update_post(bot)
         finally:
