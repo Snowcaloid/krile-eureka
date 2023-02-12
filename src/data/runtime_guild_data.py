@@ -41,9 +41,13 @@ class RuntimeGuildData:
             db.disconnect()
             
     def save_schedule_post(self, db: Database, guild: int, channel: int, post: int):
+        if not self.contains(guild):
+            self.init(db, guild)
+        self.get_data(guild).schedule_channel = channel
+        self.get_data(guild).schedule_post = post    
         db.connect()
         try:
-            db.query(f'insert into guilds values ({str(guild)}, {str(channel)}, {str(post)})')
+            db.query(f'update guilds set schedule_channel={str(channel)}, schedule_post={str(post)}')
         finally:
             db.disconnect()
             

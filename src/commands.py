@@ -113,9 +113,11 @@ async def schedule_add(interaction: InteractionResponse, type: str,
             tm = datetime.strptime(event_time, "%H:%M")
         except:
             raise TimeValueError()
+        dt = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
+        if dt < datetime.now():
+            return await interaction.response.send_message(f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.', ephemeral=True)
         if not type in ScheduleType._value2member_map_:
             return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
-        dt = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
         id = snowcaloid.data.schedule_posts.add_entry(snowcaloid.data.db, 
                                                     interaction.guild_id, 
                                                     interaction.user.id,
