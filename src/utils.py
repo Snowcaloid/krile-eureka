@@ -1,15 +1,17 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 import time
 from discord import Message
 from buttons import ButtonType
+from dateutil.tz import tzlocal, tzutc
 
 class UnixStamp(Enum):
     TIME = 0
     RELATIVE = 1
 
 def unix_time(date: datetime, type: UnixStamp = UnixStamp.TIME) -> str:
-    date_tuple = (date.year, date.month, date.day, date.hour, date.minute, date.second)
+    dt = date.replace(tzinfo=tzutc()).astimezone(tzlocal())
+    date_tuple = (dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
     t = ''
     if type == UnixStamp.TIME:
         t = 't'

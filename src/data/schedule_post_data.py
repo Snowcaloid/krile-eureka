@@ -85,7 +85,8 @@ class SchedulePost:
                         entry.timestamp = datetime(year=date.year, month=date.month, day=date.day, hour=entry.timestamp.hour, minute=entry.timestamp.minute)
                     if time:
                         entry.timestamp = datetime(year=entry.timestamp.year, month=entry.timestamp.month, day=entry.timestamp.day, hour=time.hour, minute=time.minute)
-                    if entry.timestamp < datetime.now():
+                    entry.timestamp = datetime.utcfromtimestamp(entry.timestamp.timestamp())
+                    if entry.timestamp < datetime.utcfromtimestamp(datetime.now().timestamp()):
                         entry.timestamp = old_timestamp
                         raise Error_Invalid_Date()
                     set_str += f'timestamp={pg_timestamp(entry.timestamp)}'
