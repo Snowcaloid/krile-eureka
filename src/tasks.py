@@ -23,5 +23,7 @@ async def refresh_bot_status():
                         desc += ', '
                     desc += f'{str(delta.seconds // 3600)} hours, {str((delta.seconds % 3600) // 60)} minutes'
                 await snowcaloid.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
+            else:
+                await snowcaloid.change_presence(activity=None, status=None)
         finally:
             snowcaloid.data.db.disconnect()

@@ -28,6 +28,12 @@ class GuildData:
         ch = ChannelData(self.guild_id, '', channel_id)
         self._channels.append(ch)
         return ch
+
+    def get_pl_channel(self, type: ScheduleType) -> ChannelData:
+        for ch in self._channels:
+            if ch.guild_id == self.guild_id and ch.type == type and ch.is_pl_channel:
+                return ch
+        return None
     
     def remove_channel(self, channel_id: int = 0, type: ScheduleType = ''):
         self._channels.remove(self.get_channel(channel_id, type))

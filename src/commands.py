@@ -6,6 +6,7 @@ from discord.ui import View, Button
 from discord.app_commands import check, Choice
 from buttons import RoleSelectionButton
 from data.table.database import DatabaseOperation
+from utils import button_custom_id
 from views import PersistentView
 from data.query import QueryType
 from data.schedule_post_data import Error_Insufficient_Permissions, Error_Invalid_Date, Error_Invalid_Schedule_Id, Error_Missing_Schedule_Post, Error_Cannot_Remove_Schedule
@@ -47,16 +48,15 @@ async def role_post_finish(interaction: InteractionResponse, channel: TextChanne
             ephemeral=True)
         return
     
+    await interaction.response.send_message(f'A message will been sent to #{channel.name}.', ephemeral=True)
+    
+    message = await channel.send(view=view, embed=Embed(title='You can press on the buttons to get roles.'))
     view = PersistentView()
     for entry in snowcaloid.data.role_posts.get_entries(interaction.user.id):
-        view.add_item(RoleSelectionButton(label=entry.label, custom_id=entry.id))
+        view.add_item(RoleSelectionButton(label=entry.label, custom_id=button_custom_id(entry.label, message)))
 
-    await interaction.response.send_message(f'A message will been sent to #{channel.name}.', ephemeral=True)
-    channels = await interaction.guild.fetch_channels()
-    for ch in channels:
-        if ch == channel:
-            message = await channel.send(view=view, embed=Embed(title='You can press on the buttons to get roles.'))
-            print(f'Message ID: {message.id}, Channel ID: {message.channel.id}, Guild ID: {message.guild.id}')
+    await message.edit(view=view)
+    print(f'Message ID: {message.id}, Channel ID: {message.channel.id}, Guild ID: {message.guild.id}')
 
     snowcaloid.data.query.stop(interaction.user.id, QueryType.ROLE_POST)
     
@@ -76,8 +76,7 @@ async def role_post_add(interaction: InteractionResponse, name: str):
         return
     
     view = View()
-    id = str(interaction.guild_id) + str(interaction.user.id) + name
-    snowcaloid.data.role_posts.append(interaction.user.id, name, id)
+    snowcaloid.data.role_posts.append(interaction.user.id, name)
     for entry in snowcaloid.data.role_posts.get_entries(interaction.user.id):
         view.add_item(Button(label=entry.label, disabled=True))
         
@@ -123,7 +122,8 @@ async def schedule_add(interaction: InteractionResponse, type: str,
                                                     interaction.guild_id, 
                                                     interaction.user.id,
                                                     type, dt, description)
-        await snowcaloid.data.schedule_posts.update_post(interaction.guild_id, snowcaloid)
+        await snowcaloid.data.schedule_posts.update_post(interaction.guild_id)
+        await snowcaloid.data.schedule_posts.create_pl_post(interaction.guild_id, id)
         await interaction.response.send_message(f'The run #{str(id)} has been scheduled.')
     except Error_Missing_Schedule_Post:
         await interaction.response.send_message('This server has no schedule post. This is required for scheduling.', ephemeral=True)
@@ -136,7 +136,7 @@ async def schedule_add(interaction: InteractionResponse, type: str,
 @check(permission_admin)
 async def schedule_remove(interaction: InteractionResponse, id: int):
     try:
-        await snowcaloid.data.schedule_posts.remove_entry(snowcaloid.data.db, snowcaloid, interaction.guild_id, interaction.user.id, permission_admin(interaction), id)
+        await snowcaloid.data.schedule_posts.remove_entry(snowcaloid.data.db, interaction.guild_id, interaction.user.id, permission_admin(interaction), id)
         await interaction.response.send_message(f'Run #{id} has been deleted.')
     except Error_Missing_Schedule_Post:
         await interaction.response.send_message('This server has no schedule post. This is required for scheduling.', ephemeral=True)
@@ -196,7 +196,8 @@ async def schedule_edit(interaction: InteractionResponse, id: int, type: Optiona
                                                 int(owner or 0),
                                                 type, dt, tm, description, passcode,
                                                 permission_admin(interaction))
-        await snowcaloid.data.schedule_posts.update_post(interaction.guild_id, snowcaloid)
+        await snowcaloid.data.schedule_posts.update_post(interaction.guild_id)
+        await snowcaloid.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(snowcaloid.data.guild_data.get_data(interaction.guild_id), id=id)
         await interaction.response.send_message(f'The run #{str(id)} has been adjusted.')
     except Error_Invalid_Date:
         await interaction.response.send_message(f'Date is invalid or not in future. Use autocomplete.', ephemeral=True)

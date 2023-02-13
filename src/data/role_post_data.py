@@ -3,21 +3,21 @@ from data.table.database import Database
 
 class RolePostData: 
     class RolePostEntry:
-        user: int = 0
-        label: str = ''
-        id: str = ''
-        def __init__(self, user: str, label: int, id: str):
+        user: int
+        label: str
+        id: str
+        def __init__(self, user: str, label: int):
             self.user = user
             self.label = label
-            self.id = id
+            self.id = ''
             
     _list: List[RolePostEntry] = []
     
     def __init__(self):
         pass
     
-    def append(self, user: int, label: str, id: str):
-        self._list.append(RolePostData.RolePostEntry(user, label, id))
+    def append(self, user: int, label: str):
+        self._list.append(RolePostData.RolePostEntry(user, label))
         
     def get_entries(self, user: int) -> List[RolePostEntry]:
         result = []

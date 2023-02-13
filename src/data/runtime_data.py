@@ -1,4 +1,5 @@
 from typing import List
+import bot as runtime_data_bot
 from data.role_post_data import RolePostData
 from data.schedule_post_data import SchedulePostData
 from data.query import Query, QueryOwner, QueryType
@@ -43,13 +44,15 @@ class RuntimeData(QueryOwner):
         finally:
             self.db.disconnect()
             
-    async def load_db_data(self, bot: Bot):
-        self.guild_data.load(self.db)
-        for data in self.guild_data._list:
-            for guild in bot.guilds:
-                if data.guild_id == guild.id:
-                    guild.fetch_members()
-        await self.schedule_posts.load(bot, self.db)
+    def load_db_view(self):
         for record in self.db.query('select * from buttons'):
             self._loaded_view.append(ButtonData(record[0], record[1]))
+            
+    async def load_db_data(self):
+        self.guild_data.load(self.db)
+        for data in self.guild_data._list:
+            for guild in runtime_data_bot.snowcaloid.guilds:
+                if data.guild_id == guild.id:
+                    guild.fetch_members()
+        await self.schedule_posts.load(self.db)
         self.ready = True
