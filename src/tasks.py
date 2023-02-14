@@ -27,3 +27,32 @@ async def refresh_bot_status():
                 await snowcaloid.change_presence(activity=None, status=None)
         finally:
             snowcaloid.data.db.disconnect()
+
+@tasks.loop(minutes=15)
+async def remove_old_runs():
+    if snowcaloid.data.ready:
+        snowcaloid.data.db.connect()
+        try:
+            for post in snowcaloid.data.schedule_posts._list:
+                for entry in post._list:
+                    if entry.timestamp < datetime.utcnow():
+                        post.remove(entry.id)
+            snowcaloid.data.db.query(f'delete from schedule where timestamp < now() at time zone \'utc\'')
+        finally:
+            snowcaloid.data.db.disconnect()
+            
+@tasks.loop(hours=12)
+async def remove_old_pl_posts():
+    if snowcaloid.data.ready:
+        for data in snowcaloid.data.guild_data._list:
+            guild = snowcaloid.get_guild(data.guild_id)
+            for channel_data in data._channels:
+                if channel_data.is_pl_channel:
+                    channel = await guild.fetch_channel(channel_data.channel_id)
+                    async for message in channel.history(limit=50):
+                        if len(message.content.split('#')) == 2:
+                            id = int(message.content.split('#')[1])
+                            if not snowcaloid.data.schedule_posts.get_post(guild.id).contains(id):
+                                await message.delete()
+                
+        

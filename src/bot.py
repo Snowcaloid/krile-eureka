@@ -15,7 +15,8 @@ class Snowcaloid(Bot):
         
     async def setup_hook(self) -> None:
         if self.recreate_view:
-            view = await self.recreate_view(self)
-            self.add_view(view)
+            views = await self.recreate_view(self)
+            for view in views:
+                self.add_view(view)
         
 snowcaloid = Snowcaloid()    

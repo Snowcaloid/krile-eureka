@@ -56,6 +56,11 @@ class SchedulePost:
         for data in self._list:
             if data.id == id:
                 self._list.remove(data)
+                schedule_post_data_bot.snowcaloid.data.db.connect()
+                try:
+                    schedule_post_data_bot.snowcaloid.data.db.query(f'delete from buttons where button_id ~ \'{data.post_id}\'')
+                finally:
+                    schedule_post_data_bot.snowcaloid.data.db.disconnect()
         
     def add_entry(self, db: Database, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> Union[int, ScheduleData]:
         entry = ScheduleData(owner, type, timestamp, description)
@@ -85,8 +90,8 @@ class SchedulePost:
                         entry.timestamp = datetime(year=date.year, month=date.month, day=date.day, hour=entry.timestamp.hour, minute=entry.timestamp.minute)
                     if time:
                         entry.timestamp = datetime(year=entry.timestamp.year, month=entry.timestamp.month, day=entry.timestamp.day, hour=time.hour, minute=time.minute)
-                    entry.timestamp = datetime.utcfromtimestamp(entry.timestamp.timestamp())
-                    if entry.timestamp < datetime.utcfromtimestamp(datetime.now().timestamp()):
+                    entry.timestamp = entry.timestamp.timestamp()
+                    if entry.timestamp < datetime.utcnow():
                         entry.timestamp = old_timestamp
                         raise Error_Invalid_Date()
                     set_str += f'timestamp={pg_timestamp(entry.timestamp)}'
@@ -212,7 +217,7 @@ class SchedulePost:
             for i in range(1, 7):    
                 button = PartyLeaderButton(label=str(i), custom_id=button_custom_id(f'pl{i}', message, ButtonType.PL_POST), row=1 if i < 4 else 2)
                 view.add_item(button)
-            view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST)), row=2)
+            view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
             await self.update_pl_post(guild_data, entry=entry, message=message)
             await message.edit(view=view)
             schedule_post_data_bot.snowcaloid.data.db.connect()

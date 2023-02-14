@@ -114,8 +114,7 @@ async def schedule_add(interaction: InteractionResponse, type: str,
         except:
             raise TimeValueError()
         dt = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
-        dt = datetime.utcfromtimestamp(dt.timestamp())
-        if dt < datetime.utcfromtimestamp(datetime.now().timestamp()):
+        if dt < datetime.utcnow():
             return await interaction.response.send_message(f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.', ephemeral=True)
         if not type in ScheduleType._value2member_map_:
             return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
@@ -187,8 +186,7 @@ async def schedule_edit(interaction: InteractionResponse, id: int, type: Optiona
                 raise TimeValueError()
         if dt and tm:
             date = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
-            date = datetime.utcfromtimestamp(dt.timestamp())
-            if date < datetime.utcfromtimestamp(datetime.now().timestamp()):
+            if date < datetime.utcnow():
                 return await interaction.response.send_message(f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.', ephemeral=True)
         if type and not type in ScheduleType._value2member_map_:
             return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
