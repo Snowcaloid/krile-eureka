@@ -1,35 +1,40 @@
 # Snowcaloid Discord bot
 
-Created usign Python.
+Created using Python.
 
 ## Requirements
 
-PostgreSQL DB "Snowcaloid"
+### A PostgreSQL database.
 
-postgres=# CREATE DATABASE Snowcaloid;
+After setting up a PostgreSQL server on your platform of choice,
+connect and run the following commands:
 
-postgres=# CREATE USER snowcaloid with encrypted password \<password\>;
+```postgresql
+CREATE DATABASE snowcaloid;
+CREATE USER snowcaloid WITH ENCRYPTED PASSWORD 'your-password-here';
+GRANT ALL PRIVILEGES ON DATABASE snowcaloid TO snowcaloid;
+GRANT ALL ON SCHEMA public TO snowcaloid;
+```
 
-postgres=# grant all privileges on database Snowcaloid to snowcaloid;
-
-postgres=# grant all on schema public to Snowcaloid;
+You can use any username or database name as long as your
+choices here match the environment file.
 
 ## Troubleshooting
 
 ### Updating the discord API
 
-<https://discordpy.readthedocs.io/en/stable/intro.html>
+Information for installing discord.py can be found at <https://discordpy.readthedocs.io/en/stable/intro.html>
 
-Windows: py -3 -m pip install -U discord.py
+Windows: `py -3 -m pip install -U discord.py`
 
-Linux: python3 -m pip install discord.py
+Linux: `python3 -m pip install discord.py`
 
 Create the environment:
 
-python -m venv bot-env
+`python -m venv bot-env`
 
 Activate the environment:
 
-Windows .\bot-env\Scripts\activate
+Windows `.\bot-env\Scripts\activate`
 
-Linux: source bot-env/bin/activate
+Linux: `source bot-env/bin/activate`
