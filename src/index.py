@@ -1,6 +1,7 @@
 import os
 
 from dotenv import load_dotenv
+load_dotenv()
 from bot import snowcaloid
 from views import PersistentView
 from buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
@@ -9,7 +10,6 @@ import tasks
 
 commands.so_that_import_works()
 
-load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
 async def recreate_view(bot):
@@ -35,6 +35,8 @@ async def on_ready():
     print(f'{snowcaloid.user} has connected to Discord!')
     if not tasks.refresh_bot_status.is_running():
         tasks.refresh_bot_status.start()
+    if not tasks.send_pl_passcodes.is_running():
+        tasks.send_pl_passcodes.start()
     if not tasks.remove_old_runs.is_running():
         tasks.remove_old_runs.start()
     if not tasks.remove_old_pl_posts.is_running():

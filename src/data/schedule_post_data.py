@@ -64,7 +64,7 @@ class SchedulePost:
         
     def add_entry(self, db: Database, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> Union[int, ScheduleData]:
         entry = ScheduleData(owner, type, timestamp, description)
-        if auto_passcode and not type in [ScheduleType.BA_RECLEAR.value, ScheduleType.BA_SPECIAL.value]:
+        if auto_passcode and not type in [ScheduleType.BA_RECLEAR.value, ScheduleType.BA_SPECIAL.value] and (not entry.pass_main or not entry.pass_supp):
             entry.generate_passcode(type in [ScheduleType.BA_NORMAL.value])
         self._list.append(entry)        
         if db:
@@ -95,7 +95,7 @@ class SchedulePost:
                         entry.timestamp = old_timestamp
                         raise Error_Invalid_Date()
                     set_str += f'timestamp={pg_timestamp(entry.timestamp)}'
-                if passcode:
+                if passcode and (not entry.pass_main or not entry.pass_supp):
                     entry.generate_passcode(True)
                 else:
                     entry.pass_main = 0
@@ -288,13 +288,14 @@ class SchedulePostData():
             self._list.clear()
             for guild_data in self.guild_data._list:
                 schedule_post = SchedulePost(guild_data.guild_id, guild_data.schedule_channel, guild_data.schedule_post)
-                for sch_record in db.query(f'select id, owner, type, timestamp, description, post_id, pl1, pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp from schedule where schedule_post={guild_data.schedule_post}'):
+                for sch_record in db.query(f'select id, owner, type, timestamp, description, post_id, pl1, pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp, notified from schedule where schedule_post={guild_data.schedule_post}'):
                     entry = schedule_post.add_entry(None, sch_record[1], sch_record[2], sch_record[3], sch_record[4])
                     entry.id = sch_record[0]
                     entry.post_id = sch_record[5]
                     entry.party_leaders = [sch_record[6], sch_record[7], sch_record[8], sch_record[9], sch_record[10], sch_record[11], sch_record[12]]
                     entry.pass_main = sch_record[13]
                     entry.pass_supp = sch_record[14]
+                    entry.notified = sch_record[15]
                 self._list.append(schedule_post)
                 await schedule_post.update_post()
         finally:

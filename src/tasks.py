@@ -11,7 +11,7 @@ async def refresh_bot_status():
         snowcaloid.data.db.connect()
         try:
             q = snowcaloid.data.db.query('select type, timestamp from schedule order by timestamp limit 1')
-            if q:
+            if q and q[0][1] > datetime.utcnow():
                 now = datetime.utcnow()
                 delta: timedelta = q[0][1] - now
                 desc = schedule_type_desc(q[0][0]) + ' in '
@@ -21,14 +21,14 @@ async def refresh_bot_status():
                 if delta.seconds // 60:
                     if need_comma:
                         desc += ', '
-                    desc += f'{str(delta.seconds // 3600)} hours, {str((delta.seconds % 3600) // 60)} minutes'
+                    desc += f' {str(delta.seconds // 3600)} hours, {str((delta.seconds % 3600) // 60)} minutes'
                 await snowcaloid.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
             else:
                 await snowcaloid.change_presence(activity=None, status=None)
         finally:
             snowcaloid.data.db.disconnect()
 
-@tasks.loop(minutes=15)
+@tasks.loop(minutes=2)
 async def remove_old_runs():
     if snowcaloid.data.ready:
         snowcaloid.data.db.connect()
@@ -55,4 +55,31 @@ async def remove_old_pl_posts():
                             if not snowcaloid.data.schedule_posts.get_post(guild.id).contains(id):
                                 await message.delete()
                 
+@tasks.loop(seconds=20)
+async def send_pl_passcodes():
+    if snowcaloid.data.ready:
+        for post in snowcaloid.data.schedule_posts._list:
+            for entry in post._list:
+                if not entry.notified and entry.timestamp - timedelta(hours=1) <= datetime.utcnow():
+                    guild = snowcaloid.get_guild(post.guild)
+                    member = await guild.fetch_member(entry.owner)
+                    await member.send((
+                        'Raid Leader notification:\n'
+                        f'Main party passcode: {str(int(entry.pass_main)).zfill(4)}\n'
+                        f'Support passcode: {str(int(entry.pass_supp)).zfill(4)}'
+                    ))
+                    for user in entry.party_leaders:
+                        if user and user != entry.owner and user != entry.party_leaders[6]:
+                            member = await guild.fetch_member(user)
+                            await member.send((
+                                'Party Leader notification:\n'
+                                f'The main party passcode is {str(int(entry.pass_main)).zfill(4)}'
+                            ))
+                    if entry.party_leaders[6]:
+                        member = await guild.fetch_member(entry.party_leaders[6])
+                        await member.send((
+                            'Party Leader notification:\n'
+                            f'The support passcode is {str(int(entry.pass_supp)).zfill(4)}'
+                        ))
+                    entry.notified = True
         

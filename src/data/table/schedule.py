@@ -28,6 +28,7 @@ class ScheduleData:
     pass_main: int
     pass_supp: int
     post_id: int
+    notified: bool
     
     def __init__(self, owner: int, type: ScheduleType, timestamp: datetime, description: str) -> None:
         self.id = id
@@ -39,6 +40,7 @@ class ScheduleData:
         self.pass_main = 0
         self.pass_supp = 0
         self.post_id = 0
+        self.notified = False
     
     def _gen_pass(self) -> int:
         result = 0
@@ -47,9 +49,10 @@ class ScheduleData:
         return result
     
     def generate_passcode(self, also_support: bool):
-        self.pass_main = self._gen_pass()
+        if not self.pass_main:
+            self.pass_main = self._gen_pass()
         if also_support:
-            while self.pass_supp == self.pass_main:
+            while not self.pass_supp or self.pass_supp == self.pass_main:
                 self.pass_supp = self._gen_pass()
     
 class ScheduleTable(TableDefinition):
@@ -71,3 +74,4 @@ class ScheduleTable(TableDefinition):
         self.define_field('pass_main', ColumnType.INTEGER)
         self.define_field('pass_supp', ColumnType.INTEGER)
         self.define_field('post_id', ColumnType.BIGINT)
+        self.define_field('notified', ColumnType.BOOLEAN)
