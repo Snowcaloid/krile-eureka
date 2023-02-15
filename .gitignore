@@ -108,3 +108,10 @@ bot-env/
 
 # python cache
 *__pycache__*
+
+# JetBrains project settings folder
+.idea
+
+# Visual Studio Code project settings folder
+.vscode
+*.code-workspace
