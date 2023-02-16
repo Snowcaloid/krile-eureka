@@ -8,6 +8,8 @@ class TaskExecutionType(Enum):
     SEND_PL_PASSCODES = 2
     REMOVE_OLD_RUNS = 3
     REMOVE_OLD_PL_POSTS = 4
+    POST_MAIN_PASSCODE = 5
+    POST_SUPPORT_PASSCODE = 6
 
 class TaskData:
     id: int

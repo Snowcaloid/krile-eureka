@@ -156,6 +156,18 @@ async def schedule_channel(interaction: Interaction, type: str, channel: TextCha
         await interaction.response.send_message(f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
     else:
         await interaction.response.send_message(f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".', ephemeral=True)
+        
+@snowcaloid.tree.command(name = "schedule_support_channel", description = "Set the channel for specific type of events (for support parties).")
+@check(permission_admin)
+async def schedule_support_channel(interaction: Interaction, type: str, channel: TextChannel):
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    if not type in ScheduleType._value2member_map_:
+        return await interaction.followup.send(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
+    op = snowcaloid.data.guild_data.set_schedule_support_channel(interaction.guild_id, type, channel.id)
+    if op == DatabaseOperation.EDITED:
+        await interaction.followup.send(f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
+    else:
+        await interaction.followup.send(f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".', ephemeral=True)
 
 @snowcaloid.tree.command(name = "schedule_party_leaders", description = "Set the channel for party leader posts.")
 @check(permission_admin)
@@ -220,14 +232,20 @@ async def schedule_edit(interaction: Interaction, id: int, type: Optional[str] =
 
 @schedule_add.autocomplete('type')
 @schedule_edit.autocomplete('type')
-@schedule_channel.autocomplete('type')
-@schedule_party_leaders.autocomplete('type')
 async def autocomplete_schedule_type(interaction: Interaction, current: str):
     return [
         Choice(name='BA Normal Run',  value=ScheduleType.BA_NORMAL.value),
         Choice(name='BA Reclear Run', value=ScheduleType.BA_RECLEAR.value),
         Choice(name='BA Special Run', value=ScheduleType.BA_SPECIAL.value)        
     ]
+    
+@schedule_channel.autocomplete('type')
+@schedule_party_leaders.autocomplete('type')
+@schedule_support_channel.autocomplete('type')
+async def autocomplete_schedule_type_with_all(interaction: Interaction, current: str):
+    result = await autocomplete_schedule_type(interaction, current)
+    result.append(Choice(name='All BA Runs', value=ScheduleType.BA_ALL.value))
+    return result
     
 @schedule_edit.autocomplete('owner')
 async def autocomplete_owner(interaction: Interaction, current: str):

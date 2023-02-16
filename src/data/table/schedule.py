@@ -9,14 +9,17 @@ class ScheduleType(Enum):
     BA_NORMAL = 'BA' 
     BA_RECLEAR = 'BARC'
     BA_SPECIAL = 'BASPEC'
+    BA_ALL = 'BA_ALL'
     
 def schedule_type_desc(type: ScheduleType) -> str:
     if type == ScheduleType.BA_NORMAL.value:
-        return "Baldesion Arsenal normal run"
+        return "Baldesion Arsenal Normal Run"
     elif type == ScheduleType.BA_RECLEAR.value:
-        return "Baldesion Arsenal reclear run"
+        return "Baldesion Arsenal Reclear Run"
     elif type == ScheduleType.BA_SPECIAL.value:
-        return "Baldesion Arsenal special run"
+        return "Baldesion Arsenal Special Run"
+    elif type == ScheduleType.BA_ALL.value:
+        return "All types of BA runs"
     
 class ScheduleData:
     id: int

@@ -19,11 +19,11 @@ class GuildData:
     def get_channel(self, channel_id: int = 0, type: ScheduleType = '') -> ChannelData:
         if channel_id:
             for ch in self._channels:
-                if ch.channel_id == channel_id:
+                if ch.channel_id == channel_id and not ch.is_pl_channel and not ch.is_support_channel:
                     return ch
         if type:
             for ch in self._channels:
-                if ch.guild_id == self.guild_id and ch.type == type:
+                if ch.guild_id == self.guild_id and ch.type == type and not ch.is_pl_channel and not ch.is_support_channel:
                     return ch
         ch = ChannelData(self.guild_id, '', channel_id)
         self._channels.append(ch)
@@ -35,12 +35,17 @@ class GuildData:
                 return ch
         return None
     
+    def get_support_channel(self, type: ScheduleType) -> ChannelData:
+        for ch in self._channels:
+            if ch.guild_id == self.guild_id and ch.type == type and ch.is_support_channel:
+                return ch
+        return None
+    
     def remove_channel(self, channel_id: int = 0, type: ScheduleType = ''):
         self._channels.remove(self.get_channel(channel_id, type))
         
-    def add_channel(self, channel_id: int, type: ScheduleType, is_pl_channel: bool = False):
-        self._channels.append(ChannelData(self.guild_id, type, channel_id, is_pl_channel))
-        
+    def add_channel(self, channel_id: int, type: ScheduleType, is_pl_channel: bool = False, is_support_channel: bool = False):
+        self._channels.append(ChannelData(self.guild_id, type, channel_id, is_pl_channel, is_support_channel))   
     
 class GuildTable(TableDefinition):
     def init_definitions(self):

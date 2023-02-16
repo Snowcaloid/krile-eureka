@@ -118,8 +118,8 @@ class SchedulePost:
             Always return the event itself.
         """
         entry = ScheduleData(owner, type, timestamp, description)
-        if auto_passcode and not type in [ScheduleType.BA_RECLEAR.value, ScheduleType.BA_SPECIAL.value] and (not entry.pass_main or not entry.pass_supp):
-            entry.generate_passcode(type in [ScheduleType.BA_NORMAL.value])
+        if auto_passcode and (not entry.pass_main or not entry.pass_supp):
+            entry.generate_passcode(True)
         self._list.append(entry)       
         if db:
             db.connect()
@@ -129,7 +129,9 @@ class SchedulePost:
                 entry.id = id
                 schedule_post_data_bot.snowcaloid.data.tasks.add_task(timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
                 schedule_post_data_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id}) 
-                print({"ts": timestamp, "ts-d": timestamp - timedelta(hours=1)})
+                if auto_passcode:
+                    schedule_post_data_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id}) 
+                    schedule_post_data_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id}) 
                 return id
             finally:
                 db.disconnect()
