@@ -103,8 +103,8 @@ async def schedule_post_create(interaction: Interaction, channel: TextChannel):
 @snowcaloid.tree.command(name = "schedule_add", description = "Add an entry to the schedule.")
 @check(permission_admin)
 async def schedule_add(interaction: Interaction, type: str, 
-                       event_date: str, event_time: str, description: Optional[str] = ''):
-    await interaction.response.defer(thinking=True, ephemeral=True)
+                       event_date: str, event_time: str, description: Optional[str] = '', auto_passcode: Optional[bool] = True):
+    await interaction.response.defer(thinking=True)
     try:
         try:
             dt = datetime.strptime(event_date, "%d-%b-%Y")
@@ -122,7 +122,7 @@ async def schedule_add(interaction: Interaction, type: str,
         id = snowcaloid.data.schedule_posts.add_entry(snowcaloid.data.db, 
                                                     interaction.guild_id, 
                                                     interaction.user.id,
-                                                    type, dt, description)
+                                                    type, dt, description, auto_passcode)
         await snowcaloid.data.schedule_posts.update_post(interaction.guild_id)
         await snowcaloid.data.schedule_posts.create_pl_post(interaction.guild_id, id)
         await interaction.followup.send(f'The run #{str(id)} has been scheduled.')

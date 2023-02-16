@@ -1,9 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
 import time
 from discord import Message
 from buttons import ButtonType
 from dateutil.tz import tzlocal, tzutc
+import bot as u_bot
 
 class UnixStamp(Enum):
     TIME = 0
@@ -24,3 +25,11 @@ def unix_time(date: datetime, type: UnixStamp = UnixStamp.TIME) -> str:
 def button_custom_id(id: str, message: Message, type: ButtonType) -> str:
     """Generate custom_id for a button."""
     return f'{message.id}-{type.value}-{id}'
+
+async def get_mention(guild_id: int, user_id: int) -> str: 
+    if user_id:
+        guild = u_bot.snowcaloid.get_guild(guild_id)
+        if guild:
+            return (await guild.fetch_member(user_id)).mention
+    else:
+        return ''

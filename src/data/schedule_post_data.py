@@ -9,7 +9,7 @@ from discord import Embed, Message
 import bot as spd_bot
 from data.table.tasks import TaskExecutionType
 
-from utils import button_custom_id, unix_time
+from utils import button_custom_id, get_mention, unix_time
 from views import PersistentView
 
 class Error_Missing_Schedule_Post(Exception): pass
@@ -128,8 +128,8 @@ class SchedulePost:
                               f'values ({self.post}, {owner}, \'{type}\', {pg_timestamp(timestamp)}, \'{description}\', {str(int(entry.pass_main))}, {str(int(entry.pass_supp))}) returning id')
                 entry.id = id
                 spd_bot.snowcaloid.data.tasks.add_task(timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
-                spd_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id}) 
                 if auto_passcode:
+                    spd_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id}) 
                     spd_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id}) 
                     spd_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id}) 
                 return id
@@ -177,9 +177,25 @@ class SchedulePost:
                     set_str += f'timestamp={pg_timestamp(entry.timestamp)}'
                 if passcode and (not entry.pass_main or not entry.pass_supp):
                     entry.generate_passcode(True)
+                    guild_data = spd_bot.snowcaloid.data.guild_data.get_data(self.guild)
+                    if guild_data:
+                        channel_data = guild_data.get_channel(type=entry.type)
+                        if channel_data:
+                            spd_bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
+                        channel_data = guild_data.get_support_channel(type=entry.type)
+                        if channel_data:
+                            spd_bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
                 else:
                     entry.pass_main = 0
                     entry.pass_supp = 0
+                    guild_data = spd_bot.snowcaloid.data.guild_data.get_data(self.guild)
+                    if guild_data:
+                        channel_data = guild_data.get_channel(type=entry.type)
+                        if channel_data:
+                            spd_bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
+                        channel_data = guild_data.get_support_channel(type=entry.type)
+                        if channel_data:
+                            spd_bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
                 if set_str:
                     set_str += f', pass_main={str(entry.pass_main)}, pass_supp={str(entry.pass_supp)} '
                 else:
@@ -258,7 +274,7 @@ class SchedulePost:
                         schedule_on_day = ''
                         for entry in data._list:
                             schedule_on_day = "\n".join([schedule_on_day,
-                                                        entry.timestamp.strftime("%H:%M") + f' ST ({unix_time(entry.timestamp)} LT): {schedule_type_desc(entry.type)} (Leader: {guild.get_member(entry.owner).name})'])
+                                                        entry.timestamp.strftime("%H:%M") + f' ST ({unix_time(entry.timestamp)} LT): {schedule_type_desc(entry.type)} (Leader: {await get_mention(self.guild, entry.owner)})'])
                             if entry.description:
                                 schedule_on_day += f' [{entry.description}]'
                         embed.add_field(name=data._date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))
@@ -298,20 +314,15 @@ class SchedulePost:
                 message = await channel.fetch_message(entry.post_id)
         if message:
             embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nParty leader recruitment")
-            async def name(id: int) -> str: 
-                if id:
-                    return (await message.guild.fetch_member(id)).display_name
-                else:
-                    return ''
             embed.description = (
-                f'Raid Leader: {await name(entry.owner)}\n'
-                f'Party 1: {await name(entry.party_leaders[0])}\n'
-                f'Party 2: {await name(entry.party_leaders[1])}\n'
-                f'Party 3: {await name(entry.party_leaders[2])}\n'
-                f'Party 4: {await name(entry.party_leaders[3])}\n'
-                f'Party 5: {await name(entry.party_leaders[4])}\n'
-                f'Party 6: {await name(entry.party_leaders[5])}\n'
-                f'Support: {await name(entry.party_leaders[6])}\n\n'
+                f'Raid Leader: {await get_mention(self.guild, entry.owner)}\n'
+                f'Party 1: {await get_mention(self.guild, entry.party_leaders[0])}\n'
+                f'Party 2: {await get_mention(self.guild, entry.party_leaders[1])}\n'
+                f'Party 3: {await get_mention(self.guild, entry.party_leaders[2])}\n'
+                f'Party 4: {await get_mention(self.guild, entry.party_leaders[3])}\n'
+                f'Party 5: {await get_mention(self.guild, entry.party_leaders[4])}\n'
+                f'Party 6: {await get_mention(self.guild, entry.party_leaders[5])}\n'
+                f'Support: {await get_mention(self.guild, entry.party_leaders[6])}\n\n'
                 '*Use the button to volunteer to host a party.\n'
                 'Please note, your entry may be removed at the Raid Leader\'s discretion.*'
             )
@@ -393,7 +404,7 @@ class SchedulePostData():
                 return entry
         return None
     
-    def add_entry(self, db: Database, guild: int, owner: int, type: ScheduleType, timestamp: datetime, description: str = '') -> int:
+    def add_entry(self, db: Database, guild: int, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> int:
         """Add an event to the guild's schedule.
 
         Args:
@@ -414,7 +425,7 @@ class SchedulePostData():
             Rename owner parameter.
         """
         if self.contains(guild): 
-            return self.get_post(guild).add_entry(db, owner, type, timestamp, description)
+            return self.get_post(guild).add_entry(db, owner, type, timestamp, description, auto_passcode)
         else:
             raise Error_Missing_Schedule_Post() 
     

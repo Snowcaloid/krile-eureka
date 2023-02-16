@@ -110,8 +110,7 @@ async def post_main_passcode(data: object):
                         title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nPasscode",
                         description=(
                             f'Raid Leader: {rl.mention}\n\n'
-                            '**The passcode for MAIN parties (1-6) is going to be:**\n'
-                            f'    {str(int(entry.pass_main)).zfill(4)}\n'
+                            f'**The passcode for MAIN parties (1-6) is going to be: {str(int(entry.pass_main)).zfill(4)}**\n'
                             'This passcode will not work for support parties.\n\n'
                             '*Do not forget to bring __Spirit of Remembered__ and proper actions.*'
                         ))
@@ -133,8 +132,7 @@ async def post_support_passcode(data: object):
                         title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nPasscode",
                         description=(
                             f'Raid Leader: {rl.mention}\n\n'
-                            '**The passcode for the SUPPORT party is going to be:**\n'
-                            f'    {str(int(entry.pass_supp)).zfill(4)}\n'
+                            f'**The passcode for the SUPPORT party is going to be: {str(int(entry.pass_supp)).zfill(4)}**\n'
                             'This passcode will not work for main (1-6) parties.\n\n'
                             '*Do not forget to bring __Spirit of Remembered__ and proper actions.*\n'
                             'Support needs to bring dispel for the NM Ovni.'

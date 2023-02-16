@@ -72,6 +72,21 @@ class TaskList:
         finally:
             task_list_bot.snowcaloid.data.db.disconnect()
             
+    def remove_task_by_data(self, type: TaskExecutionType, data: object):
+        """Removes a task from the runtime object and the database.
+
+        Args:
+            type (TaskExecutionType): Task type
+            data (object): data equaling to what needs to be removed
+        """
+        for taskdata in self._list:
+            if taskdata.task_type == type and dumps(taskdata.data) == dumps(data):
+                self._list.remove(taskdata)
+        task_list_bot.snowcaloid.data.db.connect()
+        try:
+            task_list_bot.snowcaloid.data.db.query(f'delete from tasks where task_type={type.value} and data=\'{dumps(data)}\'')
+        finally:
+            task_list_bot.snowcaloid.data.db.disconnect()
     
     def load(self):
         """Load the list of tasks from the database."""
