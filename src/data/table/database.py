@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 import psycopg2
 import os
 from datetime import datetime
@@ -13,11 +14,24 @@ class DatabaseOperation(Enum):
 
 
 class Database:
+    """Runtime database access object
+    
+    Properties
+    ----------
+    _connection_counter: :class:`int`
+        Depth of connection requests. When the counter reaches 0, 
+        database will commit changes and close the connection.
+    _connection: :class:`pgConnection`
+        Currently opened connection.
+    _cursor: :class: `pgCursor`
+        Currently used cursor for the connection
+    """
     _connection_counter: int = 0
     _connection: None
     _cursor: None
 
     def connect(self):
+        """Connect to Postgres. If already active, _connection_counter is incremented."""
         if not self._connection_counter:
             self._connection = psycopg2.connect(
                 database=os.getenv('DB_NAME'),
@@ -31,6 +45,8 @@ class Database:
         self._connection_counter += 1
 
     def disconnect(self):
+        """Disconnect from Postgres and save the changes. If multiple
+        `connect()`'s were called, the _connection_counter is decremented."""
         if not self._connection_counter:
             raise Exception('disconnect without prior connect')
 
@@ -39,7 +55,20 @@ class Database:
             self._connection.commit()
             self._connection.close()
 
-    def query(self, query: str):
+    def query(self, query: str) -> Union[str, None]:
+        """Execute a query on the current cursor.
+
+        Args:
+            query (str): SQL string to be executed.
+
+        Returns:
+            Union[str, None]: 
+                SELECT statement returns an array of row arrays.
+                
+                INSERT INTO RETURNING returns the value which is requested.
+                
+                Other queries return an empty array.
+        """
         self.connect()
         try:
             self._cursor.execute(query)

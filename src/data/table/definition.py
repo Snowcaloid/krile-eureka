@@ -15,6 +15,7 @@ class ColumnFlag:
     UNIQUE = 'UNIQUE'
 
 class ColumnDefinition:
+    """Helper class containing a column definition for a table."""
     name: str
     type: str
     length: int
@@ -28,6 +29,16 @@ class ColumnDefinition:
         self.references = references
         
 class TableDefinition:
+    """Table definition class. Any table can inherit this class and define 
+    it's columns in the method `init_definitons`.
+    
+    Properties
+    ----------
+    _name: :class:`str`
+        Table name.
+    _columns: :class:`List[ColumnDefinition]`
+        List of column definitions.
+    """
     _name: str
     _columns: List[ColumnDefinition]
     
@@ -37,16 +48,28 @@ class TableDefinition:
         self.init_definitions()
 
     def init_definitions(self):
+        """Override this function in classes that inherit this to define columns."""
         pass
     
-    def define_field(self, name: str, type: ColumnType, length: int = 0, 
+    def define_column(self, name: str, type: ColumnType, length: int = 0, 
                      flags: List[ColumnFlag] = [ColumnFlag.NONE], references: str = ''):
+        """Add a column
+
+        Args:
+            name (str): Column name
+            type (ColumnType): Column type
+            length (int, optional): Column length (only viable for VARCHAR). Defaults to 0.
+            flags (List[ColumnFlag], optional): Column flags (e.g. Primary key, Unique). Defaults to [ColumnFlag.NONE].
+            references (str, optional): Refence to a primary key of another table. Experimental. Defaults to ''.
+        """
         self._columns.append(ColumnDefinition(name, type, length, flags, references)) 
         
     def to_sql_create(self) -> str:
+        """Get Create Table SQL statement."""
         return f'CREATE TABLE IF NOT EXISTS {self._name}()'
     
     def to_sql_alter(self) -> str:
+        """Get Alter Table SQL statement."""
         columns = ''
         for column in self._columns:
             len = f'({str(column.length)})' if column.length > 0 else '' 
@@ -81,6 +104,8 @@ class TableDefinition:
         return f'alter table {self._name} {columns}'
         
 class TableDefinitions:
+    """Definition list of all tables. Use TableDefinitions.register() to 
+    create persistent tables in the database."""
     DEFINITIONS: List[TableDefinition] = []
     
     @classmethod

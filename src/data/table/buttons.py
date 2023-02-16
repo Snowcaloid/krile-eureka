@@ -10,5 +10,5 @@ class ButtonData:
     
 class ButtonsTable(TableDefinition):
     def init_definitions(self):
-        self.define_field('button_id', ColumnType.VARCHAR, 50, [ColumnFlag.UNIQUE, ColumnFlag.PRIMARY_KEY])
-        self.define_field('label', ColumnType.VARCHAR, 50)
+        self.define_column('button_id', ColumnType.VARCHAR, 50, [ColumnFlag.UNIQUE, ColumnFlag.PRIMARY_KEY])
+        self.define_column('label', ColumnType.VARCHAR, 50)

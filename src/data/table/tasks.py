@@ -23,7 +23,7 @@ class TaskData:
     
 class TaskTable(TableDefinition):
     def init_definitions(self):
-        self.define_field('id', ColumnType.SERIAL)
-        self.define_field('execution_time', ColumnType.TIMESTAMP)
-        self.define_field('task_type', ColumnType.INTEGER)
-        self.define_field('data', ColumnType.TEXT)
+        self.define_column('id', ColumnType.SERIAL)
+        self.define_column('execution_time', ColumnType.TIMESTAMP)
+        self.define_column('task_type', ColumnType.INTEGER)
+        self.define_column('data', ColumnType.TEXT)

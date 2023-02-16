@@ -1,6 +1,7 @@
 from typing import List
 
 class QueryType:
+    """TODO: change this to an enum"""
     NONE = 0
     ROLE_POST = 1
 
@@ -17,6 +18,16 @@ class QueryOwner:
         pass
     
 class Query:
+    """Runtime data object for the user's queries.
+    This object has no equivalent database entity.
+
+    Properties
+    ----------
+    _list: :class:`List[QueryData]`
+        List of active queries. This is seperated by user and query type.
+    _owner: :class:`QueryOwner`
+        Runtime data object that can run code when a query is finished.
+    """
     _list: List[QueryData] 
     _owner: QueryOwner
     
@@ -25,6 +36,15 @@ class Query:
         self._list = []
     
     def start(self, user: int, type: QueryType) -> bool:
+        """Starts a runtime query
+
+        Args:
+            user (int): user id.
+            type (QueryType): Query type.
+        
+        Returns:
+            Success?
+        """
         if user in self._list:
             return False
         else:
@@ -32,6 +52,12 @@ class Query:
         return True
     
     def running(self, user: int, type: QueryType) -> bool:
+        """Is the user running a <type> query?
+
+        Args:
+            user (int): user id.
+            type (QueryType): Query type.
+        """
         for data in self._list:
             if data.user == user and data.type == type:
                 return True
@@ -39,6 +65,15 @@ class Query:
         return False
             
     def stop(self, user: int, type: QueryType) -> bool:
+        """Finish a <type> query.
+
+        Args:
+            user (int): user id.
+            type (QueryType): Query type.
+        
+        Returns:
+            Success?
+        """
         if self.running(user, type):
             for data in self._list:
                 if data.user == user and data.type == type:
