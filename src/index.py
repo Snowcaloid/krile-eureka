@@ -1,12 +1,13 @@
 import os
 
 from dotenv import load_dotenv
-load_dotenv()
 from bot import snowcaloid
 from views import PersistentView
 from buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
 import commands
 import tasks
+
+load_dotenv()
 
 commands.so_that_import_works()
 
