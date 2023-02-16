@@ -6,7 +6,7 @@ from data.table.guilds import GuildData
 from data.table.schedule import ScheduleType, ScheduleData, schedule_type_desc
 from datetime import datetime, date, timedelta
 from discord import Embed, Message
-import bot as schedule_post_data_bot
+import bot as spd_bot
 from data.table.tasks import TaskExecutionType
 
 from utils import button_custom_id, unix_time
@@ -94,12 +94,12 @@ class SchedulePost:
         for data in self._list:
             if data.id == id:
                 self._list.remove(data)
-                schedule_post_data_bot.snowcaloid.data.db.connect()
+                spd_bot.snowcaloid.data.db.connect()
                 try:
-                    schedule_post_data_bot.snowcaloid.data.db.query(f'delete from schedule where id={id}')
-                    schedule_post_data_bot.snowcaloid.data.db.query(f'delete from buttons where button_id ~ \'{data.post_id}\'')
+                    spd_bot.snowcaloid.data.db.query(f'delete from schedule where id={id}')
+                    spd_bot.snowcaloid.data.db.query(f'delete from buttons where button_id ~ \'{data.post_id}\'')
                 finally:
-                    schedule_post_data_bot.snowcaloid.data.db.disconnect()
+                    spd_bot.snowcaloid.data.db.disconnect()
         
     def add_entry(self, db: Database, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> Union[int, ScheduleData]:
         """Add an event to the guild's schedule.
@@ -127,11 +127,11 @@ class SchedulePost:
                 id = db.query(f'insert into schedule (schedule_post, owner, type, timestamp, description, pass_main, pass_supp) ' +
                               f'values ({self.post}, {owner}, \'{type}\', {pg_timestamp(timestamp)}, \'{description}\', {str(int(entry.pass_main))}, {str(int(entry.pass_supp))}) returning id')
                 entry.id = id
-                schedule_post_data_bot.snowcaloid.data.tasks.add_task(timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
-                schedule_post_data_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id}) 
+                spd_bot.snowcaloid.data.tasks.add_task(timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
+                spd_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id}) 
                 if auto_passcode:
-                    schedule_post_data_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id}) 
-                    schedule_post_data_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id}) 
+                    spd_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id}) 
+                    spd_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id}) 
                 return id
             finally:
                 db.disconnect()
@@ -245,7 +245,7 @@ class SchedulePost:
                 
     async def update_post(self): 
         """Updates the schedule post."""
-        guild = schedule_post_data_bot.snowcaloid.get_guild(self.guild)       
+        guild = spd_bot.snowcaloid.get_guild(self.guild)       
         for channel in await guild.fetch_channels():
             if channel.id == self.channel:
                 post = await channel.fetch_message(self.post)
@@ -294,7 +294,7 @@ class SchedulePost:
         if not message:
             pl_channel = guild_data.get_pl_channel(entry.type)
             if pl_channel:
-                channel = await schedule_post_data_bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
+                channel = await spd_bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
                 message = await channel.fetch_message(entry.post_id)
         if message:
             embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nParty leader recruitment")
@@ -331,7 +331,7 @@ class SchedulePost:
         entry = self.get_entry(id)
         pl_channel = guild_data.get_pl_channel(entry.type)
         if pl_channel:
-            channel = await schedule_post_data_bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
+            channel = await spd_bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
             message = await channel.send(f'Recruitment post #{str(id)}')
             entry.post_id = message.id
             view = PersistentView()
@@ -341,16 +341,16 @@ class SchedulePost:
             view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
             await self.update_pl_post(guild_data, entry=entry, message=message)
             await message.edit(view=view)
-            schedule_post_data_bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
-            schedule_post_data_bot.snowcaloid.data.db.connect()
+            spd_bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
+            spd_bot.snowcaloid.data.db.connect()
             try:
-                schedule_post_data_bot.snowcaloid.data.db.query(f'update schedule set post_id={entry.post_id} where id={id}')
+                spd_bot.snowcaloid.data.db.query(f'update schedule set post_id={entry.post_id} where id={id}')
                 for button in view.children:
-                    schedule_post_data_bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.custom_id}\', \'{button.label}\')')
+                    spd_bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.custom_id}\', \'{button.label}\')')
             finally:
-                schedule_post_data_bot.snowcaloid.data.db.disconnect()
+                spd_bot.snowcaloid.data.db.disconnect()
         else: 
-            print(f'Info: no party leader post has been made due to the missing channel for type {type} in guild {schedule_post_data_bot.snowcaloid.get_guild(self.guild).name}')
+            print(f'Info: no party leader post has been made due to the missing channel for type {type} in guild {spd_bot.snowcaloid.get_guild(self.guild).name}')
             
         
 class SchedulePostData():
