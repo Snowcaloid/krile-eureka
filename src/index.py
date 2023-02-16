@@ -18,6 +18,7 @@ async def recreate_view(bot):
     views = []
     i = 0
     view = PersistentView()
+    views.append(view)
     for buttondata in bot.data._loaded_view:
         i += 1
         if i % 20 == 0:
@@ -34,14 +35,8 @@ async def on_ready():
     await snowcaloid.data.load_db_data()
     await snowcaloid.tree.sync()
     print(f'{snowcaloid.user} has connected to Discord!')
-    if not tasks.refresh_bot_status.is_running():
-        tasks.refresh_bot_status.start()
-    if not tasks.send_pl_passcodes.is_running():
-        tasks.send_pl_passcodes.start()
-    if not tasks.remove_old_runs.is_running():
-        tasks.remove_old_runs.start()
-    if not tasks.remove_old_pl_posts.is_running():
-        tasks.remove_old_pl_posts.start()
+    if not tasks.task_loop.is_running():
+        tasks.task_loop.start()
 
 snowcaloid.recreate_view = recreate_view
 snowcaloid.run(TOKEN)

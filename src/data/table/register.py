@@ -3,6 +3,7 @@ from data.table.definition import TableDefinitions
 from data.table.buttons import ButtonsTable
 from data.table.guilds import GuildTable
 from data.table.schedule import ScheduleTable
+from data.table.tasks import TaskTable
 
 class RegisterTables:
     @classmethod
@@ -11,4 +12,5 @@ class RegisterTables:
         TableDefinitions.register(GuildTable('guilds'))
         TableDefinitions.register(ChannelTable('channels'))
         TableDefinitions.register(ScheduleTable('schedule'))
+        TableDefinitions.register(TaskTable('tasks'))
         

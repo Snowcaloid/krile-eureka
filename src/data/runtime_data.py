@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 import bot as runtime_data_bot
 from data.role_post_data import RolePostData
@@ -9,6 +10,8 @@ from data.table.definition import TableDefinitions
 from data.table.buttons import ButtonData
 from discord.ext.commands import Bot
 from data.runtime_guild_data import RuntimeGuildData
+from data.table.tasks import TaskExecutionType
+from data.task_list import TaskList
         
 class RuntimeData(QueryOwner):
     _loaded_view: List[ButtonData]
@@ -16,6 +19,7 @@ class RuntimeData(QueryOwner):
     role_posts: RolePostData
     schedule_posts: SchedulePostData
     guild_data: RuntimeGuildData
+    tasks: TaskList
     query: Query
     ready: bool
     
@@ -27,6 +31,7 @@ class RuntimeData(QueryOwner):
         self.init_db()
         self.role_posts     = RolePostData()
         self.guild_data     = RuntimeGuildData()
+        self.tasks          = TaskList()
         self.schedule_posts = SchedulePostData(self.guild_data)
         self.query          = Query(self)
 
@@ -55,4 +60,6 @@ class RuntimeData(QueryOwner):
                 if data.guild_id == guild.id:
                     guild.fetch_members()
         await self.schedule_posts.load(self.db)
+        self.tasks.load()
         self.ready = True
+        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS) 

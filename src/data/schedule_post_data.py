@@ -4,9 +4,10 @@ from data.runtime_guild_data import RuntimeGuildData
 from data.table.database import Database, pg_timestamp
 from data.table.guilds import GuildData
 from data.table.schedule import ScheduleType, ScheduleData, schedule_type_desc
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from discord import Embed, Message
 import bot as schedule_post_data_bot
+from data.table.tasks import TaskExecutionType
 
 from utils import button_custom_id, unix_time
 from views import PersistentView
@@ -58,6 +59,7 @@ class SchedulePost:
                 self._list.remove(data)
                 schedule_post_data_bot.snowcaloid.data.db.connect()
                 try:
+                    schedule_post_data_bot.snowcaloid.data.db.query(f'delete from schedule where id={id}')
                     schedule_post_data_bot.snowcaloid.data.db.query(f'delete from buttons where button_id ~ \'{data.post_id}\'')
                 finally:
                     schedule_post_data_bot.snowcaloid.data.db.disconnect()
@@ -66,13 +68,16 @@ class SchedulePost:
         entry = ScheduleData(owner, type, timestamp, description)
         if auto_passcode and not type in [ScheduleType.BA_RECLEAR.value, ScheduleType.BA_SPECIAL.value] and (not entry.pass_main or not entry.pass_supp):
             entry.generate_passcode(type in [ScheduleType.BA_NORMAL.value])
-        self._list.append(entry)        
+        self._list.append(entry)       
         if db:
             db.connect()
             try:
                 id = db.query(f'insert into schedule (schedule_post, owner, type, timestamp, description, pass_main, pass_supp) ' +
                               f'values ({self.post}, {owner}, \'{type}\', {pg_timestamp(timestamp)}, \'{description}\', {str(int(entry.pass_main))}, {str(int(entry.pass_supp))}) returning id')
                 entry.id = id
+                schedule_post_data_bot.snowcaloid.data.tasks.add_task(timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
+                schedule_post_data_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id}) 
+                print({"ts": timestamp, "ts-d": timestamp - timedelta(hours=1)})
                 return id
             finally:
                 db.disconnect()
@@ -185,7 +190,7 @@ class SchedulePost:
                 channel = await schedule_post_data_bot.snowcaloid.get_guild(guild_data.guild_id).fetch_channel(pl_channel.channel_id)
                 message = await channel.fetch_message(entry.post_id)
         if message:
-            embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y ') + schedule_type_desc(entry.type) + "\nParty leader recruitment")
+            embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nParty leader recruitment")
             async def name(id: int) -> str: 
                 if id:
                     return (await message.guild.fetch_member(id)).display_name
@@ -210,7 +215,7 @@ class SchedulePost:
         entry = self.get_entry(id)
         pl_channel = guild_data.get_pl_channel(entry.type)
         if pl_channel:
-            channel = await schedule_post_data_bot.snowcaloid.get_guild(guild_data.guild_id).fetch_channel(pl_channel.channel_id)
+            channel = await schedule_post_data_bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
             message = await channel.send(f'Recruitment post #{str(id)}')
             entry.post_id = message.id
             view = PersistentView()
@@ -220,6 +225,7 @@ class SchedulePost:
             view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
             await self.update_pl_post(guild_data, entry=entry, message=message)
             await message.edit(view=view)
+            schedule_post_data_bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
             schedule_post_data_bot.snowcaloid.data.db.connect()
             try:
                 schedule_post_data_bot.snowcaloid.data.db.query(f'update schedule set post_id={entry.post_id} where id={id}')
@@ -228,7 +234,7 @@ class SchedulePost:
             finally:
                 schedule_post_data_bot.snowcaloid.data.db.disconnect()
         else: 
-            print(f'Info: no party leader post has been made due to the missing channel for type {type} in guild {schedule_post_data_bot.snowcaloid.get_guild(guild_data.guild_id).name}')
+            print(f'Info: no party leader post has been made due to the missing channel for type {type} in guild {schedule_post_data_bot.snowcaloid.get_guild(self.guild).name}')
             
         
 class SchedulePostData():
@@ -288,14 +294,13 @@ class SchedulePostData():
             self._list.clear()
             for guild_data in self.guild_data._list:
                 schedule_post = SchedulePost(guild_data.guild_id, guild_data.schedule_channel, guild_data.schedule_post)
-                for sch_record in db.query(f'select id, owner, type, timestamp, description, post_id, pl1, pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp, notified from schedule where schedule_post={guild_data.schedule_post}'):
+                for sch_record in db.query(f'select id, owner, type, timestamp, description, post_id, pl1, pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp from schedule where schedule_post={guild_data.schedule_post}'):
                     entry = schedule_post.add_entry(None, sch_record[1], sch_record[2], sch_record[3], sch_record[4])
                     entry.id = sch_record[0]
                     entry.post_id = sch_record[5]
                     entry.party_leaders = [sch_record[6], sch_record[7], sch_record[8], sch_record[9], sch_record[10], sch_record[11], sch_record[12]]
                     entry.pass_main = sch_record[13]
                     entry.pass_supp = sch_record[14]
-                    entry.notified = sch_record[15]
                 self._list.append(schedule_post)
                 await schedule_post.update_post()
         finally:

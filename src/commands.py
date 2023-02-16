@@ -33,7 +33,7 @@ def permission_admin(interaction: Union[Interaction, InteractionResponse]) -> bo
 
 @snowcaloid.tree.command(name = "role_post_create", description = "Initialize creation process of a role reaction post.")
 @check(permission_admin)
-async def role_post_create(interaction: InteractionResponse):
+async def role_post_create(interaction: Interaction):
     snowcaloid.data.query.start(interaction.user.id, QueryType.ROLE_POST)
     await interaction.response.send_message(
         embed=Embed(title='Use /role_post_add to add roles to the post.'),
@@ -41,7 +41,7 @@ async def role_post_create(interaction: InteractionResponse):
 
 @snowcaloid.tree.command(name = "role_post_finish", description = "Finish and post the role reaction post.")
 @check(permission_admin)
-async def role_post_finish(interaction: InteractionResponse, channel: TextChannel):
+async def role_post_finish(interaction: Interaction, channel: TextChannel):
     if not snowcaloid.data.query.running(interaction.user.id, QueryType.ROLE_POST):
         await interaction.response.send_message(
             embed=Embed(title='Use /role_post_create to start the creation process.'),
@@ -62,7 +62,7 @@ async def role_post_finish(interaction: InteractionResponse, channel: TextChanne
     
 @snowcaloid.tree.command(name = "role_post_add", description = "Add roles to the reaction post.")
 @check(permission_admin)
-async def role_post_add(interaction: InteractionResponse, name: str):
+async def role_post_add(interaction: Interaction, name: str):
     if not snowcaloid.data.query.running(interaction.user.id, QueryType.ROLE_POST):
         await interaction.response.send_message(
             embed=Embed(title='Use /role_post_create to start the creation process.'),
@@ -91,7 +91,7 @@ async def role_post_add(interaction: InteractionResponse, name: str):
 
 @snowcaloid.tree.command(name = "schedule_post_create", description = "Create a static post that will be used as a schedule list. Up to 1 per server.")
 @check(permission_admin)
-async def schedule_post_create(interaction: InteractionResponse, channel: TextChannel):
+async def schedule_post_create(interaction: Interaction, channel: TextChannel):
     if snowcaloid.data.schedule_posts.contains(interaction.guild_id):
         await interaction.response.send_message('This guild already contains a schedule post.', ephemeral=True)
     else:    
@@ -102,8 +102,9 @@ async def schedule_post_create(interaction: InteractionResponse, channel: TextCh
 
 @snowcaloid.tree.command(name = "schedule_add", description = "Add an entry to the schedule.")
 @check(permission_admin)
-async def schedule_add(interaction: InteractionResponse, type: str, 
+async def schedule_add(interaction: Interaction, type: str, 
                        event_date: str, event_time: str, description: Optional[str] = ''):
+    await interaction.response.defer(thinking=True, ephemeral=True)
     try:
         try:
             dt = datetime.strptime(event_date, "%d-%b-%Y")
@@ -115,26 +116,26 @@ async def schedule_add(interaction: InteractionResponse, type: str,
             raise TimeValueError()
         dt = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
         if dt < datetime.utcnow():
-            return await interaction.response.send_message(f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.', ephemeral=True)
+            return await interaction.followup.send(f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.', ephemeral=True)
         if not type in ScheduleType._value2member_map_:
-            return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
+            return await interaction.followup.send(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
         id = snowcaloid.data.schedule_posts.add_entry(snowcaloid.data.db, 
                                                     interaction.guild_id, 
                                                     interaction.user.id,
                                                     type, dt, description)
         await snowcaloid.data.schedule_posts.update_post(interaction.guild_id)
         await snowcaloid.data.schedule_posts.create_pl_post(interaction.guild_id, id)
-        await interaction.response.send_message(f'The run #{str(id)} has been scheduled.')
+        await interaction.followup.send(f'The run #{str(id)} has been scheduled.')
     except Error_Missing_Schedule_Post:
-        await interaction.response.send_message('This server has no schedule post. This is required for scheduling.', ephemeral=True)
+        await interaction.followup.send('This server has no schedule post. This is required for scheduling.', ephemeral=True)
     except DateValueError:
-        await interaction.response.send_message(f'The date format is not correct. If you start typing in format DD-MM-YYYY, auto-fill will help you.', ephemeral=True)
+        await interaction.followup.send(f'The date format is not correct. If you start typing in format DD-MM-YYYY, auto-fill will help you.', ephemeral=True)
     except TimeValueError:
-        await interaction.response.send_message(f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.', ephemeral=True)
+        await interaction.followup.send(f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.', ephemeral=True)
     
 @snowcaloid.tree.command(name = "schedule_remove", description = "Remove a schedule entry.")
 @check(permission_admin)
-async def schedule_remove(interaction: InteractionResponse, id: int):
+async def schedule_remove(interaction: Interaction, id: int):
     try:
         await snowcaloid.data.schedule_posts.remove_entry(snowcaloid.data.db, interaction.guild_id, interaction.user.id, permission_admin(interaction), id)
         await interaction.response.send_message(f'Run #{id} has been deleted.')
@@ -147,7 +148,7 @@ async def schedule_remove(interaction: InteractionResponse, id: int):
         
 @snowcaloid.tree.command(name = "schedule_channel", description = "Set the channel for specific type of events.")
 @check(permission_admin)
-async def schedule_channel(interaction: InteractionResponse, type: str, channel: TextChannel):
+async def schedule_channel(interaction: Interaction, type: str, channel: TextChannel):
     if not type in ScheduleType._value2member_map_:
         return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
     op = snowcaloid.data.guild_data.set_schedule_channel(snowcaloid.data.db, interaction.guild_id, type, channel.id)
@@ -158,7 +159,7 @@ async def schedule_channel(interaction: InteractionResponse, type: str, channel:
 
 @snowcaloid.tree.command(name = "schedule_party_leaders", description = "Set the channel for party leader posts.")
 @check(permission_admin)
-async def schedule_party_leaders(interaction: InteractionResponse, type: str, channel: TextChannel):
+async def schedule_party_leaders(interaction: Interaction, type: str, channel: TextChannel):
     if not type in ScheduleType._value2member_map_:
         return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
     op = snowcaloid.data.guild_data.set_party_leader_channel(snowcaloid.data.db, interaction.guild_id, type, channel.id)
@@ -169,7 +170,7 @@ async def schedule_party_leaders(interaction: InteractionResponse, type: str, ch
         
 @snowcaloid.tree.command(name = "schedule_edit", description = "Add an entry to the schedule.")
 @check(permission_admin)
-async def schedule_edit(interaction: InteractionResponse, id: int, type: Optional[str] = '', owner: Optional[str] = '',
+async def schedule_edit(interaction: Interaction, id: int, type: Optional[str] = '', owner: Optional[str] = '',
                         event_date: Optional[str] = '', event_time: Optional[str] = '', description: Optional[str] = '', passcode: Optional[bool] = True):
     try:
         dt = None
