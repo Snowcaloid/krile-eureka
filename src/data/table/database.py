@@ -1,12 +1,7 @@
-from dotenv import load_dotenv
 from enum import Enum
 import psycopg2
 import os
 from datetime import datetime
-
-# Required for the database to retrieve the credentials.
-load_dotenv()
-
 
 def pg_timestamp(timestamp: datetime):
     return timestamp.strftime("\'%Y-%m-%d %H:%M\'")
