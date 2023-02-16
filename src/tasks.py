@@ -8,6 +8,7 @@ from data.table.tasks import TaskExecutionType
 
 @tasks.loop(seconds=1) # The delay is calculated from the end of execution of the last task.
 async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
+    """Main loop, which runs required tasks at required times. await is necessery."""
     if snowcaloid.data.ready:
         task = snowcaloid.data.tasks.get_next()
         if task:
@@ -22,6 +23,7 @@ async def task_loop(): # You can think of it as sleep(1000) after the last proce
             snowcaloid.data.tasks.remove_task(task.id)
 
 async def refresh_bot_status():
+    """Changes bot's status to <Playing Run type in [time until next run]>, or empties it."""
     next_exec = datetime.utcnow() + timedelta(minutes=1)
     snowcaloid.data.db.connect()
     try:
@@ -45,11 +47,13 @@ async def refresh_bot_status():
         snowcaloid.data.tasks.add_task(next_exec, TaskExecutionType.UPDATE_STATUS)
 
 async def remove_old_run(data: object):
+    """Removes run <id> from runtime data and the database."""
     if data and data["id"]:
         for post in snowcaloid.data.schedule_posts._list:
             post.remove(data["id"])
             
 async def remove_old_pl_post(data: object):
+    """Removes Party leader recruitment post."""
     if data and data["guild"] and data["channel"]:
         guild = snowcaloid.get_guild(data["guild"])
         channel = await guild.fetch_channel(data["channel"])
@@ -60,6 +64,7 @@ async def remove_old_pl_post(data: object):
                     await message.delete()
                 
 async def send_pl_passcodes(data: object):
+    """Sends all allocated party leaders and the raid leader the passcodes for the run."""
     if data and data["guild"] and data["entry_id"]:
         entry = snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
         guild = snowcaloid.get_guild(data["guild"])

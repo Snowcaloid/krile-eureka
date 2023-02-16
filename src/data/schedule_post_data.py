@@ -19,6 +19,7 @@ class Error_Insufficient_Permissions(Exception): pass
 class Error_Invalid_Date(Exception): pass
 
 class DateSeparatedScheduleData:
+    """Helper class for separating Schedule entries by date."""
     _list: List[ScheduleData]
     _date: date
     
@@ -27,6 +28,22 @@ class DateSeparatedScheduleData:
         self._list = []
 
 class SchedulePost:
+    """Runtime data object containing information regarding Schedule 
+    for a certain guild.
+    
+    Properties
+    ----------
+    guild: :class:`int`
+        Guild ID.
+    channel: :class:`int`
+        Channel ID, where the schedule post is located.
+    post: :class:`int`
+        Message ID of the schedule post. This message should be placed 
+        in a channel, which doesn't have more than 50 messages posted 
+        simultaneously after the post.
+    _list: :class:`List[ScheduleData]`
+        List of all the scheduled events in the given guild.
+    """
     guild: int
     channel: int
     post: int
@@ -39,21 +56,41 @@ class SchedulePost:
         self._list = []
     
     def contains(self, id: int) -> bool:
+        """Does the event <id> exist in this guild?
+
+        Args:
+            id (int): event id
+        """
         return self.get_entry(id)
     
     def get_entry(self, id: int) -> ScheduleData:
+        """Get the event <id>.
+
+        Args:
+            id (int): event id
+        """
         for data in self._list:
             if data.id == id:
                 return data
         return None
 
-    def get_entry_by_post(self, post_id: int) -> ScheduleData:
+    def get_entry_by_pl_post(self, post_id: int) -> ScheduleData:
+        """Get the event by it's party leader post.
+
+        Args:
+            post_id (int): party leader message id
+        """
         for data in self._list:
             if data.post_id == post_id:
                 return data
         return None
     
     def remove(self, id: int):
+        """Remove event from the runtime data and the database.
+
+        Args:
+            id (int): event id
+        """
         for data in self._list:
             if data.id == id:
                 self._list.remove(data)
@@ -65,6 +102,21 @@ class SchedulePost:
                     schedule_post_data_bot.snowcaloid.data.db.disconnect()
         
     def add_entry(self, db: Database, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> Union[int, ScheduleData]:
+        """Add an event to the guild's schedule.
+
+        Args:
+            owner (int): Event owner (user id). Typically the caller of /schedule_add
+            type (ScheduleType): Type of event that is being scheduled.
+            timestamp (datetime): When is the run taking place?
+            description (str, optional): Description for the run. Defaults to ''.
+            auto_passcode (bool, optional): Is the passcode automatically generated?. Defaults to True.
+
+        Returns:
+            Union[int, ScheduleData]: If called by runtime, it returns the id of the event. If called by loading from database, returns the event object. 
+        TODO:
+            Refactor database parameter. 
+            Always return the event itself.
+        """
         entry = ScheduleData(owner, type, timestamp, description)
         if auto_passcode and not type in [ScheduleType.BA_RECLEAR.value, ScheduleType.BA_SPECIAL.value] and (not entry.pass_main or not entry.pass_supp):
             entry.generate_passcode(type in [ScheduleType.BA_NORMAL.value])
@@ -84,7 +136,28 @@ class SchedulePost:
         else:
             return entry
     
-    def edit_entry(self, db: Database, id: int, owner: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
+    def edit_entry(self, db: Database, id: int, owner: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool):
+        """Edits the event.
+
+        Args:
+            id (int): event id.
+            owner (int): User ID of the user trying to edit the entry.
+            type (ScheduleType): Event type
+            date (datetime): Date of the event
+            time (datetime): Time of the event
+            description (str): Description of the event
+            passcode (bool): Is the passcode needed?
+            is_admin (bool): Does the calling user have admin rights / rights to edit other's runs?
+
+        Raises:
+            Error_Invalid_Date: Date is invalid
+            Error_Insufficient_Permissions: The user doesn't have permissions to change the event.
+            Error_Invalid_Schedule_Id: The schedule id is invalid.
+
+        TODO:
+            Refactor the db parameter.
+            Rename owner parameter.
+        """
         entry = self.get_entry(id)
         if entry:
             if owner == entry.owner or is_admin:
@@ -130,6 +203,20 @@ class SchedulePost:
             raise Error_Invalid_Schedule_Id()
     
     async def remove_entry(self, db: Database, owner: int, admin: bool, id: int):
+        """Remove the event <id>.
+
+        Args:
+            owner (int): User ID of the user trying to edit the entry.
+            admin (bool): Does the calling user have admin rights / rights to edit other's runs?
+            id (int): event id
+
+        Raises:
+            Error_Cannot_Remove_Schedule: The user doesn't have permissions to change the event.
+        
+        TODO:
+            Remove the db parameter.
+            Rename owner parameter.
+        """
         self.remove(id)
         db.connect()
         try:
@@ -143,6 +230,7 @@ class SchedulePost:
             db.disconnect()
                 
     def split_per_date(self) -> List[DateSeparatedScheduleData]:
+        """Splits the event list by date."""
         result = []
         entry = None
         for data in self._list:
@@ -154,6 +242,7 @@ class SchedulePost:
         return result
                 
     async def update_post(self): 
+        """Updates the schedule post."""
         guild = schedule_post_data_bot.snowcaloid.get_guild(self.guild)       
         for channel in await guild.fetch_channels():
             if channel.id == self.channel:
@@ -177,9 +266,25 @@ class SchedulePost:
                     raise Exception(f'Could not find message with ID {self.post}')
                 
     async def update_pl_post(self, guild_data: GuildData, entry: ScheduleData = None, message: Message = None, post_id: int = 0, id: int = 0):
+        """Updates the party leader recruitment post.
+
+        Args:
+            guild_data (GuildData): Runtime guild data object for the current guild
+            entry (ScheduleData, optional): Event, whose post will be updated. Defaults to 
+                None - not needed if `id` or `post_id` are supplied.
+            message (Message, optional): Message, that will be edited. Defaults to None - 
+                then tries to find it using event data.
+            post_id (int, optional): Message ID of the party leader post. Defaults to 0 - 
+                not needed if `entry` or `id` are supplied.
+            id (int, optional): Event id. Defaults to 0 - not needed if `event` or `post_id` 
+                are supplied.
+
+        TODO:  
+            Remove guild_data parameter and get it automatically.
+        """
         if not entry:
             if post_id:
-                entry = self.get_entry_by_post(post_id)
+                entry = self.get_entry_by_pl_post(post_id)
             elif id:
                 entry = self.get_entry(id)
             else:
@@ -187,7 +292,7 @@ class SchedulePost:
         if not message:
             pl_channel = guild_data.get_pl_channel(entry.type)
             if pl_channel:
-                channel = await schedule_post_data_bot.snowcaloid.get_guild(guild_data.guild_id).fetch_channel(pl_channel.channel_id)
+                channel = await schedule_post_data_bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
                 message = await channel.fetch_message(entry.post_id)
         if message:
             embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nParty leader recruitment")
@@ -212,6 +317,15 @@ class SchedulePost:
             
     
     async def create_pl_post(self, id: int, guild_data: GuildData):
+        """Create the party leader post for event <id>
+
+        Args:
+            id (int): event id.
+            guild_data (GuildData): Runtime guild data for the guild.
+        
+        TODO:
+            Remove guild_data parameter and get it automatically.
+        """
         entry = self.get_entry(id)
         pl_channel = guild_data.get_pl_channel(entry.type)
         if pl_channel:
@@ -238,6 +352,19 @@ class SchedulePost:
             
         
 class SchedulePostData():
+    """Runtime data object containing all schedule information for all guilds.
+    
+    Properties
+    ----------
+    _list: :class:`List[SchedulePost]`
+        List of all schedule information, seperated by guild.
+    guild_data: :class:`RuntimeGuildData`
+        Runtime data which stores base properties of a guild, e.g which event type 
+        should be posted in which channel.
+
+    TODO:
+        Remove guild_data and use global snowcaloid.data.guild_data.
+    """
     _list: List[SchedulePost]
     guild_data: RuntimeGuildData
     
@@ -246,49 +373,146 @@ class SchedulePostData():
         self.guild_data = guild_data
     
     def contains(self, guild: int) -> bool:
+        """Does the guild contain a schedule post?
+
+        Args:
+            guild (int): guild id
+        """
         return self.get_post(guild)
     
     def get_post(self, guild: int) -> SchedulePost:
+        """Get the schedule post data for the guild.
+
+        Args:
+            guild (int): guild
+        """
         for entry in self._list:
             if entry.guild == guild:
                 return entry
         return None
     
     def add_entry(self, db: Database, guild: int, owner: int, type: ScheduleType, timestamp: datetime, description: str = '') -> int:
+        """Add an event to the guild's schedule.
+
+        Args:
+            guild (int): guild id for the schedule post
+            owner (int): Event owner (user id). Typically the caller of /schedule_add
+            type (ScheduleType): Type of event that is being scheduled.
+            timestamp (datetime): When is the run taking place?
+            description (str, optional): Description for the run. Defaults to ''.
+            
+        Raises:
+            Error_Missing_Schedule_Post: Guild is missing a schedule post.
+
+        Returns:
+            Union[int, ScheduleData]: If called by runtime, it returns the id of the event. If called by loading from database, returns the event object. 
+        
+        TODO:
+            Refactor the db parameter.
+            Rename owner parameter.
+        """
         if self.contains(guild): 
             return self.get_post(guild).add_entry(db, owner, type, timestamp, description)
         else:
             raise Error_Missing_Schedule_Post() 
     
     def edit_entry(self, db: Database, id: int, guild: int, owner: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
+        """Edits the event.
+
+        Args:
+            id (int): event id.
+            guild (int): guild id for the schedule post
+            owner (int): User ID of the user trying to edit the entry.
+            type (ScheduleType): Event type
+            date (datetime): Date of the event
+            time (datetime): Time of the event
+            description (str): Description of the event
+            passcode (bool): Is the passcode needed?
+            is_admin (bool): Does the calling user have admin rights / rights to edit other's runs?
+
+        Raises:
+            Error_Missing_Schedule_Post: Guild is missing a schedule post.
+
+        TODO:
+            Refactor the db parameter.
+            Rename owner parameter.
+        """
         if self.contains(guild): 
             return self.get_post(guild).edit_entry(db, id, owner, type, date, time, description, passcode, is_admin)
         else:
             raise Error_Missing_Schedule_Post() 
         
     async def remove_entry(self, db: Database, guild: int, owner: int, admin: bool, id: int):
+        """Remove the event <id>.
+
+        Args:
+            guild (int): guild id for the schedule post
+            owner (int): User ID of the user trying to edit the entry.
+            admin (bool): Does the calling user have admin rights / rights to edit other's runs?
+            id (int): event id
+
+        Raises:
+            Error_Missing_Schedule_Post: Guild is missing a schedule post.
+        
+        TODO:
+            Remove the db parameter.
+            Rename owner parameter.
+        """
         if self.contains(guild):
             await self.get_post(guild).remove_entry(db, owner, admin, id)
         else:
             raise Error_Missing_Schedule_Post() 
         
     async def update_post(self, guild: int):
+        """Updates the schedule post for guild.
+
+        Args:
+            guild (int): guild id.
+
+        Raises:
+            Error_Missing_Schedule_Post: Guild is missing a schedule post.
+        """
         if self.contains(guild): 
             await self.get_post(guild).update_post()
         else:
             raise Error_Missing_Schedule_Post() 
     
     async def create_pl_post(self, guild: int, id: int):
+        """Create the party leader post for event <id> in guild <guild>.
+
+        Args:
+            guild (int): guild id.
+            id (int): event id.
+        """
         if self.contains(guild): 
             await self.get_post(guild).create_pl_post(id, self.guild_data.get_data(guild))
         else:
             raise Error_Missing_Schedule_Post() 
     
     def save(self, db: Database, guild: int, channel: int, post: int):
+        """Saves the schedule post to the runtime object and the database.
+
+        Args:
+            db (Database): please remove this
+            guild (int): guild id.
+            channel (int): Schedule post channel id. 
+            post (int): Schedule post message id.
+            
+        TODO:
+            Remove db parameter.
+        """
         self._list.append(SchedulePost(guild, channel, post))
         self.guild_data.save_schedule_post(db, guild, channel, post)
             
     async def load(self, db: Database):
+        """Loads all schedule posts and events from the database.
+
+        Args:
+            db (Database): please remove this.
+        
+        TODO:
+            Remove db parameter.
+        """
         db.connect()
         try:
             self._list.clear()

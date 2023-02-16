@@ -7,12 +7,30 @@ from data.table.database import pg_timestamp
 from data.table.tasks import TaskData, TaskExecutionType
 
 class TaskList:
+    """Runtime data object containing tasks requiring execution.
+
+    Properties
+    ----------
+    _list: :class:`List[TaskData]`
+        List of tasks
+    """
     _list: List[TaskData]
     
     def __init__(self) -> None:
         self._list = []
     
     def add_task(self, time: datetime, type: TaskExecutionType, data: object = None):
+        """Adds task into the runtime task list and into the database.
+        The internal list is then resorted.
+
+        Args:
+            time (datetime): Execution time for the task
+            type (TaskExecutionType): Type of task to be executed
+            data (object, optional): Miscellaneous data that can be passed to the task when it's executed (JSON). Defaults to None.
+
+        Returns:
+            None
+        """
         taskdata = TaskData(time, type)
         taskdata.data = data
         self._list.append(taskdata)
@@ -29,15 +47,22 @@ class TaskList:
             task_list_bot.snowcaloid.data.db.disconnect()
             
     def empty(self) -> bool:
+        """Is the task list empty?"""
         return len(self._list) == 0
     
     def get_next(self) -> TaskData:
+        """Gets the next possible task to be executed."""
         if not self.empty():
             if self._list[0].execution_time <= datetime.utcnow():
                 return self._list[0]
         return None
             
     def remove_task(self, id: int):
+        """Removes a task from the runtime object and the database.
+
+        Args:
+            id (int): Task id
+        """
         for taskdata in self._list:
             if taskdata.id == id:
                 self._list.remove(taskdata)
@@ -49,6 +74,7 @@ class TaskList:
             
     
     def load(self):
+        """Load the list of tasks from the database."""
         task_list_bot.snowcaloid.data.db.connect()
         try:
             q = task_list_bot.snowcaloid.data.db.query('select id, execution_time, task_type, data from tasks order by execution_time')

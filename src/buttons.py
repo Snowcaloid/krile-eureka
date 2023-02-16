@@ -9,6 +9,7 @@ class ButtonType(Enum):
     PL_POST = "@PL@"
 
 class RoleSelectionButton(Button):
+    """Buttons, which add or remove a role from the user who interacts with them"""
     async def callback(self, interaction: Interaction):
         if str(interaction.message.id) in self.custom_id:
             roles: List[Role] = list(filter(lambda role : role.name == self.label, await interaction.guild.fetch_roles()))
@@ -30,9 +31,11 @@ class RoleSelectionButton(Button):
                         ephemeral=True)
 
 class PartyLeaderButton(Button):
+    """Buttons, which the intaracting user uses to add or remove themself 
+    from party leader position of a run."""
     async def callback(self, interaction: Interaction):
         if str(interaction.message.id) in self.custom_id:
-            entry = buttons_bot.snowcaloid.data.schedule_posts.get_post(interaction.guild_id).get_entry_by_post(interaction.message.id)
+            entry = buttons_bot.snowcaloid.data.schedule_posts.get_post(interaction.guild_id).get_entry_by_pl_post(interaction.message.id)
             field = 'pl' + self.custom_id[-1] if self.custom_id[-1] != '7' else 'pls'
             index = int(self.custom_id[-1]) - 1
             party_name = self.custom_id[-1] if self.custom_id[-1] != '7' else 'Support'
