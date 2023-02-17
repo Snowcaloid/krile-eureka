@@ -38,3 +38,7 @@ Activate the environment:
 Windows `.\bot-env\Scripts\activate`
 
 Linux: `source bot-env/bin/activate`
+
+## Disclaimer
+
+This bot has been created with the intent of simplifying tasks of certain discord servers. The use and forks of this project are allowed by third parties, but the original owner holds no responsibility for misuse of the bot's capabilities by third parties. 
