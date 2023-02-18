@@ -1,5 +1,4 @@
 from datetime import datetime
-from json import loads
 from enum import Enum
 from data.table.definition import TableDefinition, ColumnType
 

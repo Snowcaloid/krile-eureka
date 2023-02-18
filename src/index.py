@@ -8,7 +8,7 @@ from bot import snowcaloid
 from views import PersistentView
 from buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
 from data.table.tasks import TaskExecutionType
-from commands.embeds.embed import EmbedCommands
+from commands.embed import EmbedCommands
 import command
 import tasks
 
