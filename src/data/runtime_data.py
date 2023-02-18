@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 import bot as runtime_data_bot
-from data.role_post_data import RolePostData
+from data.embed_data import EmbedData
 from data.schedule_post_data import SchedulePostData
 from data.query import Query, QueryOwner, QueryType
 from data.table.register import RegisterTables
@@ -23,10 +23,10 @@ class RuntimeData(QueryOwner):
         used to restore functionality of buttons upon logging in.
     db: :class:`Database`
         Database access. connect -> query -> disconnect
-    role_posts: :class:`RolePostData`
-        Runtime data which stores entries for a role post during a user query.
-        It is created with command /role_post_create, and is emptied upon 
-        using /role_post_finish.
+    embeds: :class:`EmbedData`
+        Runtime data which stores entries for an embed during a user query.
+        It is created with command /embed create, and is emptied upon 
+        using /embed finish.
     schedule_posts: :class:`SchedulePostData`
         Runtime data which stores a list of Schedule posts and the entries within them.
         This object has all the functionality regarding scheduling, including setting
@@ -38,14 +38,14 @@ class RuntimeData(QueryOwner):
         Runtime data which contains the tasks, which are fired by the main task loop 
         in src/tasks.py.
     query: :class:`Query`
-        Interactive query data. Currently only used in /role_post commands.
+        Interactive query data. Currently only used in /embed commands.
     ready: :class:`bool`
         Returns True whenever all data has been loaded from the database and is ready 
         to be used.
     """
     _loaded_view: List[ButtonData]
     db: Database
-    role_posts: RolePostData
+    embeds: EmbedData
     schedule_posts: SchedulePostData
     guild_data: RuntimeGuildData
     tasks: TaskList
@@ -58,7 +58,7 @@ class RuntimeData(QueryOwner):
         self._loaded_view = []
         self.db = Database()
         self.init_db()
-        self.role_posts     = RolePostData()
+        self.embeds         = EmbedData()
         self.guild_data     = RuntimeGuildData()
         self.tasks          = TaskList()
         self.schedule_posts = SchedulePostData(self.guild_data)
@@ -71,9 +71,9 @@ class RuntimeData(QueryOwner):
             user (int): user id, whose query is done
             type (QueryType): which query type has been finished
         """
-        if type == QueryType.ROLE_POST:
-            self.role_posts.save(self.db, user)
-            self.role_posts.clear(user)
+        if type == QueryType.EMBED:
+            self.embeds.save(user)
+            self.embeds.clear(user)
     
     def init_db(self):
         """Create the database and update the tables."""

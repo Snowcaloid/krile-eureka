@@ -8,11 +8,12 @@ from bot import snowcaloid
 from views import PersistentView
 from buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
 from data.table.tasks import TaskExecutionType
-import commands
+from commands.embeds.embed import EmbedCommands
+import command
 import tasks
 
 # Is there a way to import a unit, without it showing up as unused in VSCode?
-commands.so_that_import_works()
+command.so_that_import_works()
 
 # Restore all Button functionality
 async def recreate_view(bot): # Can't type this to Snowcaloid because of circular reference error
@@ -26,7 +27,7 @@ async def recreate_view(bot): # Can't type this to Snowcaloid because of circula
         if i % 20 == 0:
             view = PersistentView()
             views.append(view)
-        if ButtonType.ROLE_POST.value in buttondata.button_id:
+        if ButtonType.ROLE_SELECTION.value in buttondata.button_id:
             view.add_item(RoleSelectionButton(label=buttondata.label, custom_id=buttondata.button_id))
         elif ButtonType.PL_POST.value in buttondata.button_id:
             view.add_item(PartyLeaderButton(label=buttondata.label, custom_id=buttondata.button_id))
@@ -36,7 +37,8 @@ async def recreate_view(bot): # Can't type this to Snowcaloid because of circula
 @snowcaloid.event
 async def on_ready():
     await snowcaloid.data.load_db_data()
-    snowcaloid.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS) 
+    snowcaloid.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
+    await snowcaloid.add_cog(EmbedCommands())
     await snowcaloid.tree.sync()
     print(f'{snowcaloid.user} has connected to Discord!')
     if not tasks.task_loop.is_running():

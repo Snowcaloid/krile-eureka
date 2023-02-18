@@ -1,89 +1,21 @@
 from bot import snowcaloid
-from discord import Interaction, InteractionResponse, Embed
-from discord.member import Member
+from discord import Interaction, Embed
 from discord.channel import TextChannel
-from discord.ui import View, Button
 from discord.app_commands import check, Choice
-from buttons import RoleSelectionButton
 from data.table.database import DatabaseOperation
-from utils import button_custom_id
-from views import PersistentView
-from data.query import QueryType
 from data.schedule_post_data import Error_Insufficient_Permissions, Error_Invalid_Date, Error_Invalid_Schedule_Id, Error_Missing_Schedule_Post, Error_Cannot_Remove_Schedule
 from data.table.schedule import ScheduleType, schedule_type_desc
 from calendar import monthrange, month_abbr
 from datetime import date, datetime
-from typing import List, Optional, Union
+from typing import List, Optional
+
+from validation import permission_admin, permission_raid_leader
 
 class DateValueError(ValueError):
     pass
 
 class TimeValueError(ValueError):
     pass
-
-def permission_admin(interaction: Union[Interaction, InteractionResponse]) -> bool:
-    for role in interaction.user.roles:
-        if role.permissions.administrator:
-            return True
-    return False
-
-###################################################################################
-# role_post
-###################################################################################
-
-@snowcaloid.tree.command(name = "role_post_create", description = "Initialize creation process of a role reaction post.")
-@check(permission_admin)
-async def role_post_create(interaction: Interaction):
-    snowcaloid.data.query.start(interaction.user.id, QueryType.ROLE_POST)
-    await interaction.response.send_message(
-        embed=Embed(title='Use /role_post_add to add roles to the post.'),
-        ephemeral=True)
-
-@snowcaloid.tree.command(name = "role_post_finish", description = "Finish and post the role reaction post.")
-@check(permission_admin)
-async def role_post_finish(interaction: Interaction, channel: TextChannel):
-    if not snowcaloid.data.query.running(interaction.user.id, QueryType.ROLE_POST):
-        await interaction.response.send_message(
-            embed=Embed(title='Use /role_post_create to start the creation process.'),
-            ephemeral=True)
-        return
-    
-    await interaction.response.send_message(f'A message will been sent to #{channel.name}.', ephemeral=True)
-    
-    message = await channel.send(view=view, embed=Embed(title='You can press on the buttons to get roles.'))
-    view = PersistentView()
-    for entry in snowcaloid.data.role_posts.get_entries(interaction.user.id):
-        view.add_item(RoleSelectionButton(label=entry.label, custom_id=button_custom_id(entry.label, message)))
-
-    await message.edit(view=view)
-    print(f'Message ID: {message.id}, Channel ID: {message.channel.id}, Guild ID: {message.guild.id}')
-
-    snowcaloid.data.query.stop(interaction.user.id, QueryType.ROLE_POST)
-    
-@snowcaloid.tree.command(name = "role_post_add", description = "Add roles to the reaction post.")
-@check(permission_admin)
-async def role_post_add(interaction: Interaction, name: str):
-    if not snowcaloid.data.query.running(interaction.user.id, QueryType.ROLE_POST):
-        await interaction.response.send_message(
-            embed=Embed(title='Use /role_post_create to start the creation process.'),
-            ephemeral=True)
-        return
-    
-    if name in snowcaloid.data.role_posts.get_entries(interaction.user.id):
-        await interaction.response.send_message(
-            embed=Embed(title=f'{name} is already in the list. Try another name.'),
-            ephemeral=True)
-        return
-    
-    view = View()
-    snowcaloid.data.role_posts.append(interaction.user.id, name)
-    for entry in snowcaloid.data.role_posts.get_entries(interaction.user.id):
-        view.add_item(Button(label=entry.label, disabled=True))
-        
-    await interaction.response.send_message(
-        embed=Embed(title='Use /role_post_create to add more roles, or /role_post_finish to finish.'), 
-        view=view,
-        ephemeral=True)
     
 ###################################################################################
 # schedule
@@ -101,7 +33,7 @@ async def schedule_post_create(interaction: Interaction, channel: TextChannel):
         await interaction.response.send_message(f'Schedule has been created in #{channel.name}', ephemeral=True)
 
 @snowcaloid.tree.command(name = "schedule_add", description = "Add an entry to the schedule.")
-@check(permission_admin)
+@check(permission_raid_leader)
 async def schedule_add(interaction: Interaction, type: str, 
                        event_date: str, event_time: str, description: Optional[str] = '', auto_passcode: Optional[bool] = True):
     await interaction.response.defer(thinking=True)
@@ -134,7 +66,7 @@ async def schedule_add(interaction: Interaction, type: str,
         await interaction.followup.send(f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.', ephemeral=True)
     
 @snowcaloid.tree.command(name = "schedule_remove", description = "Remove a schedule entry.")
-@check(permission_admin)
+@check(permission_raid_leader)
 async def schedule_remove(interaction: Interaction, id: int):
     try:
         await snowcaloid.data.schedule_posts.remove_entry(snowcaloid.data.db, interaction.guild_id, interaction.user.id, permission_admin(interaction), id)
@@ -181,7 +113,7 @@ async def schedule_party_leaders(interaction: Interaction, type: str, channel: T
         await interaction.response.send_message(f'You have set #{channel.name} as the party leader recruitment channel for type "{schedule_type_desc(type)}".', ephemeral=True)
         
 @snowcaloid.tree.command(name = "schedule_edit", description = "Add an entry to the schedule.")
-@check(permission_admin)
+@check(permission_raid_leader)
 async def schedule_edit(interaction: Interaction, id: int, type: Optional[str] = '', owner: Optional[str] = '',
                         event_date: Optional[str] = '', event_time: Optional[str] = '', description: Optional[str] = '', passcode: Optional[bool] = True):
     try:
@@ -224,7 +156,6 @@ async def schedule_edit(interaction: Interaction, id: int, type: Optional[str] =
         await interaction.response.send_message(f'The date format is not correct. If you start typing in format DD-MM-YYYY, auto-fill will help you.', ephemeral=True)
     except TimeValueError:
         await interaction.response.send_message(f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.', ephemeral=True)
-
         
 ###################################################################################
 # autocomplete
@@ -292,12 +223,9 @@ async def autocomplete_schedule_time(interaction: Interaction, current: str):
 # permission error handling
 ###################################################################################
 
-@role_post_create.error
-@role_post_add.error
-@role_post_finish.error
-@schedule_post_create.error
-async def handle_permission_admin(interaction: Interaction, error):
-    await interaction.response.send_message('Using this command requires administrator privileges.', ephemeral=True)
+# @schedule_post_create.error
+# async def handle_permission_admin(interaction: Interaction, error):
+#     await interaction.response.send_message('Using this command requires administrator privileges.', ephemeral=True)
 
 def so_that_import_works():
     return

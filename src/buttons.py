@@ -5,7 +5,7 @@ from discord import Interaction, Embed, Role, Member
 from typing import List
 
 class ButtonType(Enum):
-    ROLE_POST = "@ROLE@"
+    ROLE_SELECTION = "@ROLE@"
     PL_POST = "@PL@"
 
 class RoleSelectionButton(Button):

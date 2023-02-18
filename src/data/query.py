@@ -3,7 +3,7 @@ from typing import List
 class QueryType:
     """TODO: change this to an enum"""
     NONE = 0
-    ROLE_POST = 1
+    EMBED = 1
 
 class QueryData:
     user: int
