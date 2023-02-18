@@ -94,7 +94,7 @@ class TaskList:
         try:
             q = task_list_bot.snowcaloid.data.db.query('select id, execution_time, task_type, data from tasks order by execution_time')
             for record in q:
-                taskdata = TaskData(record[1], record[2])
+                taskdata = TaskData(record[1], TaskExecutionType(record[2]))
                 taskdata.id = record[0]
                 if record[3]:
                     taskdata.data = loads(record[3])
