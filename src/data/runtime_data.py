@@ -1,6 +1,7 @@
 from typing import List
 import bot as runtime_data_bot
 from data.embed_data import EmbedData
+from data.missed_runs_data import MissedRunsData
 from data.schedule_post_data import SchedulePostData
 from data.query import Query, QueryOwner, QueryType
 from data.table.register import RegisterTables
@@ -45,6 +46,7 @@ class RuntimeData(QueryOwner):
     embeds: EmbedData
     schedule_posts: SchedulePostData
     guild_data: RuntimeGuildData
+    missed_runs: MissedRunsData
     tasks: TaskList
     query: Query
     ready: bool
@@ -57,8 +59,9 @@ class RuntimeData(QueryOwner):
         self.init_db()
         self.embeds         = EmbedData()
         self.guild_data     = RuntimeGuildData()
-        self.tasks          = TaskList()
+        self.missed_runs    = MissedRunsData()
         self.schedule_posts = SchedulePostData(self.guild_data)
+        self.tasks          = TaskList()
         self.query          = Query(self)
 
     def finish_query(self, user: int, type: QueryType) -> None:
@@ -95,5 +98,6 @@ class RuntimeData(QueryOwner):
                 if data.guild_id == guild.id:
                     guild.fetch_members()
         await self.schedule_posts.load(self.db)
+        await self.missed_runs.load()
         self.tasks.load()
         self.ready = True

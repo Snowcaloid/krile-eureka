@@ -183,5 +183,5 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
     @add_button.error
     @remove_button.error
     async def handle_permission_admin(interaction: Interaction, error):
-        await interaction.response.send_message('Using this command requires administrator privileges.', ephemeral=True)
+        await interaction.response.send_message('You have insufficient rights to use this command.', ephemeral=True)
     #endregion

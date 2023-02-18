@@ -8,12 +8,18 @@ class GuildData:
     guild_id: int
     schedule_channel: int
     schedule_post: int
+    missed_channel: int
+    missed_post: int
+    missed_role: str
     _channels: List[ChannelData]
     
-    def __init__(self, guild_id: int, schedule_channel: int, schedule_post: int):
+    def __init__(self, guild_id: int, schedule_channel: int, schedule_post: int, missed_channel: int, missed_post: int, missed_role: str = ''):
         self.guild_id = guild_id
         self.schedule_channel = schedule_channel
         self.schedule_post = schedule_post
+        self.missed_channel = missed_channel
+        self.missed_post = missed_post
+        self.missed_role = missed_role
         self._channels = []
     
     def get_channel(self, channel_id: int = 0, type: ScheduleType = '') -> ChannelData:
@@ -52,3 +58,6 @@ class GuildTable(TableDefinition):
         self.define_column('guild_id', ColumnType.BIGINT, 0, [ColumnFlag.UNIQUE, ColumnFlag.PRIMARY_KEY])
         self.define_column('schedule_channel', ColumnType.BIGINT)
         self.define_column('schedule_post', ColumnType.BIGINT)
+        self.define_column('missed_channel', ColumnType.BIGINT)
+        self.define_column('missed_post', ColumnType.BIGINT)
+        self.define_column('missed_role', ColumnType.BIGINT)

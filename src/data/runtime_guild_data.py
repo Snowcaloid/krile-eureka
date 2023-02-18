@@ -48,7 +48,7 @@ class RuntimeGuildData:
         TODO:
             Remove db parameter.
         """
-        self._list.append(GuildData(guild, 0, 0))
+        self._list.append(GuildData(guild, 0, 0, 0, 0))
         db.connect()
         try:
             db.query(f'insert into guilds values ({str(guild)})')
@@ -66,9 +66,9 @@ class RuntimeGuildData:
         """
         db.connect()
         try:
-            gd = db.query('select guild_id, schedule_channel, schedule_post from guilds')
+            gd = db.query('select guild_id, schedule_channel, schedule_post, missed_channel, missed_post, missed_role from guilds')
             for gd_record in gd:
-                guild_data = GuildData(gd_record[0], gd_record[1], gd_record[2])
+                guild_data = GuildData(gd_record[0], gd_record[1], gd_record[2], gd_record[3], gd_record[4], gd_record[5])
                 cd = db.query(f'select type, channel_id, is_pl_channel, is_support_channel from channels where guild_id={guild_data.guild_id}')
                 for cd_record in cd:
                     guild_data._channels.append(ChannelData(guild_data.guild_id, cd_record[0], cd_record[1], cd_record[2], cd_record[3]))
@@ -95,6 +95,25 @@ class RuntimeGuildData:
         db.connect()
         try:
             db.query(f'update guilds set schedule_channel={str(channel)}, schedule_post={str(post)}')
+        finally:
+            db.disconnect()
+            
+    def save_missed_runs_post(self, guild: int, channel: int, post: int):
+        """Saves missed runs post information to the database.
+
+        Args:
+            guild (int): guild id.
+            channel (int): Missed runs post's channel id.
+            post (int): Missed runs post's message id.
+        """
+        db = rgd_bot.snowcaloid.data.db
+        if not self.contains(guild):
+            self.init(db, guild)
+        self.get_data(guild).missed_channel = channel
+        self.get_data(guild).missed_post = post    
+        db.connect()
+        try:
+            db.query(f'update guilds set missed_channel={str(channel)}, missed_post={str(post)}')
         finally:
             db.disconnect()
             

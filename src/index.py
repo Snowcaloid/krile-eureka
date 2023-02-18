@@ -9,6 +9,7 @@ from views import PersistentView
 from buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
 from data.table.tasks import TaskExecutionType
 from commands.embed import EmbedCommands
+from commands.missed import MissedCommands
 import command
 import tasks
 
@@ -39,6 +40,7 @@ async def on_ready():
     await snowcaloid.data.load_db_data()
     snowcaloid.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
     await snowcaloid.add_cog(EmbedCommands())
+    await snowcaloid.add_cog(MissedCommands())
     await snowcaloid.tree.sync()
     print(f'{snowcaloid.user} has connected to Discord!')
     if not tasks.task_loop.is_running():

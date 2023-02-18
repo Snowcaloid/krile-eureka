@@ -7,6 +7,7 @@ from typing import List
 class ButtonType(Enum):
     ROLE_SELECTION = "@ROLE@"
     PL_POST = "@PL@"
+    MISSEDRUN = "@MISSED@"
 
 class RoleSelectionButton(Button):
     """Buttons, which add or remove a role from the user who interacts with them"""
@@ -65,5 +66,49 @@ class PartyLeaderButton(Button):
             else:
                 await interaction.response.send_message(f'You\'re already assigned to a party.', ephemeral=True)
                 
-            
-                
+class MissedRunButton(Button):
+    """Buttons, which add missed run data.
+    
+    Properties
+    ----------
+    users: :class'`List[int]`
+        List of users who already clicked the button  
+    """
+    users: List[int]
+    
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.users = []
+    
+    async def callback(self, interaction: Interaction):
+        if str(interaction.message.id) in self.custom_id:
+            await interaction.response.defer(thinking=True, ephemeral=True)
+            if interaction.user.id in self.users:
+                return await interaction.followup.send('You have already been noted. This only works once per post.', ephemeral=True)
+            data = buttons_bot.snowcaloid.data
+            if data.missed_runs.eligable(interaction.guild_id, interaction.user.id):
+                return await interaction.followup.send((
+                    'You already reacted 3 times. You are eligable to contact a raid leader '
+                    'shortly before their next run to gain access to an early passcode '
+                    'at their discretion.'
+                    ), ephemeral=True)
+            role_name = data.guild_data.get_data(interaction.guild_id).missed_role
+            if role_name: 
+                for role in interaction.user.roles:
+                    if role.name == role_name:
+                        break
+                else: # if not terminated by break
+                    return await interaction.followup.send(f'You do not have the role "{role_name}".', ephemeral=True)
+            data.missed_runs.inc(interaction.guild_id, interaction.user.id)
+            self.users.append(interaction.user.id)
+            await data.missed_runs.update_post(interaction.guild_id)
+            if data.missed_runs.eligable(interaction.guild_id, interaction.user.id):
+                return await interaction.followup.send((
+                    'You reacted 3 times. You are eligable to contact a raid leader '
+                    'shortly before their next run to gain access to an early passcode '
+                    'at their discretion.'
+                    ), ephemeral=True)
+            return await interaction.followup.send((
+                'You have been noted. You can notify a raid leader in '
+                f'{3-data.missed_runs.get_data(interaction.guild_id, interaction.user.id).amount} runs.'
+            ))

@@ -9,6 +9,7 @@ class TaskExecutionType(Enum):
     REMOVE_OLD_PL_POSTS = 4
     POST_MAIN_PASSCODE = 5
     POST_SUPPORT_PASSCODE = 6
+    REMOVE_MISSED_RUN_POST = 7
 
 class TaskData:
     id: int

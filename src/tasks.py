@@ -24,6 +24,8 @@ async def task_loop(): # You can think of it as sleep(1000) after the last proce
                 await post_main_passcode(task.data)
             elif task.task_type == TaskExecutionType.POST_SUPPORT_PASSCODE:
                 await post_support_passcode(task.data)
+            elif task.task_type == TaskExecutionType.REMOVE_MISSED_RUN_POST:
+                await remove_missed_run_post(task.data)
                 
             snowcaloid.data.tasks.remove_task(task.id)
 
@@ -138,3 +140,14 @@ async def post_support_passcode(data: object):
                             'Support needs to bring dispel for the NM Ovni.'
                         ))
                     await channel.send(embed=embed)
+            
+async def remove_missed_run_post(data: object):
+    """Removes a missed run post."""
+    if data and data["guild"] and data["channel"] and data["message"]:
+        guild = snowcaloid.get_guild(data["guild"])
+        if guild:
+            channel = await guild.fetch_channel(data["channel"])
+            if channel:
+                message = await channel.fetch_message(data["message"])
+                if message:
+                    await message.delete()
