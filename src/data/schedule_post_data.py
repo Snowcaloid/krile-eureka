@@ -9,7 +9,7 @@ from discord import Embed, Message
 import bot as spd_bot
 from data.table.tasks import TaskExecutionType
 
-from utils import button_custom_id, get_mention, unix_time
+from utils import button_custom_id, get_mention, set_default_footer, unix_time
 from views import PersistentView
 
 class Error_Missing_Schedule_Post(Exception): pass
@@ -280,6 +280,7 @@ class SchedulePost:
                         embed.add_field(name=data._date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))
                         
                     await post.edit(embed=embed)
+                    await set_default_footer(post)
                 else:
                     raise Exception(f'Could not find message with ID {self.post}')
                 
@@ -327,6 +328,7 @@ class SchedulePost:
                 'Please note, your entry may be removed at the Raid Leader\'s discretion.*'
             )
             await message.edit(embed=embed)
+            await set_default_footer(message)
             
     
     async def create_pl_post(self, id: int, guild_data: GuildData):

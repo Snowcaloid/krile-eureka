@@ -8,6 +8,7 @@ from data.table.schedule import ScheduleType, schedule_type_desc
 from calendar import monthrange, month_abbr
 from datetime import date, datetime
 from typing import List, Optional
+from utils import set_default_footer
 
 from validation import permission_admin, permission_raid_leader
 
@@ -29,6 +30,7 @@ async def schedule_post_create(interaction: Interaction, channel: TextChannel):
     else:    
         message = await channel.send('This post contains an embed containing the schedule.', 
                                     embed=Embed(title='Schedule'))
+        await set_default_footer(message)
         snowcaloid.data.schedule_posts.save(snowcaloid.data.db, interaction.guild_id, channel.id, message.id)
         await interaction.response.send_message(f'Schedule has been created in #{channel.name}', ephemeral=True)
 

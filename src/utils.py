@@ -33,3 +33,8 @@ async def get_mention(guild_id: int, user_id: int) -> str:
             return (await guild.fetch_member(user_id)).mention
     else:
         return ''
+    
+async def set_default_footer(message: Message):
+    if message and message.embeds:
+        message.embeds[len(message.embeds) - 1].set_footer(text=f'Message ID: {str(message.id)}')
+        await message.edit(embeds=message.embeds)

@@ -5,6 +5,7 @@ from discord import Activity, ActivityType, Embed, Status
 
 from data.table.schedule import schedule_type_desc
 from data.table.tasks import TaskExecutionType
+from utils import set_default_footer
 
 @tasks.loop(seconds=1) # The delay is calculated from the end of execution of the last task.
 async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
@@ -116,7 +117,8 @@ async def post_main_passcode(data: object):
                             'This passcode will not work for support parties.\n\n'
                             '*Do not forget to bring __Spirit of Remembered__ and proper actions.*'
                         ))
-                    await channel.send(embed=embed)
+                    message = await channel.send(embed=embed)
+                    await set_default_footer(message)
             
 async def post_support_passcode(data: object):
     """Sends the support party passcode embed to the allocated passcode channel."""
@@ -139,7 +141,8 @@ async def post_support_passcode(data: object):
                             '*Do not forget to bring __Spirit of Remembered__ and proper actions.*\n'
                             'Support needs to bring dispel for the NM Ovni.'
                         ))
-                    await channel.send(embed=embed)
+                    message = await channel.send(embed=embed)
+                    await set_default_footer(message)
             
 async def remove_missed_run_post(data: object):
     """Removes a missed run post."""

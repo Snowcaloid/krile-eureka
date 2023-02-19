@@ -3,6 +3,7 @@ import bot as cerp_bot
 from discord import Embed, Interaction, Message, TextChannel
 from discord.app_commands import check, command
 from data.query import QueryType
+from utils import set_default_footer
 
 from validation import permission_admin
 
@@ -40,7 +41,8 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         message: Message = await channel.send('.')
         await message.edit(
             embed=cerp_bot.snowcaloid.data.embeds.create_embed(interaction.user.id, False),
-            view=cerp_bot.snowcaloid.data.embeds.create_view(interaction.user.id, False, message),)
+            view=cerp_bot.snowcaloid.data.embeds.create_view(interaction.user.id, False, message))
+        await set_default_footer(message)
         await interaction.followup.send(f'A message has been sent to #{channel.name}.', ephemeral=True)
         cerp_bot.snowcaloid.data.query.stop(interaction.user.id, QueryType.EMBED)
     #endregion
