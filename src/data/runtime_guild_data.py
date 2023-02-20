@@ -33,10 +33,11 @@ class RuntimeGuildData:
         Args:
             guild (int): guild id.
         """
+        if not self.contains(guild):
+            self.init(rgd_bot.snowcaloid.data.db, guild)
         for data in self._list:
             if data.guild_id == guild:
                 return data
-        return None
 
     def init(self, db: Database, guild: int):
         """Initializes empty guild information object.

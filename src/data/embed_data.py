@@ -3,10 +3,12 @@ from typing import List
 
 from discord import Embed, Message
 from discord.ui import Button
-from buttons import ButtonType, RoleSelectionButton
+from buttons import ButtonType, MissedRunButton, PartyLeaderButton, RoleSelectionButton
 from utils import button_custom_id
 
 from views import PersistentView
+
+class Error_MessageHasNoEmbeds(Exception): pass
 
 class ButtonData:
     id: str
@@ -20,6 +22,7 @@ class EmbedEntry:
     _id_counter: int
     
     user: int
+    message: Message
     title: str
     desc_lines: List[str]
     fields: List[object]
@@ -29,6 +32,7 @@ class EmbedEntry:
     
     def __init__(self, user: int):
         self.user = user
+        self.message = None
         self.title = 'Use /embed title to change the title'
         self.desc_lines = []
         self.fields = []
@@ -278,7 +282,7 @@ class EmbedData:
             embed.set_thumbnail(url=entry.thumbnail)
         return embed
     
-    def create_view(self, user: int, debug: bool, message: Message = None) -> PersistentView:
+    def create_view(self, user: int, debug: bool, message: Message = None, button_type: ButtonType = ButtonType.ROLE_SELECTION) -> PersistentView:
         """Creates a view for the role post containing buttons
 
         Args:
@@ -291,8 +295,13 @@ class EmbedData:
             if debug:
                 view.add_item(Button(label=button.label, disabled=True))
             elif message:
-                button.id = button_custom_id(button.label, message, ButtonType.ROLE_SELECTION)
-                view.add_item(RoleSelectionButton(label=button.label, custom_id=button.id))
+                button.id = button_custom_id(button.label, message, button_type)
+                if button_type == ButtonType.ROLE_SELECTION:
+                    view.add_item(RoleSelectionButton(label=button.label, custom_id=button.id))
+                elif button_type == ButtonType.MISSEDRUN:
+                    view.add_item(MissedRunButton(label=button.label, custom_id=button.id))
+                elif button_type == ButtonType.PL_POST:
+                    view.add_item(PartyLeaderButton(label=button.label, custom_id=button.id))
         return view
 
     def clear(self, user: int):
@@ -305,6 +314,32 @@ class EmbedData:
             if entry.user == user:
                 self._list.remove(entry)
                 
+    def load_from_embed(self, user: int, message: Message):
+        """Creates runtime embed data with informations from the embed.
+
+        Args:
+            user (int): querying user id
+            embed (Embed): embed, which is to be loaded
+        """
+        if message.embeds:
+            embed = message.embeds[0]
+            self.clear(user)
+            entry = self.get_entry(user)
+            entry.message = message
+            entry.title = embed.title
+            entry.desc_lines = embed.description.splitlines()
+            entry.image = embed.image
+            entry.thumbnail = embed.thumbnail
+            for field in embed.fields:
+                entry.add_field({"title": field.name, "desc": field.value})
+            view = PersistentView.from_message(message)
+            if view:
+                for button in view.children:
+                    if isinstance(button, Button):
+                        entry.add_button(button.label)
+        else: 
+            raise Error_MessageHasNoEmbeds()
+                
     def save(self, user: int):
         """Saves the created Role buttons to the database.
 
@@ -315,6 +350,7 @@ class EmbedData:
             ded_bot.snowcaloid.data.db.connect()
             try:
                 for button in self.get_entry(user).buttons:
-                    ded_bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.id}\', \'{button.label}\')')
+                    if not ded_bot.snowcaloid.data.db.query(f'select button_id from buttons where button_id=\'{button.id}\')'):
+                        ded_bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.id}\', \'{button.label}\')')
             finally:
                 ded_bot.snowcaloid.data.db.disconnect()
