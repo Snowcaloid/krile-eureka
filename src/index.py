@@ -3,21 +3,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+import bot
 from datetime import datetime
-from bot import snowcaloid
 from views import PersistentView
 from buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
 from data.table.tasks import TaskExecutionType
 from commands.embed import EmbedCommands
+from commands.schedule import ScheduleCommands
 from commands.missed import MissedCommands
-import command
+from commands.log import LogCommands
 import tasks
 
-# Is there a way to import a unit, without it showing up as unused in VSCode?
-command.so_that_import_works()
-
 # Restore all Button functionality
-async def recreate_view(bot): # Can't type this to Snowcaloid because of circular reference error
+async def recreate_view(bot: bot.Snowcaloid):
     bot.data.load_db_view()
     views = []
     i = 0
@@ -35,17 +33,19 @@ async def recreate_view(bot): # Can't type this to Snowcaloid because of circula
     return views
 
 # What the bot does upon connecting to discord
-@snowcaloid.event
+@bot.snowcaloid.event
 async def on_ready():
-    await snowcaloid.data.load_db_data()
-    snowcaloid.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
-    await snowcaloid.add_cog(EmbedCommands())
-    await snowcaloid.add_cog(MissedCommands())
-    await snowcaloid.tree.sync()
-    print(f'{snowcaloid.user} has connected to Discord!')
+    await bot.snowcaloid.data.load_db_data()
+    bot.snowcaloid.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
+    await bot.snowcaloid.add_cog(EmbedCommands())
+    await bot.snowcaloid.add_cog(MissedCommands())
+    await bot.snowcaloid.add_cog(ScheduleCommands())
+    await bot.snowcaloid.add_cog(LogCommands())
+    await bot.snowcaloid.tree.sync()
+    print(f'{bot.snowcaloid.user} has connected to Discord!')
     if not tasks.task_loop.is_running():
         tasks.task_loop.start()
 
 # Set the procedure for recreating button functionality, then run the bot
-snowcaloid.recreate_view = recreate_view
-snowcaloid.run(os.getenv('DISCORD_TOKEN'))
+bot.snowcaloid.recreate_view = recreate_view
+bot.snowcaloid.run(os.getenv('DISCORD_TOKEN'))
