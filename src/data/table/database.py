@@ -4,13 +4,19 @@ import psycopg2
 import os
 from datetime import datetime
 
+
 def pg_timestamp(timestamp: datetime):
     return timestamp.strftime("\'%Y-%m-%d %H:%M\'")
 
 
 class DatabaseOperation(Enum):
-    ADDED = 0
-    EDITED = 1
+    """Used to inform the type of database operation performed."""
+    NONE = 0
+    """No operation was performed (the record did not need updating)"""
+    ADDED = 1
+    """A new record was created."""
+    EDITED = 2
+    """An existing record was updated."""
 
 
 class Database:

@@ -5,6 +5,9 @@ from typing import List
 from datetime import datetime
 from random import randint
 
+from utils import get_discord_member, get_discord_timestamp, DiscordTimestampType
+
+
 class ScheduleType(Enum):
     BA_NORMAL = 'BA' 
     BA_RECLEAR = 'BARC'
@@ -55,7 +58,14 @@ class ScheduleData:
         if also_support:
             while not self.pass_supp or self.pass_supp == self.pass_main:
                 self.pass_supp = self._gen_pass()
-    
+
+    async def to_string(self, guild_id: int) -> str:
+        # TODO: This object should probably know what guild it belongs to without being told.
+        raid_leader = await get_discord_member(guild_id, self.owner)
+        discord_timestamp = get_discord_timestamp(self.timestamp, DiscordTimestampType.RELATIVE)
+        return f'{self.type} by {raid_leader.display_name} at {self.timestamp} ST {discord_timestamp}'
+
+
 class ScheduleTable(TableDefinition):
     _columns: List[ColumnDefinition] = []
     def init_definitions(self):
