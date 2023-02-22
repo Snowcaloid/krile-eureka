@@ -8,6 +8,7 @@ from data.table.schedule import ScheduleType, schedule_type_desc
 from calendar import monthrange, month_abbr
 from datetime import date, datetime
 from typing import List, Optional
+from logger import guild_log_message
 from utils import set_default_footer
 
 from validation import permission_admin, permission_raid_leader
@@ -33,6 +34,7 @@ async def schedule_post_create(interaction: Interaction, channel: TextChannel):
         await set_default_footer(message)
         snowcaloid.data.schedule_posts.save(snowcaloid.data.db, interaction.guild_id, channel.id, message.id)
         await interaction.response.send_message(f'Schedule has been created in #{channel.name}', ephemeral=True)
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has created a schedule post in #{channel.name}.')
 
 @snowcaloid.tree.command(name = "schedule_add", description = "Add an entry to the schedule.")
 @check(permission_raid_leader)
@@ -60,6 +62,7 @@ async def schedule_add(interaction: Interaction, type: str,
         await snowcaloid.data.schedule_posts.update_post(interaction.guild_id)
         await snowcaloid.data.schedule_posts.create_pl_post(interaction.guild_id, id)
         await interaction.followup.send(f'The run #{str(id)} has been scheduled.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has scheduled a {type} run #{id} for {dt}.')
     except Error_Missing_Schedule_Post:
         await interaction.followup.send('This server has no schedule post. This is required for scheduling.', ephemeral=True)
     except DateValueError:
@@ -73,6 +76,7 @@ async def schedule_remove(interaction: Interaction, id: int):
     try:
         await snowcaloid.data.schedule_posts.remove_entry(snowcaloid.data.db, interaction.guild_id, interaction.user.id, permission_admin(interaction), id)
         await interaction.response.send_message(f'Run #{id} has been deleted.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.username}** has deleted the run #{id}.')
     except Error_Missing_Schedule_Post:
         await interaction.response.send_message('This server has no schedule post. This is required for scheduling.', ephemeral=True)
     except Error_Cannot_Remove_Schedule:
@@ -90,6 +94,7 @@ async def schedule_channel(interaction: Interaction, type: str, channel: TextCha
         await interaction.response.send_message(f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
     else:
         await interaction.response.send_message(f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".', ephemeral=True)
+    await guild_log_message(interaction.guild_id, f'**{interaction.user.username}** has set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".')
         
 @snowcaloid.tree.command(name = "schedule_support_channel", description = "Set the channel for specific type of events (for support parties).")
 @check(permission_admin)
@@ -102,6 +107,7 @@ async def schedule_support_channel(interaction: Interaction, type: str, channel:
         await interaction.followup.send(f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
     else:
         await interaction.followup.send(f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".', ephemeral=True)
+    await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has set the post channel to #{channel.name} for the "{schedule_type_desc(type)}" type.')
 
 @snowcaloid.tree.command(name = "schedule_party_leaders", description = "Set the channel for party leader posts.")
 @check(permission_admin)
@@ -113,6 +119,7 @@ async def schedule_party_leaders(interaction: Interaction, type: str, channel: T
         await interaction.response.send_message(f'You have changed the party leader recruitment channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
     else:
         await interaction.response.send_message(f'You have set #{channel.name} as the party leader recruitment channel for type "{schedule_type_desc(type)}".', ephemeral=True)
+    await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has set the party leader channel to #{channel.name} for the "{schedule_type_desc(type)}" type.')
         
 @snowcaloid.tree.command(name = "schedule_edit", description = "Add an entry to the schedule.")
 @check(permission_raid_leader)
@@ -146,6 +153,7 @@ async def schedule_edit(interaction: Interaction, id: int, type: Optional[str] =
         await snowcaloid.data.schedule_posts.update_post(interaction.guild_id)
         await snowcaloid.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(snowcaloid.data.guild_data.get_data(interaction.guild_id), id=id)
         await interaction.response.send_message(f'The run #{str(id)} has been adjusted.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has adjusted run #{str(id)}')
     except Error_Invalid_Date:
         await interaction.response.send_message(f'Date is invalid or not in future. Use autocomplete.', ephemeral=True)
     except Error_Missing_Schedule_Post:
@@ -220,7 +228,49 @@ async def autocomplete_schedule_time(interaction: Interaction, current: str):
                 dt = f'{str(hour)}:{str(i).zfill(2)}'
                 result.append(Choice(name=dt, value=dt))
     return result             
-    
+
+
+###################################################################################
+# logging
+###################################################################################
+
+
+@snowcaloid.tree.command(name='set_log_channel', description='Set the channel to use for logging events.')
+@check(permission_admin)
+async def set_log_channel(interaction: Interaction, target_channel: TextChannel):
+    # Handle the change in the database.
+    result: DatabaseOperation = snowcaloid.data.guild_data.set_log_channel(interaction.guild_id, target_channel.id)
+
+    # Convert the result to something the user can understand.
+    if result == DatabaseOperation.NONE:
+        feedback = 'The log channel was already set to that.'
+    elif result == DatabaseOperation.ADDED:
+        feedback = 'The log channel has been set.'
+    elif result == DatabaseOperation.EDITED:
+        feedback = 'The log channel has been changed.'
+    else:
+        feedback = 'Unknown operation.'
+
+    # Privately respond to the user with the outcome.
+    await interaction.response.send_message(feedback, ephemeral=True)
+
+    # Record this change to the log.
+    await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** set the log channel: {feedback}')
+
+
+@snowcaloid.tree.command(name='disable_log_channel', description='Stop sending messages to the logging channel.')
+@check(permission_admin)
+async def disable_log_channel(interaction: Interaction):
+    # Send one final message so the log has a record that it was turned off.
+    await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has disabled logging, good bye!')
+
+    # Remove the log channel
+    snowcaloid.data.guild_data.set_log_channel(interaction.guild_id, None)
+
+    # Privately let the user know we have turned logging off.
+    await interaction.response.send_message('Messages will no longer be sent to the log channel.')
+
+
 ###################################################################################
 # permission error handling
 ###################################################################################

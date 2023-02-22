@@ -25,7 +25,10 @@ class RuntimeGuildData:
         Args:
             guild (int): guild id
         """
-        return self.get_data(guild)
+        for data in self._list:
+            if data.guild_id == guild:
+                return True
+        return False
     
     def get_data(self, guild: int) -> GuildData:
         """Gets the guild information for the guild.
@@ -49,7 +52,7 @@ class RuntimeGuildData:
         TODO:
             Remove db parameter.
         """
-        self._list.append(GuildData(guild, 0, 0, 0, 0))
+        self._list.append(GuildData(guild, 0, 0, 0, 0, 0))
         db.connect()
         try:
             db.query(f'insert into guilds values ({str(guild)})')
@@ -67,9 +70,9 @@ class RuntimeGuildData:
         """
         db.connect()
         try:
-            gd = db.query('select guild_id, schedule_channel, schedule_post, missed_channel, missed_post, missed_role from guilds')
+            gd = db.query('select guild_id, schedule_channel, schedule_post, missed_channel, missed_post, log_channel, missed_role from guilds')
             for gd_record in gd:
-                guild_data = GuildData(gd_record[0], gd_record[1], gd_record[2], gd_record[3], gd_record[4], gd_record[5])
+                guild_data = GuildData(gd_record[0], gd_record[1], gd_record[2], gd_record[3], gd_record[4], gd_record[5], gd_record[6])
                 cd = db.query(f'select type, channel_id, is_pl_channel, is_support_channel from channels where guild_id={guild_data.guild_id}')
                 for cd_record in cd:
                     guild_data._channels.append(ChannelData(guild_data.guild_id, cd_record[0], cd_record[1], cd_record[2], cd_record[3]))
@@ -224,4 +227,48 @@ class RuntimeGuildData:
                 return DatabaseOperation.ADDED
         finally:
             rgd_bot.snowcaloid.data.db.disconnect()
-        
+
+    def set_log_channel(self, guild_id: int, new_channel_id: int) -> DatabaseOperation:
+        """Changes the logging channel for the provided guild.
+
+        Args:
+            guild_id (int): the id of the guild to update
+            new_channel_id (int): the new logging channel id
+
+        Returns:
+            DatabaseOperation: The outcome of the operation.
+        """
+        db = rgd_bot.snowcaloid.data.db
+
+        if not self.contains(guild_id):
+            self.init(db, guild_id)
+
+        guild_data = self.get_data(guild_id)
+
+        db.connect()
+        try:
+            if new_channel_id is None:
+                # Remove the log channel id from the database and in-memory representation.
+                db.query(f'UPDATE guilds SET log_channel = NULL WHERE guild_id = {guild_id}')
+                guild_data.log_channel = None
+                return DatabaseOperation.EDITED
+
+            if guild_data.log_channel == new_channel_id:
+                # We do not need to bother the database with this one.
+                return DatabaseOperation.NONE
+
+            if guild_data.log_channel is None:
+                # The guild doesn't have a logging channel yet.
+                operation = DatabaseOperation.ADDED
+            else:
+                # The user is changing the channel we are logging to.
+                operation = DatabaseOperation.EDITED
+
+            db.query(f'UPDATE guilds SET log_channel = {new_channel_id} WHERE guild_id = {guild_id}')
+
+            # Update the value in-memory or the change will not apply until the bot restarts.
+            guild_data.log_channel = new_channel_id
+
+            return operation
+        finally:
+            db.disconnect()

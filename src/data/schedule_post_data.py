@@ -9,7 +9,7 @@ from discord import Embed, Message
 import bot as spd_bot
 from data.table.tasks import TaskExecutionType
 
-from utils import button_custom_id, get_mention, set_default_footer, unix_time
+from utils import button_custom_id, get_mention, set_default_footer, get_discord_timestamp
 from views import PersistentView
 
 class Error_Missing_Schedule_Post(Exception): pass
@@ -274,7 +274,7 @@ class SchedulePost:
                         schedule_on_day = ''
                         for entry in data._list:
                             schedule_on_day = "\n".join([schedule_on_day,
-                                                        entry.timestamp.strftime("%H:%M") + f' ST ({unix_time(entry.timestamp)} LT): {schedule_type_desc(entry.type)} (Leader: {await get_mention(self.guild, entry.owner)})'])
+                                                        entry.timestamp.strftime("%H:%M") + f' ST ({get_discord_timestamp(entry.timestamp)} LT): {schedule_type_desc(entry.type)} (Leader: {await get_mention(self.guild, entry.owner)})'])
                             if entry.description:
                                 schedule_on_day += f' [{entry.description}]'
                         embed.add_field(name=data._date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))

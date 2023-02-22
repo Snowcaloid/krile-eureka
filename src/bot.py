@@ -2,6 +2,7 @@ from discord import Intents
 from discord.ext.commands import Bot
 from data.runtime_data import RuntimeData
 
+
 class Snowcaloid(Bot):
     """General bot class.
 
@@ -34,4 +35,4 @@ class Snowcaloid(Bot):
             for view in views:
                 self.add_view(view)
         
-snowcaloid = Snowcaloid()    
+snowcaloid = Snowcaloid()
