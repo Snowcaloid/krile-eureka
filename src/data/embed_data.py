@@ -1,4 +1,4 @@
-import bot as ded_bot
+import bot
 from typing import List
 
 from discord import Embed, Message
@@ -16,11 +16,11 @@ class ButtonData:
     def __init__(self, label: str):
         self.id = ''
         self.label = label
-        
+
 class EmbedEntry:
     """Helper class for embed entries."""
     _id_counter: int
-    
+
     user: int
     message: Message
     title: str
@@ -29,7 +29,7 @@ class EmbedEntry:
     image: str
     thumbnail: str
     buttons: List[ButtonData]
-    
+
     def __init__(self, user: int):
         self.user = user
         self.message = None
@@ -48,7 +48,7 @@ class EmbedEntry:
             desc (str): Description to be added
         """
         self.desc_lines.append(desc)
-        
+
     def edit_desc_line(self, line: int, desc: str):
         """Edits a description for the embed
 
@@ -57,7 +57,7 @@ class EmbedEntry:
             desc (str): Description to be set
         """
         self.desc_lines[line] = desc
-        
+
     def remove_desc_line(self, line: int):
         """Removes a description line from the embed
 
@@ -98,7 +98,7 @@ class EmbedEntry:
             if field["id"] == id:
                 self.fields.remove(field)
                 break
-            
+
     def add_button(self, label: str):
         """Adds a button for the embed
 
@@ -117,8 +117,8 @@ class EmbedEntry:
         for button in self.buttons:
             if button.label.lower() == oldlabel.lower():
                 button.label = newlabel
-        
-        
+
+
     def remove_button(self, label: str):
         """Removes a button from the embed
 
@@ -129,7 +129,7 @@ class EmbedEntry:
             if button.label.lower() == label.lower():
                 self.buttons.remove(button)
 
-class EmbedData: 
+class EmbedData:
     """Runtime data object containing temporary data for creating an embed post.
     This object has no equivalent database entity.
 
@@ -137,9 +137,9 @@ class EmbedData:
     ----------
     _list: :class:`List[EmbedEntry]`
         List of all embed posts in creation.
-    """  
+    """
     _list: List[EmbedEntry]
-    
+
     def __init__(self):
         self._list = []
 
@@ -178,7 +178,7 @@ class EmbedData:
             line (int): line # to be removed
         """
         self.get_entry(user).remove_desc_line(line)
-        
+
     def field_exists(self, user: int, id: int) -> bool:
         for field in self.get_entry(user).fields:
             if field["id"] == id:
@@ -193,7 +193,7 @@ class EmbedData:
             field (object): object {"title", "desc"}
         """
         self.get_entry(user).add_field(field)
-        
+
     def edit_field(self, user: int, id: int, field: object):
         """Edits a description for the embed
 
@@ -246,27 +246,27 @@ class EmbedData:
             label (str): label to be removed
         """
         self.get_entry(user).remove_button(label)
-        
+
     def commands(self) -> str:
         return ('title, image, thumbnail, '
                 'add_field, edit_field, remove_field, '
                 'add_desc, edit_desc, remove_desc')
-    
+
     def finish_command(self) -> str:
         return 'finish'
-        
+
     def create_embed(self, user: int, debug: bool) -> Embed:
         entry = self.get_entry(user)
         desc = ''
         if debug:
             for line in entry.desc_lines:
-                desc += f'{line} [#{entry.desc_lines.index(line)}]\n'    
+                desc += f'{line} [#{entry.desc_lines.index(line)}]\n'
             desc = "\n\n".join([desc, (
                 '**Please note that the [#numbers] are only there during the creation and can be used for removal of elements.**\n'
                 f'Use {self.commands()} to continue creation or {self.finish_command()} to finish creation.'
                 )])
         elif entry.desc_lines:
-            desc = "\n".join(entry.desc_lines) 
+            desc = "\n".join(entry.desc_lines)
         embed = Embed(
             title=entry.title,
             description=desc
@@ -281,14 +281,14 @@ class EmbedData:
         if entry.thumbnail:
             embed.set_thumbnail(url=entry.thumbnail)
         return embed
-    
+
     def create_view(self, user: int, debug: bool, message: Message = None, button_type: ButtonType = ButtonType.ROLE_SELECTION) -> PersistentView:
         """Creates a view for the role post containing buttons
 
         Args:
             user (int): querying user id
-            debug (bool): If true, buttons have no function. Use with 
-            False only once per query. 
+            debug (bool): If true, buttons have no function. Use with
+            False only once per query.
         """
         view = PersistentView()
         for button in self.get_entry(user).buttons:
@@ -313,7 +313,7 @@ class EmbedData:
         for entry in self._list:
             if entry.user == user:
                 self._list.remove(entry)
-                
+
     def load_from_embed(self, user: int, message: Message):
         """Creates runtime embed data with informations from the embed.
 
@@ -337,9 +337,9 @@ class EmbedData:
                 for button in view.children:
                     if isinstance(button, Button):
                         entry.add_button(button.label)
-        else: 
+        else:
             raise Error_MessageHasNoEmbeds()
-                
+
     def save(self, user: int):
         """Saves the created Role buttons to the database.
 
@@ -347,10 +347,10 @@ class EmbedData:
             user (int): querying user id
         """
         if self.get_entry(user).buttons:
-            ded_bot.snowcaloid.data.db.connect()
+            bot.snowcaloid.data.db.connect()
             try:
                 for button in self.get_entry(user).buttons:
-                    if not ded_bot.snowcaloid.data.db.query(f'select button_id from buttons where button_id=\'{button.id}\')'):
-                        ded_bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.id}\', \'{button.label}\')')
+                    if not bot.snowcaloid.data.db.query(f'select button_id from buttons where button_id=\'{button.id}\')'):
+                        bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.id}\', \'{button.label}\')')
             finally:
-                ded_bot.snowcaloid.data.db.disconnect()
+                bot.snowcaloid.data.db.disconnect()

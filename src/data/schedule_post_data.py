@@ -6,7 +6,7 @@ from data.table.guilds import GuildData
 from data.table.schedule import ScheduleType, ScheduleData, schedule_type_desc
 from datetime import datetime, date, timedelta
 from discord import Embed, Message
-import bot as spd_bot
+import bot
 from data.table.tasks import TaskExecutionType
 
 from utils import button_custom_id, get_mention, set_default_footer, get_discord_timestamp
@@ -22,15 +22,15 @@ class DateSeparatedScheduleData:
     """Helper class for separating Schedule entries by date."""
     _list: List[ScheduleData]
     _date: date
-    
+
     def __init__(self, date: date) -> None:
         self._date = date
         self._list = []
 
 class SchedulePost:
-    """Runtime data object containing information regarding Schedule 
+    """Runtime data object containing information regarding Schedule
     for a certain guild.
-    
+
     Properties
     ----------
     guild: :class:`int`
@@ -38,8 +38,8 @@ class SchedulePost:
     channel: :class:`int`
         Channel ID, where the schedule post is located.
     post: :class:`int`
-        Message ID of the schedule post. This message should be placed 
-        in a channel, which doesn't have more than 50 messages posted 
+        Message ID of the schedule post. This message should be placed
+        in a channel, which doesn't have more than 50 messages posted
         simultaneously after the post.
     _list: :class:`List[ScheduleData]`
         List of all the scheduled events in the given guild.
@@ -48,13 +48,13 @@ class SchedulePost:
     channel: int
     post: int
     _list: List[ScheduleData]
-    
+
     def __init__(self, guild: int, channel: int, post: int):
         self.guild = guild
         self.channel = channel
         self.post = post
         self._list = []
-    
+
     def contains(self, id: int) -> bool:
         """Does the event <id> exist in this guild?
 
@@ -62,7 +62,7 @@ class SchedulePost:
             id (int): event id
         """
         return self.get_entry(id)
-    
+
     def get_entry(self, id: int) -> ScheduleData:
         """Get the event <id>.
 
@@ -84,7 +84,7 @@ class SchedulePost:
             if data.post_id == post_id:
                 return data
         return None
-    
+
     def remove(self, id: int):
         """Remove event from the runtime data and the database.
 
@@ -94,13 +94,13 @@ class SchedulePost:
         for data in self._list:
             if data.id == id:
                 self._list.remove(data)
-                spd_bot.snowcaloid.data.db.connect()
+                bot.snowcaloid.data.db.connect()
                 try:
-                    spd_bot.snowcaloid.data.db.query(f'delete from schedule where id={id}')
-                    spd_bot.snowcaloid.data.db.query(f'delete from buttons where button_id ~ \'{data.post_id}\'')
+                    bot.snowcaloid.data.db.query(f'delete from schedule where id={id}')
+                    bot.snowcaloid.data.db.query(f'delete from buttons where button_id ~ \'{data.post_id}\'')
                 finally:
-                    spd_bot.snowcaloid.data.db.disconnect()
-        
+                    bot.snowcaloid.data.db.disconnect()
+
     def add_entry(self, db: Database, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> Union[int, ScheduleData]:
         """Add an event to the guild's schedule.
 
@@ -112,32 +112,32 @@ class SchedulePost:
             auto_passcode (bool, optional): Is the passcode automatically generated?. Defaults to True.
 
         Returns:
-            Union[int, ScheduleData]: If called by runtime, it returns the id of the event. If called by loading from database, returns the event object. 
+            Union[int, ScheduleData]: If called by runtime, it returns the id of the event. If called by loading from database, returns the event object.
         TODO:
-            Refactor database parameter. 
+            Refactor database parameter.
             Always return the event itself.
         """
         entry = ScheduleData(owner, type, timestamp, description)
         if auto_passcode and (not entry.pass_main or not entry.pass_supp):
             entry.generate_passcode(True)
-        self._list.append(entry)       
+        self._list.append(entry)
         if db:
             db.connect()
             try:
                 id = db.query(f'insert into schedule (schedule_post, owner, type, timestamp, description, pass_main, pass_supp) ' +
                               f'values ({self.post}, {owner}, \'{type}\', {pg_timestamp(timestamp)}, \'{description}\', {str(int(entry.pass_main))}, {str(int(entry.pass_supp))}) returning id')
                 entry.id = id
-                spd_bot.snowcaloid.data.tasks.add_task(timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
+                bot.snowcaloid.data.tasks.add_task(timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
                 if auto_passcode:
-                    spd_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id}) 
-                    spd_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id}) 
-                    spd_bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id}) 
+                    bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
+                    bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
+                    bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
                 return id
             finally:
                 db.disconnect()
         else:
             return entry
-    
+
     def edit_entry(self, db: Database, id: int, owner: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool):
         """Edits the event.
 
@@ -177,25 +177,25 @@ class SchedulePost:
                     set_str += f'timestamp={pg_timestamp(entry.timestamp)}'
                 if passcode and (not entry.pass_main or not entry.pass_supp):
                     entry.generate_passcode(True)
-                    guild_data = spd_bot.snowcaloid.data.guild_data.get_data(self.guild)
+                    guild_data = bot.snowcaloid.data.guild_data.get_data(self.guild)
                     if guild_data:
                         channel_data = guild_data.get_channel(type=entry.type)
                         if channel_data:
-                            spd_bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
+                            bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
                         channel_data = guild_data.get_support_channel(type=entry.type)
                         if channel_data:
-                            spd_bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
+                            bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
                 else:
                     entry.pass_main = 0
                     entry.pass_supp = 0
-                    guild_data = spd_bot.snowcaloid.data.guild_data.get_data(self.guild)
+                    guild_data = bot.snowcaloid.data.guild_data.get_data(self.guild)
                     if guild_data:
                         channel_data = guild_data.get_channel(type=entry.type)
                         if channel_data:
-                            spd_bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
+                            bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
                         channel_data = guild_data.get_support_channel(type=entry.type)
                         if channel_data:
-                            spd_bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
+                            bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
                 if set_str:
                     set_str += f', pass_main={str(entry.pass_main)}, pass_supp={str(entry.pass_supp)} '
                 else:
@@ -207,8 +207,8 @@ class SchedulePost:
                     entry.type = type
                     set_str += f', type=\'{type}\''
                 if description:
-                    entry.description = description 
-                    set_str += f', description=\'{description}\''      
+                    entry.description = description
+                    set_str += f', description=\'{description}\''
                 if db:
                     db.connect()
                     try:
@@ -219,7 +219,7 @@ class SchedulePost:
                 raise Error_Insufficient_Permissions()
         else:
             raise Error_Invalid_Schedule_Id()
-    
+
     async def remove_entry(self, db: Database, owner: int, admin: bool, id: int):
         """Remove the event <id>.
 
@@ -230,7 +230,7 @@ class SchedulePost:
 
         Raises:
             Error_Cannot_Remove_Schedule: The user doesn't have permissions to change the event.
-        
+
         TODO:
             Remove the db parameter.
             Rename owner parameter.
@@ -246,7 +246,7 @@ class SchedulePost:
                 raise Error_Cannot_Remove_Schedule()
         finally:
             db.disconnect()
-                
+
     def split_per_date(self) -> List[DateSeparatedScheduleData]:
         """Splits the event list by date."""
         result = []
@@ -256,12 +256,12 @@ class SchedulePost:
                 entry = DateSeparatedScheduleData(data.timestamp.date())
                 result.append(entry)
             entry._list.append(data)
-                
+
         return result
-                
-    async def update_post(self): 
+
+    async def update_post(self):
         """Updates the schedule post."""
-        guild = spd_bot.snowcaloid.get_guild(self.guild)       
+        guild = bot.snowcaloid.get_guild(self.guild)
         for channel in await guild.fetch_channels():
             if channel.id == self.channel:
                 post = await channel.fetch_message(self.post)
@@ -278,27 +278,27 @@ class SchedulePost:
                             if entry.description:
                                 schedule_on_day += f' [{entry.description}]'
                         embed.add_field(name=data._date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))
-                        
+
                     await post.edit(embed=embed)
                     await set_default_footer(post)
                 else:
                     raise Exception(f'Could not find message with ID {self.post}')
-                
+
     async def update_pl_post(self, guild_data: GuildData, entry: ScheduleData = None, message: Message = None, post_id: int = 0, id: int = 0):
         """Updates the party leader recruitment post.
 
         Args:
             guild_data (GuildData): Runtime guild data object for the current guild
-            entry (ScheduleData, optional): Event, whose post will be updated. Defaults to 
+            entry (ScheduleData, optional): Event, whose post will be updated. Defaults to
                 None - not needed if `id` or `post_id` are supplied.
-            message (Message, optional): Message, that will be edited. Defaults to None - 
+            message (Message, optional): Message, that will be edited. Defaults to None -
                 then tries to find it using event data.
-            post_id (int, optional): Message ID of the party leader post. Defaults to 0 - 
+            post_id (int, optional): Message ID of the party leader post. Defaults to 0 -
                 not needed if `entry` or `id` are supplied.
-            id (int, optional): Event id. Defaults to 0 - not needed if `event` or `post_id` 
+            id (int, optional): Event id. Defaults to 0 - not needed if `event` or `post_id`
                 are supplied.
 
-        TODO:  
+        TODO:
             Remove guild_data parameter and get it automatically.
         """
         if not entry:
@@ -311,7 +311,7 @@ class SchedulePost:
         if not message:
             pl_channel = guild_data.get_pl_channel(entry.type)
             if pl_channel:
-                channel = await spd_bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
+                channel = await bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
                 message = await channel.fetch_message(entry.post_id)
         if message:
             embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nParty leader recruitment")
@@ -329,52 +329,52 @@ class SchedulePost:
             )
             await message.edit(embed=embed)
             await set_default_footer(message)
-            
-    
+
+
     async def create_pl_post(self, id: int, guild_data: GuildData):
         """Create the party leader post for event <id>
 
         Args:
             id (int): event id.
             guild_data (GuildData): Runtime guild data for the guild.
-        
+
         TODO:
             Remove guild_data parameter and get it automatically.
         """
         entry = self.get_entry(id)
         pl_channel = guild_data.get_pl_channel(entry.type)
         if pl_channel:
-            channel = await spd_bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
+            channel = await bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
             message = await channel.send(f'Recruitment post #{str(id)}')
             entry.post_id = message.id
             view = PersistentView()
-            for i in range(1, 7):    
+            for i in range(1, 7):
                 button = PartyLeaderButton(label=str(i), custom_id=button_custom_id(f'pl{i}', message, ButtonType.PL_POST), row=1 if i < 4 else 2)
                 view.add_item(button)
             view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
             await self.update_pl_post(guild_data, entry=entry, message=message)
             await message.edit(view=view)
-            spd_bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
-            spd_bot.snowcaloid.data.db.connect()
+            bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
+            bot.snowcaloid.data.db.connect()
             try:
-                spd_bot.snowcaloid.data.db.query(f'update schedule set post_id={entry.post_id} where id={id}')
+                bot.snowcaloid.data.db.query(f'update schedule set post_id={entry.post_id} where id={id}')
                 for button in view.children:
-                    spd_bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.custom_id}\', \'{button.label}\')')
+                    bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.custom_id}\', \'{button.label}\')')
             finally:
-                spd_bot.snowcaloid.data.db.disconnect()
-        else: 
-            print(f'Info: no party leader post has been made due to the missing channel for type {type} in guild {spd_bot.snowcaloid.get_guild(self.guild).name}')
-            
-        
+                bot.snowcaloid.data.db.disconnect()
+        else:
+            print(f'Info: no party leader post has been made due to the missing channel for type {type} in guild {bot.snowcaloid.get_guild(self.guild).name}')
+
+
 class SchedulePostData():
     """Runtime data object containing all schedule information for all guilds.
-    
+
     Properties
     ----------
     _list: :class:`List[SchedulePost]`
         List of all schedule information, seperated by guild.
     guild_data: :class:`RuntimeGuildData`
-        Runtime data which stores base properties of a guild, e.g which event type 
+        Runtime data which stores base properties of a guild, e.g which event type
         should be posted in which channel.
 
     TODO:
@@ -382,11 +382,11 @@ class SchedulePostData():
     """
     _list: List[SchedulePost]
     guild_data: RuntimeGuildData
-    
+
     def __init__(self, guild_data: RuntimeGuildData):
         self._list = []
         self.guild_data = guild_data
-    
+
     def contains(self, guild: int) -> bool:
         """Does the guild contain a schedule post?
 
@@ -394,7 +394,7 @@ class SchedulePostData():
             guild (int): guild id
         """
         return self.get_post(guild)
-    
+
     def get_post(self, guild: int) -> SchedulePost:
         """Get the schedule post data for the guild.
 
@@ -405,7 +405,7 @@ class SchedulePostData():
             if entry.guild == guild:
                 return entry
         return None
-    
+
     def add_entry(self, db: Database, guild: int, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> int:
         """Add an event to the guild's schedule.
 
@@ -415,22 +415,22 @@ class SchedulePostData():
             type (ScheduleType): Type of event that is being scheduled.
             timestamp (datetime): When is the run taking place?
             description (str, optional): Description for the run. Defaults to ''.
-            
+
         Raises:
             Error_Missing_Schedule_Post: Guild is missing a schedule post.
 
         Returns:
-            Union[int, ScheduleData]: If called by runtime, it returns the id of the event. If called by loading from database, returns the event object. 
-        
+            Union[int, ScheduleData]: If called by runtime, it returns the id of the event. If called by loading from database, returns the event object.
+
         TODO:
             Refactor the db parameter.
             Rename owner parameter.
         """
-        if self.contains(guild): 
+        if self.contains(guild):
             return self.get_post(guild).add_entry(db, owner, type, timestamp, description, auto_passcode)
         else:
-            raise Error_Missing_Schedule_Post() 
-    
+            raise Error_Missing_Schedule_Post()
+
     def edit_entry(self, db: Database, id: int, guild: int, owner: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
         """Edits the event.
 
@@ -452,11 +452,11 @@ class SchedulePostData():
             Refactor the db parameter.
             Rename owner parameter.
         """
-        if self.contains(guild): 
+        if self.contains(guild):
             return self.get_post(guild).edit_entry(db, id, owner, type, date, time, description, passcode, is_admin)
         else:
-            raise Error_Missing_Schedule_Post() 
-        
+            raise Error_Missing_Schedule_Post()
+
     async def remove_entry(self, db: Database, guild: int, owner: int, admin: bool, id: int):
         """Remove the event <id>.
 
@@ -468,7 +468,7 @@ class SchedulePostData():
 
         Raises:
             Error_Missing_Schedule_Post: Guild is missing a schedule post.
-        
+
         TODO:
             Remove the db parameter.
             Rename owner parameter.
@@ -476,8 +476,8 @@ class SchedulePostData():
         if self.contains(guild):
             await self.get_post(guild).remove_entry(db, owner, admin, id)
         else:
-            raise Error_Missing_Schedule_Post() 
-        
+            raise Error_Missing_Schedule_Post()
+
     async def update_post(self, guild: int):
         """Updates the schedule post for guild.
 
@@ -487,11 +487,11 @@ class SchedulePostData():
         Raises:
             Error_Missing_Schedule_Post: Guild is missing a schedule post.
         """
-        if self.contains(guild): 
+        if self.contains(guild):
             await self.get_post(guild).update_post()
         else:
-            raise Error_Missing_Schedule_Post() 
-    
+            raise Error_Missing_Schedule_Post()
+
     async def create_pl_post(self, guild: int, id: int):
         """Create the party leader post for event <id> in guild <guild>.
 
@@ -499,32 +499,32 @@ class SchedulePostData():
             guild (int): guild id.
             id (int): event id.
         """
-        if self.contains(guild): 
+        if self.contains(guild):
             await self.get_post(guild).create_pl_post(id, self.guild_data.get_data(guild))
         else:
-            raise Error_Missing_Schedule_Post() 
-    
+            raise Error_Missing_Schedule_Post()
+
     def save(self, db: Database, guild: int, channel: int, post: int):
         """Saves the schedule post to the runtime object and the database.
 
         Args:
             db (Database): please remove this
             guild (int): guild id.
-            channel (int): Schedule post channel id. 
+            channel (int): Schedule post channel id.
             post (int): Schedule post message id.
-            
+
         TODO:
             Remove db parameter.
         """
         self._list.append(SchedulePost(guild, channel, post))
         self.guild_data.save_schedule_post(db, guild, channel, post)
-            
+
     async def load(self, db: Database):
         """Loads all schedule posts and events from the database.
 
         Args:
             db (Database): please remove this.
-        
+
         TODO:
             Remove db parameter.
         """

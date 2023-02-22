@@ -3,102 +3,102 @@ from typing import List
 
 from discord import Embed
 from data.table.missed import MissedData
-import bot as dmrd_bot
+import bot
 
 class MissedRunsData:
-    """Runtime data object containing information 
+    """Runtime data object containing information
     about missed runs.
-    
+
     Properties
     ----------
     _list: :class:`List[MissedData]`
         List of all missed data informations.
     """
     _list: List[MissedData]
-    
+
     def __init__(self) -> None:
         self._list = []
-        
+
     def init(self, guild: int, user: int):
         """Initialize guild-user relation
 
         Args:
-            guild (int): guild id 
+            guild (int): guild id
             user (int): user id
         """
         if not self.get_data(guild, user):
             self._list.append(MissedData(guild, user))
-    
+
     def get_data(self, guild: int, user: int):
         """Get data for the guild-user relation
 
         Args:
-            guild (int): guild id 
+            guild (int): guild id
             user (int): user id
         """
         for data in self._list:
             if data.guild == guild and data.user == user:
                 return data
-        return None    
-    
+        return None
+
     def get_guild_data(self, guild: int) -> List[MissedData]:
         """Get all the missed run data for the guild
 
         Args:
-            guild (int): guild id 
+            guild (int): guild id
         """
         list = []
         for data in self._list:
             if data.guild == guild:
                 list.append(data)
         return list
-    
+
     def eligable(self, guild: int, user: int):
         """Is the user in the guild eligable for a notification?
 
         Args:
-            guild (int): guild id 
+            guild (int): guild id
             user (int): user id
         """
         data = self.get_data(guild, user)
         return data and data.amount >= 3
-        
+
     def inc(self, guild: int, user: int):
         """Increase the amount of the guild-user relation
 
         Args:
-            guild (int): guild id 
+            guild (int): guild id
             user (int): user id
         """
         self.init(guild, user)
         self.get_data(guild, user).amount += 1
         self.save(guild, user)
-        
+
     def remove(self, guild: int, user: int):
         """Remove the guild-user relation
 
         Args:
-            guild (int): guild id 
+            guild (int): guild id
             user (int): user id
         """
         self._list.remove(self.get_data(guild, user))
-        db = dmrd_bot.snowcaloid.data.db
+        db = bot.snowcaloid.data.db
         db.connect()
         try:
             db.query(f'delete from missed where guild={guild} and user_id={user}')
         finally:
             db.disconnect()
-        
+
     def save(self, guild: int, user: int):
         """Save the guild-user relation to the database
 
         Args:
-            guild (int): guild id 
+            guild (int): guild id
             user (int): user id
         """
         self.init(guild, user)
         if self.get_data(guild, user).amount:
-            db = dmrd_bot.snowcaloid.data.db
+            db = bot.snowcaloid.data.db
             db.connect()
             try:
                 if db.query(f'select amount from missed where guild={guild} and user_id={user}'):
@@ -107,10 +107,10 @@ class MissedRunsData:
                     db.query(f'insert into missed (guild, user_id, amount) values ({guild}, {user}, {self.get_data(guild, user).amount})')
             finally:
                 db.disconnect()
-                
+
     async def load(self):
         """Load all missed runs data from the database"""
-        db = dmrd_bot.snowcaloid.data.db
+        db = bot.snowcaloid.data.db
         db.connect()
         try:
             missed = db.query(f'select guild, user_id, amount from missed')
@@ -118,26 +118,26 @@ class MissedRunsData:
                 self._list.append(MissedData(record[0], record[1], record[2]))
         finally:
             db.disconnect()
-        for guild_data in dmrd_bot.snowcaloid.data.guild_data._list:
+        for guild_data in bot.snowcaloid.data.guild_data._list:
             await self.update_post(guild_data.guild_id)
-                
-        
+
+
     async def update_post(self, guild: int):
         """Updates the missed runs post.
 
         Args:
             guild (int): guild id
         """
-        guild_data = dmrd_bot.snowcaloid.data.guild_data.get_data(guild)
+        guild_data = bot.snowcaloid.data.guild_data.get_data(guild)
         if guild_data.missed_channel and guild_data.missed_post:
-            channel = await dmrd_bot.snowcaloid.get_guild(guild).fetch_channel(guild_data.missed_channel)
+            channel = await bot.snowcaloid.get_guild(guild).fetch_channel(guild_data.missed_channel)
             message = await channel.fetch_message(guild_data.missed_post)
             embeds = []
             embed = Embed(title='List of people with missing runs')
             embeds.append(embed)
             i = 0
             description = ''
-            gld = dmrd_bot.snowcaloid.get_guild(guild)
+            gld = bot.snowcaloid.get_guild(guild)
             for missed_data in self.get_guild_data(guild):
                 i += 1
                 if i % 150 == 0:
@@ -151,5 +151,5 @@ class MissedRunsData:
                     description = "\n".join([description, f'{str(missed_data.amount)} - {name}'])
             if description:
                 embed.description = description.strip()
-                
+
             await message.edit(embeds=embeds)
