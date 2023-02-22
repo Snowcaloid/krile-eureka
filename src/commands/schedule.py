@@ -9,7 +9,7 @@ from typing import List, Optional
 from data.schedule_post_data import Error_Insufficient_Permissions, Error_Invalid_Date, Error_Invalid_Schedule_Id, Error_Missing_Schedule_Post, Error_Cannot_Remove_Schedule
 from data.table.database import DatabaseOperation
 from data.table.schedule import ScheduleData, ScheduleType, schedule_type_desc
-from utils import set_default_footer
+from utils import set_default_footer, default_defer, default_response
 from validation import permission_admin, permission_raid_leader
 from logger import guild_log_message
 
@@ -23,14 +23,15 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     @command(name = "initialize", description = "Initialize the server\'s schedule by creating a static post that will be used as a schedule list.")
     @check(permission_admin)
     async def initialize(self, interaction: Interaction, channel: TextChannel):
+        await default_defer(interaction)
         if snowcaloid.data.schedule_posts.contains(interaction.guild_id):
-            await interaction.response.send_message('This guild already contains a schedule post.', ephemeral=True)
+            await default_response(interaction, 'This guild already contains a schedule post.')
         else:
             message = await channel.send('This post contains an embed containing the schedule.',
                                         embed=Embed(title='Schedule'))
             await set_default_footer(message)
             snowcaloid.data.schedule_posts.save(interaction.guild_id, channel.id, message.id)
-            await interaction.response.send_message(f'Schedule has been created in #{channel.name}', ephemeral=True)
+            await default_response(interaction, f'Schedule has been created in #{channel.name}')
             await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has created a schedule post in #{channel.name}.')
 
     @command(name = "add", description = "Add an entry to the schedule.")
@@ -39,7 +40,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                   event_date: str, event_time: str,
                   description: Optional[str] = '',
                   auto_passcode: Optional[bool] = True):
-        await interaction.response.defer(thinking=True)
+        await default_defer(interaction, False)
         try:
             try:
                 dt = datetime.strptime(event_date, "%d-%b-%Y")
@@ -51,73 +52,76 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                 raise TimeValueError()
             dt = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
             if dt < datetime.utcnow():
-                return await interaction.followup.send(f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.', ephemeral=True)
+                return await default_response(interaction, f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.')
             if not type in ScheduleType._value2member_map_:
-                return await interaction.followup.send(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
+                return await default_response(interaction, f'The type "{type}" is not allowed. Use autocomplete.')
             entry: ScheduleData = snowcaloid.data.schedule_posts.add_entry(
                 interaction.guild_id,
                 interaction.user.id,
                 type, dt, description, auto_passcode)
             await snowcaloid.data.schedule_posts.update_post(interaction.guild_id)
             await snowcaloid.data.schedule_posts.create_pl_post(interaction.guild_id, entry.id)
-            await interaction.followup.send(f'The run #{str(entry.id)} has been scheduled.')
+            await default_response(interaction, f'The run #{str(entry.id)} has been scheduled.')
             await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has scheduled a {type} run #{entry.id} for {dt}.')
         except Error_Missing_Schedule_Post:
-            await interaction.followup.send('This server has no schedule post. This is required for scheduling.', ephemeral=True)
+            await default_response(interaction, 'This server has no schedule post. This is required for scheduling.')
         except DateValueError:
-            await interaction.followup.send(f'The date format is not correct. If you start typing in format DD-MM-YYYY, auto-fill will help you.', ephemeral=True)
+            await default_response(interaction, f'The date format is not correct. If you start typing in format DD-MM-YYYY, auto-fill will help you.')
         except TimeValueError:
-            await interaction.followup.send(f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.', ephemeral=True)
+            await default_response(interaction, f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.')
 
     @command(name = "remove", description = "Remove a schedule entry.")
     @check(permission_raid_leader)
     async def remove(self, interaction: Interaction, id: int):
+        await default_defer(interaction, False)
         try:
             await snowcaloid.data.schedule_posts.remove_entry(interaction.guild_id, interaction.user.id, permission_admin(interaction), id)
-            await interaction.response.send_message(f'Run #{id} has been deleted.')
+            await default_response(interaction, f'Run #{id} has been deleted.')
             await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has deleted the run #{id}.')
         except Error_Missing_Schedule_Post:
-            await interaction.response.send_message('This server has no schedule post. This is required for scheduling.', ephemeral=True)
+            await default_response(interaction, 'This server has no schedule post. This is required for scheduling.')
         except Error_Cannot_Remove_Schedule:
-            await interaction.response.send_message(f'Run #{id} is not owned by you and you do not have the sufficient rights to remove it.', ephemeral=True)
+            await default_response(interaction, f'Run #{id} is not owned by you and you do not have the sufficient rights to remove it.')
         except IndexError:
-            await interaction.response.send_message(f'The run #{id} doesn\'t exist.', ephemeral=True)
+            await default_response(interaction, f'The run #{id} doesn\'t exist.')
 
     @command(name = "passcode_channel", description = "Set the channel, where passcodes for specific type of events will be posted.")
     @check(permission_admin)
     async def passcode_channel(self, interaction: Interaction, type: str, channel: TextChannel):
+        await default_defer(interaction)
         if not type in ScheduleType._value2member_map_:
-            return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
+            return await default_response(interaction, f'The type "{type}" is not allowed. Use autocomplete.')
         op = snowcaloid.data.guild_data.set_schedule_channel(interaction.guild_id, type, channel.id)
         if op == DatabaseOperation.EDITED:
-            await interaction.response.send_message(f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
+            await default_response(interaction, f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.')
         else:
-            await interaction.response.send_message(f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".', ephemeral=True)
+            await default_response(interaction, f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".')
 
     @command(name = "support_passcode_channel", description = "Set the channel, where passcodes for specific type of events will be posted (for support parties).")
     @check(permission_admin)
     async def support_passcode_channel(self, interaction: Interaction, type: str, channel: TextChannel):
-        await interaction.response.defer(thinking=True, ephemeral=True)
+        await default_defer(interaction)
         if not type in ScheduleType._value2member_map_:
-            return await interaction.followup.send(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
+            return await default_response(interaction, f'The type "{type}" is not allowed. Use autocomplete.')
         op = snowcaloid.data.guild_data.set_schedule_support_channel(interaction.guild_id, type, channel.id)
         if op == DatabaseOperation.EDITED:
-            await interaction.followup.send(f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
+            await default_response(interaction, f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.')
         else:
-            await interaction.followup.send(f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".', ephemeral=True)
+            await default_response(interaction, f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has set the post channel to #{channel.name} for the "{schedule_type_desc(type)}" type.')
 
     @command(name = "party_leader_channel", description = "Set the channel for party leader posts.")
     @check(permission_admin)
     async def party_leader_channel(self, interaction: Interaction, type: str, channel: TextChannel):
+        await default_defer(interaction)
         if not type in ScheduleType._value2member_map_:
-            return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
+            return await default_response(interaction, f'The type "{type}" is not allowed. Use autocomplete.')
         op = snowcaloid.data.guild_data.set_party_leader_channel(interaction.guild_id, type, channel.id)
         if op == DatabaseOperation.EDITED:
-            await interaction.response.send_message(f'You have changed the party leader recruitment channel for type "{schedule_type_desc(type)}" to #{channel.name}.', ephemeral=True)
+            await default_response(interaction, f'You have changed the party leader recruitment channel for type "{schedule_type_desc(type)}" to #{channel.name}.')
         else:
-            await interaction.response.send_message(f'You have set #{channel.name} as the party leader recruitment channel for type "{schedule_type_desc(type)}".', ephemeral=True)
+            await default_response(interaction, f'You have set #{channel.name} as the party leader recruitment channel for type "{schedule_type_desc(type)}".')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has set the party leader channel to #{channel.name} for the "{schedule_type_desc(type)}" type.')
 
     @command(name = "edit", description = "Add an entry to the schedule.")
@@ -126,6 +130,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                    leader: Optional[str] = '', event_date: Optional[str] = '',
                    event_time: Optional[str] = '', description: Optional[str] = '',
                    passcode: Optional[bool] = True):
+        await default_defer(interaction, False)
         try:
             dt = None
             tm = None
@@ -142,9 +147,9 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             if dt and tm:
                 date = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
                 if date < datetime.utcnow():
-                    return await interaction.response.send_message(f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.', ephemeral=True)
+                    return await default_response(interaction, f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.')
             if type and not type in ScheduleType._value2member_map_:
-                return await interaction.response.send_message(f'The type "{type}" is not allowed. Use autocomplete.', ephemeral=True)
+                return await default_response(interaction, f'The type "{type}" is not allowed. Use autocomplete.')
             snowcaloid.data.schedule_posts.edit_entry(id,
                                                     interaction.guild_id,
                                                     int(leader or 0),
@@ -152,20 +157,20 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                                                     permission_admin(interaction))
             await snowcaloid.data.schedule_posts.update_post(interaction.guild_id)
             await snowcaloid.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(snowcaloid.data.guild_data.get_data(interaction.guild_id), id=id)
-            await interaction.response.send_message(f'The run #{str(id)} has been adjusted.')
+            await default_response(interaction, f'The run #{str(id)} has been adjusted.')
             await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has adjusted run #{str(id)}')
         except Error_Invalid_Date:
-            await interaction.response.send_message(f'Date is invalid or not in future. Use autocomplete.', ephemeral=True)
+            await default_response(interaction, f'Date is invalid or not in future. Use autocomplete.')
         except Error_Missing_Schedule_Post:
-            await interaction.response.send_message('This server has no schedule post. This is required for scheduling.', ephemeral=True)
+            await default_response(interaction, 'This server has no schedule post. This is required for scheduling.')
         except Error_Invalid_Schedule_Id:
-            await interaction.response.send_message(f'The run #{id} does\'t exist.', ephemeral=True)
+            await default_response(interaction, f'The run #{id} does\'t exist.')
         except Error_Insufficient_Permissions:
-            await interaction.response.send_message('You\'re not allowed to change this run\'s properties. Only the run creator or an admin can do this.', ephemeral=True)
+            await default_response(interaction, 'You\'re not allowed to change this run\'s properties. Only the run creator or an admin can do this.')
         except DateValueError:
-            await interaction.response.send_message(f'The date format is not correct. If you start typing in format DD-MM-YYYY, auto-fill will help you.', ephemeral=True)
+            await default_response(interaction, f'The date format is not correct. If you start typing in format DD-MM-YYYY, auto-fill will help you.')
         except TimeValueError:
-            await interaction.response.send_message(f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.', ephemeral=True)
+            await default_response(interaction, f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.')
 
     @add.autocomplete('type')
     @edit.autocomplete('type')
@@ -180,7 +185,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     @party_leader_channel.autocomplete('type')
     @support_passcode_channel.autocomplete('type')
     async def autocomplete_schedule_type_with_all(self, interaction: Interaction, current: str):
-        result = await self, self.autocomplete_schedule_type(interaction, current)
+        result = await self.autocomplete_schedule_type(interaction, current)
         result.append(Choice(name='All BA Runs', value=ScheduleType.BA_ALL.value))
         return result
 

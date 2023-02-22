@@ -82,7 +82,7 @@ class RuntimeGuildData:
         db = bot.snowcaloid.data.db
         db.connect()
         try:
-            db.query(f'update guilds set schedule_channel={str(channel)}, schedule_post={str(post)}')
+            db.query(f'update guilds set schedule_channel={str(channel)}, schedule_post={str(post)} where guild_id={guild}')
         finally:
             db.disconnect()
         if not self.contains(guild):

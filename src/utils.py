@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 import time
-from discord import Message, Member
+from discord import Interaction, Message, Member
 from buttons import ButtonType
 from dateutil.tz import tzlocal, tzutc
 import bot
@@ -38,7 +38,7 @@ def button_custom_id(id: str, message: Message, type: ButtonType) -> str:
     return f'{message.id}-{type.value}-{id}'
 
 
-async def get_mention(guild_id: int, user_id: int) -> str: 
+async def get_mention(guild_id: int, user_id: int) -> str:
     if user_id:
         guild = bot.snowcaloid.get_guild(guild_id)
         if guild:
@@ -63,3 +63,9 @@ async def set_default_footer(message: Message):
     if message and message.embeds:
         message.embeds[len(message.embeds) - 1].set_footer(text=f'Message ID: {str(message.id)}')
         await message.edit(embeds=message.embeds)
+
+async def default_defer(interaction: Interaction, ephemeral: bool = True):
+    await interaction.response.defer(thinking=True, ephemeral=ephemeral)
+
+async def default_response(interaction: Interaction, text: str):
+    await interaction.followup.send(text)

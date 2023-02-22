@@ -502,15 +502,16 @@ class SchedulePostData():
         try:
             self._list.clear()
             for guild_data in self.guild_data._list:
-                schedule_post = SchedulePost(guild_data.guild_id, guild_data.schedule_channel, guild_data.schedule_post)
-                for sch_record in db.query(f'select id, leader, type, timestamp, description, post_id, pl1, pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp from schedule where schedule_post={guild_data.schedule_post}'):
-                    entry = schedule_post.add_entry(sch_record[1], sch_record[2], sch_record[3], sch_record[4])
-                    entry.id = sch_record[0]
-                    entry.post_id = sch_record[5]
-                    entry.party_leaders = [sch_record[6], sch_record[7], sch_record[8], sch_record[9], sch_record[10], sch_record[11], sch_record[12]]
-                    entry.pass_main = sch_record[13]
-                    entry.pass_supp = sch_record[14]
-                self._list.append(schedule_post)
-                await schedule_post.update_post()
+                if guild_data.schedule_post:
+                    schedule_post = SchedulePost(guild_data.guild_id, guild_data.schedule_channel, guild_data.schedule_post)
+                    for sch_record in db.query(f'select id, leader, type, timestamp, description, post_id, pl1, pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp from schedule where schedule_post={guild_data.schedule_post}'):
+                        entry = schedule_post.add_entry(sch_record[1], sch_record[2], sch_record[3], sch_record[4])
+                        entry.id = sch_record[0]
+                        entry.post_id = sch_record[5]
+                        entry.party_leaders = [sch_record[6], sch_record[7], sch_record[8], sch_record[9], sch_record[10], sch_record[11], sch_record[12]]
+                        entry.pass_main = sch_record[13]
+                        entry.pass_supp = sch_record[14]
+                    self._list.append(schedule_post)
+                    await schedule_post.update_post()
         finally:
             db.disconnect()
