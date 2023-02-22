@@ -21,11 +21,11 @@ class DatabaseOperation(Enum):
 
 class Database:
     """Runtime database access object
-    
+
     Properties
     ----------
     _connection_counter: :class:`int`
-        Depth of connection requests. When the counter reaches 0, 
+        Depth of connection requests. When the counter reaches 0,
         database will commit changes and close the connection.
     _connection: :class:`pgConnection`
         Currently opened connection.
@@ -35,6 +35,9 @@ class Database:
     _connection_counter: int = 0
     _connection: None
     _cursor: None
+
+    def connected(self):
+        return self._connection_counter > 0
 
     def connect(self):
         """Connect to Postgres. If already active, _connection_counter is incremented."""
@@ -68,11 +71,11 @@ class Database:
             query (str): SQL string to be executed.
 
         Returns:
-            Union[str, None]: 
+            Union[str, None]:
                 SELECT statement returns an array of row arrays.
-                
+
                 INSERT INTO RETURNING returns the value which is requested.
-                
+
                 Other queries return an empty array.
         """
         self.connect()

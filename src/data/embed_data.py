@@ -326,10 +326,10 @@ class EmbedData:
             self.clear(user)
             entry = self.get_entry(user)
             entry.message = message
-            entry.title = embed.title
-            entry.desc_lines = embed.description.splitlines()
-            entry.image = embed.image
-            entry.thumbnail = embed.thumbnail
+            entry.title = embed.title if embed.title else ''
+            entry.desc_lines = embed.description.splitlines() if embed.description else []
+            entry.image = embed.image if embed.image else ''
+            entry.thumbnail = embed.thumbnail if embed.thumbnail else ''
             for field in embed.fields:
                 entry.add_field({"title": field.name, "desc": field.value})
             view = PersistentView.from_message(message)
@@ -350,7 +350,7 @@ class EmbedData:
             bot.snowcaloid.data.db.connect()
             try:
                 for button in self.get_entry(user).buttons:
-                    if not bot.snowcaloid.data.db.query(f'select button_id from buttons where button_id=\'{button.id}\')'):
+                    if not bot.snowcaloid.data.db.query(f'select button_id from buttons where button_id=\'{button.id}\''):
                         bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.id}\', \'{button.label}\')')
             finally:
                 bot.snowcaloid.data.db.disconnect()

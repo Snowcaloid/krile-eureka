@@ -9,11 +9,11 @@ from utils import get_discord_member, get_discord_timestamp, DiscordTimestampTyp
 
 
 class ScheduleType(Enum):
-    BA_NORMAL = 'BA' 
+    BA_NORMAL = 'BA'
     BA_RECLEAR = 'BARC'
     BA_SPECIAL = 'BASPEC'
     BA_ALL = 'BA_ALL'
-    
+
 def schedule_type_desc(type: ScheduleType) -> str:
     if type == ScheduleType.BA_NORMAL.value:
         return "Baldesion Arsenal Normal Run"
@@ -23,10 +23,10 @@ def schedule_type_desc(type: ScheduleType) -> str:
         return "Baldesion Arsenal Special Run"
     elif type == ScheduleType.BA_ALL.value:
         return "All types of BA runs"
-    
+
 class ScheduleData:
     id: int
-    owner: int
+    leader: int
     type: ScheduleType
     timestamp: datetime
     description: str
@@ -34,10 +34,10 @@ class ScheduleData:
     pass_main: int
     pass_supp: int
     post_id: int
-    
-    def __init__(self, owner: int, type: ScheduleType, timestamp: datetime, description: str) -> None:
-        self.id = id
-        self.owner = owner
+
+    def __init__(self, leader: int, type: ScheduleType, timestamp: datetime, description: str) -> None:
+        self.id = 0
+        self.leader = 0 if leader is None else leader
         self.type = type
         self.timestamp = timestamp
         self.description = description
@@ -45,13 +45,13 @@ class ScheduleData:
         self.pass_main = 0
         self.pass_supp = 0
         self.post_id = 0
-    
+
     def _gen_pass(self) -> int:
         result = 0
         for i in range(0, 4):
             result += randint(0, 9) * (math.pow(10, i))
         return result
-    
+
     def generate_passcode(self, also_support: bool):
         if not self.pass_main:
             self.pass_main = self._gen_pass()
@@ -61,7 +61,7 @@ class ScheduleData:
 
     async def to_string(self, guild_id: int) -> str:
         # TODO: This object should probably know what guild it belongs to without being told.
-        raid_leader = await get_discord_member(guild_id, self.owner)
+        raid_leader = await get_discord_member(guild_id, self.leader)
         discord_timestamp = get_discord_timestamp(self.timestamp, DiscordTimestampType.RELATIVE)
         return f'{self.type} by {raid_leader.display_name} at {self.timestamp} ST {discord_timestamp}'
 
@@ -74,7 +74,7 @@ class ScheduleTable(TableDefinition):
         self.define_column('type', ColumnType.VARCHAR, 15)
         self.define_column('timestamp', ColumnType.TIMESTAMP)
         self.define_column('description', ColumnType.TEXT)
-        self.define_column('owner', ColumnType.BIGINT)
+        self.define_column('leader', ColumnType.BIGINT)
         self.define_column('pl1', ColumnType.BIGINT)
         self.define_column('pl2', ColumnType.BIGINT)
         self.define_column('pl3', ColumnType.BIGINT)

@@ -57,7 +57,7 @@ class PartyLeaderButton(Button):
                 await interaction.response.send_message(f'You have been set as Party Leader for Party {party_name}', ephemeral=True)
                 run = await entry.to_string(interaction.guild_id)
                 await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has registered for Party {party_name} on {run}')
-            elif current_value and (interaction.user.id == current_value or interaction.user.id == entry.owner):
+            elif current_value and (interaction.user.id == current_value or interaction.user.id == entry.leader):
                 is_party_leader_removing_self = interaction.user.id == current_value
                 entry.party_leaders[index] = 0
                 bot.snowcaloid.data.db.connect()

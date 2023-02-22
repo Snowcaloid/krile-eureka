@@ -101,49 +101,48 @@ class SchedulePost:
                 finally:
                     bot.snowcaloid.data.db.disconnect()
 
-    def add_entry(self, db: Database, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> Union[int, ScheduleData]:
+    def add_entry(self, leader: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> ScheduleData:
         """Add an event to the guild's schedule.
 
         Args:
-            owner (int): Event owner (user id). Typically the caller of /schedule_add
+            leader (int): Event leader (user id). Typically the caller of /schedule_add
             type (ScheduleType): Type of event that is being scheduled.
             timestamp (datetime): When is the run taking place?
             description (str, optional): Description for the run. Defaults to ''.
             auto_passcode (bool, optional): Is the passcode automatically generated?. Defaults to True.
 
         Returns:
-            Union[int, ScheduleData]: If called by runtime, it returns the id of the event. If called by loading from database, returns the event object.
-        TODO:
-            Refactor database parameter.
-            Always return the event itself.
+            ScheduleData: the event object.
         """
-        entry = ScheduleData(owner, type, timestamp, description)
+        entry = ScheduleData(leader, type, timestamp, description)
         if auto_passcode and (not entry.pass_main or not entry.pass_supp):
             entry.generate_passcode(True)
         self._list.append(entry)
-        if db:
+        db = bot.snowcaloid.data.db
+        if not db.connected():
             db.connect()
             try:
-                id = db.query(f'insert into schedule (schedule_post, owner, type, timestamp, description, pass_main, pass_supp) ' +
-                              f'values ({self.post}, {owner}, \'{type}\', {pg_timestamp(timestamp)}, \'{description}\', {str(int(entry.pass_main))}, {str(int(entry.pass_supp))}) returning id')
+                id = db.query((
+                    'insert into schedule (schedule_post, leader, type, timestamp, description, pass_main, pass_supp) '
+                    f'values ({self.post}, {entry.leader}, \'{entry.type}\', {pg_timestamp(entry.timestamp)}, '
+                    f'\'{entry.description}\', {str(int(entry.pass_main))}, {str(int(entry.pass_supp))}) returning id'
+                ))
                 entry.id = id
                 bot.snowcaloid.data.tasks.add_task(timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
                 if auto_passcode:
                     bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
                     bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
                     bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
-                return id
             finally:
                 db.disconnect()
-        else:
-            return entry
+        return entry
 
-    def edit_entry(self, db: Database, id: int, owner: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool):
+    def edit_entry(self, id: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool):
         """Edits the event.
 
         Args:
             id (int): event id.
-            owner (int): User ID of the user trying to edit the entry.
+            leader (int): User ID of the user trying to edit the entry.
             type (ScheduleType): Event type
             date (datetime): Date of the event
             time (datetime): Time of the event
@@ -155,14 +154,10 @@ class SchedulePost:
             Error_Invalid_Date: Date is invalid
             Error_Insufficient_Permissions: The user doesn't have permissions to change the event.
             Error_Invalid_Schedule_Id: The schedule id is invalid.
-
-        TODO:
-            Refactor the db parameter.
-            Rename owner parameter.
         """
         entry = self.get_entry(id)
         if entry:
-            if owner == entry.owner or is_admin:
+            if leader == entry.leader or is_admin:
                 set_str = ''
                 if date or time:
                     old_timestamp = entry.timestamp
@@ -170,7 +165,6 @@ class SchedulePost:
                         entry.timestamp = datetime(year=date.year, month=date.month, day=date.day, hour=entry.timestamp.hour, minute=entry.timestamp.minute)
                     if time:
                         entry.timestamp = datetime(year=entry.timestamp.year, month=entry.timestamp.month, day=entry.timestamp.day, hour=time.hour, minute=time.minute)
-                    entry.timestamp = entry.timestamp.timestamp()
                     if entry.timestamp < datetime.utcnow():
                         entry.timestamp = old_timestamp
                         raise Error_Invalid_Date()
@@ -200,52 +194,49 @@ class SchedulePost:
                     set_str += f', pass_main={str(entry.pass_main)}, pass_supp={str(entry.pass_supp)} '
                 else:
                     set_str += f'pass_main={str(entry.pass_main)}, pass_supp={str(entry.pass_supp)} '
-                if owner:
-                    entry.owner = owner
-                    set_str += f', owner={str(owner)}'
+                if leader:
+                    entry.leader = leader
+                    set_str += f', leader={str(leader)}'
                 if type:
                     entry.type = type
                     set_str += f', type=\'{type}\''
                 if description:
                     entry.description = description
                     set_str += f', description=\'{description}\''
-                if db:
-                    db.connect()
-                    try:
-                        db.query(f'update schedule set {set_str} where id={id}')
-                    finally:
-                        db.disconnect()
+                db = bot.snowcaloid.data.db
+                db.connect()
+                try:
+                    db.query(f'update schedule set {set_str} where id={id}')
+                finally:
+                    db.disconnect()
             else:
                 raise Error_Insufficient_Permissions()
         else:
             raise Error_Invalid_Schedule_Id()
 
-    async def remove_entry(self, db: Database, owner: int, admin: bool, id: int):
+    async def remove_entry(self, leader: int, admin: bool, id: int):
         """Remove the event <id>.
 
         Args:
-            owner (int): User ID of the user trying to edit the entry.
+            leader (int): User ID of the user trying to edit the entry.
             admin (bool): Does the calling user have admin rights / rights to edit other's runs?
             id (int): event id
 
         Raises:
             Error_Cannot_Remove_Schedule: The user doesn't have permissions to change the event.
-
-        TODO:
-            Remove the db parameter.
-            Rename owner parameter.
         """
-        self.remove(id)
+        db = bot.snowcaloid.data.db
         db.connect()
         try:
-            u = db.query(f'select owner from schedule where id={id}')[0][0]
-            if u == owner or admin:
+            u = db.query(f'select leader from schedule where id={id}')[0][0]
+            if u == leader or admin:
                 db.query(f'delete from schedule where id={id}')
                 await self.update_post()
             else:
                 raise Error_Cannot_Remove_Schedule()
         finally:
             db.disconnect()
+        self.remove(id)
 
     def split_per_date(self) -> List[DateSeparatedScheduleData]:
         """Splits the event list by date."""
@@ -274,7 +265,7 @@ class SchedulePost:
                         schedule_on_day = ''
                         for entry in data._list:
                             schedule_on_day = "\n".join([schedule_on_day,
-                                                        entry.timestamp.strftime("%H:%M") + f' ST ({get_discord_timestamp(entry.timestamp)} LT): {schedule_type_desc(entry.type)} (Leader: {await get_mention(self.guild, entry.owner)})'])
+                                                        entry.timestamp.strftime("%H:%M") + f' ST ({get_discord_timestamp(entry.timestamp)} LT): {schedule_type_desc(entry.type)} (Leader: {await get_mention(self.guild, entry.leader)})'])
                             if entry.description:
                                 schedule_on_day += f' [{entry.description}]'
                         embed.add_field(name=data._date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))
@@ -301,7 +292,7 @@ class SchedulePost:
         TODO:
             Remove guild_data parameter and get it automatically.
         """
-        if not entry:
+        if entry is None:
             if post_id:
                 entry = self.get_entry_by_pl_post(post_id)
             elif id:
@@ -316,7 +307,7 @@ class SchedulePost:
         if message:
             embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nParty leader recruitment")
             embed.description = (
-                f'Raid Leader: {await get_mention(self.guild, entry.owner)}\n'
+                f'Raid Leader: {await get_mention(self.guild, entry.leader)}\n'
                 f'Party 1: {await get_mention(self.guild, entry.party_leaders[0])}\n'
                 f'Party 2: {await get_mention(self.guild, entry.party_leaders[1])}\n'
                 f'Party 3: {await get_mention(self.guild, entry.party_leaders[2])}\n'
@@ -406,12 +397,12 @@ class SchedulePostData():
                 return entry
         return None
 
-    def add_entry(self, db: Database, guild: int, owner: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> int:
+    def add_entry(self, guild: int, leader: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> ScheduleData:
         """Add an event to the guild's schedule.
 
         Args:
             guild (int): guild id for the schedule post
-            owner (int): Event owner (user id). Typically the caller of /schedule_add
+            leader (int): Event leader (user id). Typically the caller of /schedule_add
             type (ScheduleType): Type of event that is being scheduled.
             timestamp (datetime): When is the run taking place?
             description (str, optional): Description for the run. Defaults to ''.
@@ -420,24 +411,20 @@ class SchedulePostData():
             Error_Missing_Schedule_Post: Guild is missing a schedule post.
 
         Returns:
-            Union[int, ScheduleData]: If called by runtime, it returns the id of the event. If called by loading from database, returns the event object.
-
-        TODO:
-            Refactor the db parameter.
-            Rename owner parameter.
+            ScheduleData: the event object.
         """
         if self.contains(guild):
-            return self.get_post(guild).add_entry(db, owner, type, timestamp, description, auto_passcode)
+            return self.get_post(guild).add_entry(leader, type, timestamp, description, auto_passcode)
         else:
             raise Error_Missing_Schedule_Post()
 
-    def edit_entry(self, db: Database, id: int, guild: int, owner: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
+    def edit_entry(self, id: int, guild: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
         """Edits the event.
 
         Args:
             id (int): event id.
             guild (int): guild id for the schedule post
-            owner (int): User ID of the user trying to edit the entry.
+            leader (int): User ID of the user trying to edit the entry.
             type (ScheduleType): Event type
             date (datetime): Date of the event
             time (datetime): Time of the event
@@ -448,33 +435,26 @@ class SchedulePostData():
         Raises:
             Error_Missing_Schedule_Post: Guild is missing a schedule post.
 
-        TODO:
-            Refactor the db parameter.
-            Rename owner parameter.
         """
         if self.contains(guild):
-            return self.get_post(guild).edit_entry(db, id, owner, type, date, time, description, passcode, is_admin)
+            return self.get_post(guild).edit_entry(id, leader, type, date, time, description, passcode, is_admin)
         else:
             raise Error_Missing_Schedule_Post()
 
-    async def remove_entry(self, db: Database, guild: int, owner: int, admin: bool, id: int):
+    async def remove_entry(self, guild: int, leader: int, admin: bool, id: int):
         """Remove the event <id>.
 
         Args:
             guild (int): guild id for the schedule post
-            owner (int): User ID of the user trying to edit the entry.
+            leader (int): User ID of the user trying to edit the entry.
             admin (bool): Does the calling user have admin rights / rights to edit other's runs?
             id (int): event id
 
         Raises:
             Error_Missing_Schedule_Post: Guild is missing a schedule post.
-
-        TODO:
-            Remove the db parameter.
-            Rename owner parameter.
         """
         if self.contains(guild):
-            await self.get_post(guild).remove_entry(db, owner, admin, id)
+            await self.get_post(guild).remove_entry(leader, admin, id)
         else:
             raise Error_Missing_Schedule_Post()
 
@@ -504,37 +484,27 @@ class SchedulePostData():
         else:
             raise Error_Missing_Schedule_Post()
 
-    def save(self, db: Database, guild: int, channel: int, post: int):
+    def save(self, guild: int, channel: int, post: int):
         """Saves the schedule post to the runtime object and the database.
 
         Args:
-            db (Database): please remove this
             guild (int): guild id.
             channel (int): Schedule post channel id.
             post (int): Schedule post message id.
-
-        TODO:
-            Remove db parameter.
         """
         self._list.append(SchedulePost(guild, channel, post))
-        self.guild_data.save_schedule_post(db, guild, channel, post)
+        self.guild_data.save_schedule_post(guild, channel, post)
 
-    async def load(self, db: Database):
-        """Loads all schedule posts and events from the database.
-
-        Args:
-            db (Database): please remove this.
-
-        TODO:
-            Remove db parameter.
-        """
+    async def load(self):
+        """Loads all schedule posts and events from the database."""
+        db = bot.snowcaloid.data.db
         db.connect()
         try:
             self._list.clear()
             for guild_data in self.guild_data._list:
                 schedule_post = SchedulePost(guild_data.guild_id, guild_data.schedule_channel, guild_data.schedule_post)
-                for sch_record in db.query(f'select id, owner, type, timestamp, description, post_id, pl1, pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp from schedule where schedule_post={guild_data.schedule_post}'):
-                    entry = schedule_post.add_entry(None, sch_record[1], sch_record[2], sch_record[3], sch_record[4])
+                for sch_record in db.query(f'select id, leader, type, timestamp, description, post_id, pl1, pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp from schedule where schedule_post={guild_data.schedule_post}'):
+                    entry = schedule_post.add_entry(sch_record[1], sch_record[2], sch_record[3], sch_record[4])
                     entry.id = sch_record[0]
                     entry.post_id = sch_record[5]
                     entry.party_leaders = [sch_record[6], sch_record[7], sch_record[8], sch_record[9], sch_record[10], sch_record[11], sch_record[12]]

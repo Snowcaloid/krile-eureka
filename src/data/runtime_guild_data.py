@@ -37,37 +37,28 @@ class RuntimeGuildData:
             guild (int): guild id.
         """
         if not self.contains(guild):
-            self.init(bot.snowcaloid.data.db, guild)
+            self.init(guild)
         for data in self._list:
             if data.guild_id == guild:
                 return data
 
-    def init(self, db: Database, guild: int):
+    def init(self, guild: int):
         """Initializes empty guild information object.
 
         Args:
-            db (Database): please remove
             guild (int): guild id
-
-        TODO:
-            Remove db parameter.
         """
-        self._list.append(GuildData(guild, 0, 0, 0, 0, 0))
+        db = bot.snowcaloid.data.db
         db.connect()
         try:
             db.query(f'insert into guilds values ({str(guild)})')
         finally:
             db.disconnect()
+        self._list.append(GuildData(guild, 0, 0, 0, 0, 0))
 
-    def load(self, db: Database):
-        """Loads all the guild and channel information from the database.
-
-        Args:
-            db (Database): please remove
-
-        TODO:
-            Remove db parameter.
-        """
+    def load(self):
+        """Loads all the guild and channel information from the database."""
+        db = bot.snowcaloid.data.db
         db.connect()
         try:
             gd = db.query('select guild_id, schedule_channel, schedule_post, missed_channel, missed_post, log_channel, missed_role from guilds')
@@ -80,27 +71,24 @@ class RuntimeGuildData:
         finally:
             db.disconnect()
 
-    def save_schedule_post(self, db: Database, guild: int, channel: int, post: int):
+    def save_schedule_post(self, guild: int, channel: int, post: int):
         """Saves schedule post information to the database.
 
         Args:
-            db (Database): please remove
             guild (int): guild id.
             channel (int): Schedule post's channel id.
             post (int): Schedule post's message id.
-
-        TODO:
-            Remove db parameter.
         """
-        if not self.contains(guild):
-            self.init(db, guild)
-        self.get_data(guild).schedule_channel = channel
-        self.get_data(guild).schedule_post = post
+        db = bot.snowcaloid.data.db
         db.connect()
         try:
             db.query(f'update guilds set schedule_channel={str(channel)}, schedule_post={str(post)}')
         finally:
             db.disconnect()
+        if not self.contains(guild):
+            self.init(guild)
+        self.get_data(guild).schedule_channel = channel
+        self.get_data(guild).schedule_post = post
 
     def save_missed_runs_post(self, guild: int, channel: int, post: int):
         """Saves missed runs post information to the database.
@@ -112,7 +100,7 @@ class RuntimeGuildData:
         """
         db = bot.snowcaloid.data.db
         if not self.contains(guild):
-            self.init(db, guild)
+            self.init(guild)
         self.get_data(guild).missed_channel = channel
         self.get_data(guild).missed_post = post
         db.connect()
@@ -121,32 +109,29 @@ class RuntimeGuildData:
         finally:
             db.disconnect()
 
-    def set_schedule_channel(self, db: Database, guild: int, type: ScheduleType, channel: int) -> DatabaseOperation:
+    def set_schedule_channel(self, guild: int, type: ScheduleType, channel: int) -> DatabaseOperation:
         """Sets the channel for the event type, where the passcodes are posted.
 
         Args:
-            db (Database): please remove
             guild (int): guild id.
             type (ScheduleType): Event type
             channel (int): channel id for the event type
 
         Returns:
             DatabaseOperation: Was the channel changed or added?
-
-        TODO:
-            Remove db parameter.
         """
         if not self.contains(guild):
-            self.init(db, guild)
+            self.init(guild)
 
         if type == ScheduleType.BA_ALL.value:
-            self.set_schedule_channel(db, guild, ScheduleType.BA_NORMAL.value, channel)
-            self.set_schedule_channel(db, guild, ScheduleType.BA_RECLEAR.value, channel)
-            self.set_schedule_channel(db, guild, ScheduleType.BA_SPECIAL.value, channel)
+            self.set_schedule_channel(guild, ScheduleType.BA_NORMAL.value, channel)
+            self.set_schedule_channel(guild, ScheduleType.BA_RECLEAR.value, channel)
+            self.set_schedule_channel(guild, ScheduleType.BA_SPECIAL.value, channel)
             return
 
         self.get_data(guild).remove_channel(type=type)
         self.get_data(guild).add_channel(channel, type)
+        db = bot.snowcaloid.data.db
         db.connect()
         try:
             if db.query(f'select channel_id from channels where guild_id={guild} and type=\'{type}\' and not is_pl_channel and not is_support_channel'):
@@ -158,32 +143,29 @@ class RuntimeGuildData:
         finally:
             db.disconnect()
 
-    def set_party_leader_channel(self, db: Database, guild: int, type: ScheduleType, channel: int) -> DatabaseOperation:
+    def set_party_leader_channel(self, guild: int, type: ScheduleType, channel: int) -> DatabaseOperation:
         """Sets the channel for the event type, where the party leader recruitment posts are posted.
 
         Args:
-            db (Database): please remove
             guild (int): guild id.
             type (ScheduleType): Event type
             channel (int): channel id for the event type
 
         Returns:
             DatabaseOperation: Was the channel changed or added?
-
-        TODO:
-            Remove db parameter.
         """
         if not self.contains(guild):
-            self.init(db, guild)
+            self.init(guild)
 
         if type == ScheduleType.BA_ALL.value:
-            self.set_party_leader_channel(db, guild, ScheduleType.BA_NORMAL.value, channel)
-            self.set_party_leader_channel(db, guild, ScheduleType.BA_RECLEAR.value, channel)
-            self.set_party_leader_channel(db, guild, ScheduleType.BA_SPECIAL.value, channel)
+            self.set_party_leader_channel(guild, ScheduleType.BA_NORMAL.value, channel)
+            self.set_party_leader_channel(guild, ScheduleType.BA_RECLEAR.value, channel)
+            self.set_party_leader_channel(guild, ScheduleType.BA_SPECIAL.value, channel)
             return
 
         self.get_data(guild).remove_channel(type=type)
         self.get_data(guild).add_channel(channel, type, True)
+        db = bot.snowcaloid.data.db
         db.connect()
         try:
             if db.query(f'select channel_id from channels where guild_id={guild} and type=\'{type}\' and is_pl_channel'):
@@ -207,7 +189,7 @@ class RuntimeGuildData:
             DatabaseOperation: Was the channel changed or added?
         """
         if not self.contains(guild):
-            self.init(bot.snowcaloid.data.db, guild)
+            self.init(guild)
 
         if type == ScheduleType.BA_ALL.value:
             self.set_schedule_support_channel(guild, ScheduleType.BA_NORMAL.value, channel)
@@ -241,7 +223,7 @@ class RuntimeGuildData:
         db = bot.snowcaloid.data.db
 
         if not self.contains(guild_id):
-            self.init(db, guild_id)
+            self.init(guild_id)
 
         guild_data = self.get_data(guild_id)
 

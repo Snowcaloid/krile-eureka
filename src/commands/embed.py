@@ -208,27 +208,27 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
     #endregion
 
     #region error-handling
-    @create.error
-    @edit.error
-    @finish.error
-    @title.error
-    @image.error
-    @thumbnail.error
-    @add_description.error
-    @add_blank_description.error
-    @edit_description.error
-    @remove_description.error
-    @add_field.error
-    @edit_field.error
-    @remove_field.error
-    @add_button.error
-    @remove_button.error
-    async def handle_permission_admin(self, interaction: Interaction, error):
-        if interaction.response.is_done():
-            if interaction.followup:
-                await interaction.followup.send('You have insufficient rights to use this command.', ephemeral=True)
-        else:
-            await interaction.response.send_message('You have insufficient rights to use this command.', ephemeral=True)
+    # @create.error
+    # @edit.error
+    # @finish.error
+    # @title.error
+    # @image.error
+    # @thumbnail.error
+    # @add_description.error
+    # @add_blank_description.error
+    # @edit_description.error
+    # @remove_description.error
+    # @add_field.error
+    # @edit_field.error
+    # @remove_field.error
+    # @add_button.error
+    # @remove_button.error
+    # async def handle_permission_admin(self, interaction: Interaction, error):
+    #     if interaction.response.is_done():
+    #         if interaction.followup:
+    #             await interaction.followup.send('You have insufficient rights to use this command.', ephemeral=True)
+    #     else:
+    #         await interaction.response.send_message('You have insufficient rights to use this command.', ephemeral=True)
     #endregion
 
     @finish.autocomplete('button_type')
