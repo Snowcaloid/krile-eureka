@@ -45,7 +45,7 @@ class PartyLeaderButton(Button):
             index = int(self.custom_id[-1]) - 1
             party_name = self.custom_id[-1] if self.custom_id[-1] != '7' else 'Support'
             current_value = entry.party_leaders[index]
-            if not (current_value or interaction.user.id in entry.party_leaders):
+            if not current_value and not interaction.user.id in entry.party_leaders:
                 entry.party_leaders[index] = interaction.user.id
                 buttons_bot.snowcaloid.data.db.connect()
                 try:
