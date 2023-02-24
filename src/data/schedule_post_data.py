@@ -160,7 +160,8 @@ class SchedulePost:
         if entry:
             if leader == entry.leader or is_admin:
                 set_str = ''
-                if date or time:
+                is_time_update = date or time
+                if is_time_update:
                     old_timestamp = entry.timestamp
                     if date:
                         entry.timestamp = datetime(year=date.year, month=date.month, day=date.day, hour=entry.timestamp.hour, minute=entry.timestamp.minute)
@@ -170,6 +171,7 @@ class SchedulePost:
                         entry.timestamp = old_timestamp
                         raise Error_Invalid_Date()
                     set_str += f'timestamp={pg_timestamp(entry.timestamp)}'
+                is_passcode_update = (not passcode and entry.pass_main) or (passcode and not entry.pass_main)
                 if passcode and (not entry.pass_main or not entry.pass_supp):
                     entry.generate_passcode(True)
                     guild_data = bot.snowcaloid.data.guild_data.get_data(self.guild)
@@ -204,6 +206,17 @@ class SchedulePost:
                 if description:
                     entry.description = description
                     set_str += f', description=\'{description}\''
+                if is_passcode_update or is_time_update:
+                    bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
+                    bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
+                    bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
+                    bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
+                    bot.snowcaloid.data.tasks.add_task(entry.timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
+                    if entry.pass_main:
+                        bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
+                        bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
+                        bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
+
                 db = bot.snowcaloid.data.db
                 db.connect()
                 try:
