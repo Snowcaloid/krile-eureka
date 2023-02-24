@@ -65,7 +65,7 @@ async def remove_old_pl_post(data: object):
     """Removes Party leader recruitment post."""
     if data and data["guild"] and data["channel"]:
         guild = snowcaloid.get_guild(data["guild"])
-        channel = await guild.fetch_channel(data["channel"])
+        channel = guild.get_channel(data["channel"])
         async for message in channel.history(limit=50):
             if len(message.content.split('#')) == 2:
                 id = int(message.content.split('#')[1])
@@ -77,7 +77,7 @@ async def send_pl_passcodes(data: object):
     if data and data["guild"] and data["entry_id"]:
         entry = snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
         guild = snowcaloid.get_guild(data["guild"])
-        member = await guild.fetch_member(entry.leader)
+        member = guild.get_member(entry.leader)
         await member.send((
             'Raid Leader notification:\n'
             f'Main party passcode: {str(int(entry.pass_main)).zfill(4)}\n'
@@ -85,13 +85,13 @@ async def send_pl_passcodes(data: object):
         ))
         for user in entry.party_leaders:
             if user and user != entry.leader and user != entry.party_leaders[6]:
-                member = await guild.fetch_member(user)
+                member = guild.get_member(user)
                 await member.send((
                     'Party Leader notification:\n'
                     f'The main party passcode is {str(int(entry.pass_main)).zfill(4)}'
                 ))
         if entry.party_leaders[6]:
-            member = await guild.fetch_member(entry.party_leaders[6])
+            member = guild.get_member(entry.party_leaders[6])
             await member.send((
                 'Party Leader notification:\n'
                 f'The support passcode is {str(int(entry.pass_supp)).zfill(4)}'
@@ -106,9 +106,9 @@ async def post_main_passcode(data: object):
             channel_data = guild_data.get_channel(type=entry.type)
             if channel_data:
                 guild = snowcaloid.get_guild(data["guild"])
-                channel = await guild.fetch_channel(channel_data.channel_id)
+                channel = guild.get_channel(channel_data.channel_id)
                 if channel:
-                    rl = await guild.fetch_member(entry.leader)
+                    rl = guild.get_member(entry.leader)
                     embed=Embed(
                         title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nPasscode",
                         description=(
@@ -129,9 +129,9 @@ async def post_support_passcode(data: object):
             channel_data = guild_data.get_support_channel(type=entry.type)
             if channel_data:
                 guild = snowcaloid.get_guild(data["guild"])
-                channel = await guild.fetch_channel(channel_data.channel_id)
+                channel = guild.get_channel(channel_data.channel_id)
                 if channel:
-                    rl = await guild.fetch_member(entry.leader)
+                    rl = guild.get_member(entry.leader)
                     embed=Embed(
                         title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nPasscode",
                         description=(
@@ -149,7 +149,7 @@ async def remove_missed_run_post(data: object):
     if data and data["guild"] and data["channel"] and data["message"]:
         guild = snowcaloid.get_guild(data["guild"])
         if guild:
-            channel = await guild.fetch_channel(data["channel"])
+            channel = guild.get_channel(data["channel"])
             if channel:
                 message = await channel.fetch_message(data["message"])
                 if message:

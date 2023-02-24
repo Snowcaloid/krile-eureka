@@ -22,7 +22,7 @@ async def guild_log_message(guild_id: int, message: str):
     if guild is None:
         return
 
-    channel = await guild.fetch_channel(guild_data.log_channel)
+    channel = guild.get_channel(guild_data.log_channel)
 
     if channel is None:
         return

@@ -5,7 +5,7 @@ from data.table.database import Database, pg_timestamp
 from data.table.guilds import GuildData
 from data.table.schedule import ScheduleType, ScheduleData, schedule_type_desc
 from datetime import datetime, date, timedelta
-from discord import Embed, Message
+from discord import Embed, Message, TextChannel
 import bot
 from data.table.tasks import TaskExecutionType
 
@@ -252,28 +252,27 @@ class SchedulePost:
 
     async def update_post(self):
         """Updates the schedule post."""
-        guild = bot.snowcaloid.get_guild(self.guild)
-        for channel in await guild.fetch_channels():
-            if channel.id == self.channel:
-                post = await channel.fetch_message(self.post)
-                if post:
-                    embed = post.embeds[0]
-                    embed.clear_fields()
-                    self._list.sort(key=lambda d: d.timestamp)
-                    per_date = self.split_per_date()
-                    for data in per_date:
-                        schedule_on_day = ''
-                        for entry in data._list:
-                            schedule_on_day = "\n".join([schedule_on_day,
-                                                        entry.timestamp.strftime("%H:%M") + f' ST ({get_discord_timestamp(entry.timestamp)} LT): {schedule_type_desc(entry.type)} (Leader: {await get_mention(self.guild, entry.leader)})'])
-                            if entry.description:
-                                schedule_on_day += f' [{entry.description}]'
-                        embed.add_field(name=data._date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))
+        channel: TextChannel = bot.snowcaloid.get_channel(self.channel)
+        if channel:
+            post = await channel.fetch_message(self.post)
+            if post:
+                embed = post.embeds[0]
+                embed.clear_fields()
+                self._list.sort(key=lambda d: d.timestamp)
+                per_date = self.split_per_date()
+                for data in per_date:
+                    schedule_on_day = ''
+                    for entry in data._list:
+                        schedule_on_day = "\n".join([schedule_on_day,
+                                                    entry.timestamp.strftime("%H:%M") + f' ST ({get_discord_timestamp(entry.timestamp)} LT): {schedule_type_desc(entry.type)} (Leader: {await get_mention(self.guild, entry.leader)})'])
+                        if entry.description:
+                            schedule_on_day += f' [{entry.description}]'
+                    embed.add_field(name=data._date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))
 
-                    await post.edit(embed=embed)
-                    await set_default_footer(post)
-                else:
-                    raise Exception(f'Could not find message with ID {self.post}')
+                await post.edit(embed=embed)
+                await set_default_footer(post)
+            else:
+                raise Exception(f'Could not find message with ID {self.post}')
 
     async def update_pl_post(self, guild_data: GuildData, entry: ScheduleData = None, message: Message = None, post_id: int = 0, id: int = 0):
         """Updates the party leader recruitment post.
@@ -302,7 +301,7 @@ class SchedulePost:
         if not message:
             pl_channel = guild_data.get_pl_channel(entry.type)
             if pl_channel:
-                channel = await bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
+                channel: TextChannel = bot.snowcaloid.get_channel(pl_channel.channel_id)
                 message = await channel.fetch_message(entry.post_id)
         if message:
             embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nParty leader recruitment")
@@ -318,7 +317,7 @@ class SchedulePost:
                 '*Use the button to volunteer to host a party.\n'
                 'Please note, your entry may be removed at the Raid Leader\'s discretion.*'
             )
-            await message.edit(embed=embed)
+            message = await message.edit(embed=embed)
             await set_default_footer(message)
 
 
@@ -335,7 +334,7 @@ class SchedulePost:
         entry = self.get_entry(id)
         pl_channel = guild_data.get_pl_channel(entry.type)
         if pl_channel:
-            channel = await bot.snowcaloid.get_guild(self.guild).fetch_channel(pl_channel.channel_id)
+            channel: TextChannel = bot.snowcaloid.get_channel(pl_channel.channel_id)
             message = await channel.send(f'Recruitment post #{str(id)}')
             entry.post_id = message.id
             view = PersistentView()

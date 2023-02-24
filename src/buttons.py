@@ -67,19 +67,19 @@ class PartyLeaderButton(Button):
                     bot.snowcaloid.data.db.disconnect()
                 guild_data = bot.snowcaloid.data.guild_data.get_data(interaction.guild_id)
                 await bot.snowcaloid.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(guild_data, entry=entry)
-                await interaction.response.send_message(f'{(await interaction.guild.fetch_member(current_value)).display_name} has been removed from party {party_name}', ephemeral=True)
+                await interaction.response.send_message(f'{interaction.guild.get_member(current_value).display_name} has been removed from party {party_name}', ephemeral=True)
 
                 run = await entry.to_string(interaction.guild_id)
 
                 if is_party_leader_removing_self:
                     message = f'**{interaction.user.name}** has removed themselves from Party {party_name} on {run}'
                 else:
-                    removed_user = await interaction.guild.fetch_member(current_value)
+                    removed_user = interaction.guild.get_member(current_value)
                     message = f'**{interaction.user.name}** has removed {removed_user.name} from Party {party_name} on {run}'
 
                 await guild_log_message(interaction.guild_id, message)
             elif current_value and interaction.user.id != current_value:
-                await interaction.response.send_message(f'Party {party_name} is already taken by {(await interaction.guild.fetch_member(current_value)).display_name}', ephemeral=True)
+                await interaction.response.send_message(f'Party {party_name} is already taken by {(interaction.guild.get_member(current_value)).display_name}', ephemeral=True)
             else:
                 await interaction.response.send_message(f'You\'re already assigned to a party.', ephemeral=True)
 

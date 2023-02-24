@@ -42,7 +42,7 @@ async def get_mention(guild_id: int, user_id: int) -> str:
     if user_id:
         guild = bot.snowcaloid.get_guild(guild_id)
         if guild:
-            return (await guild.fetch_member(user_id)).mention
+            return guild.get_member(user_id).mention
     else:
         return ''
 

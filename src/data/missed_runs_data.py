@@ -1,7 +1,7 @@
 
 from typing import List
 
-from discord import Embed
+from discord import Embed, TextChannel
 from data.table.missed import MissedData
 import bot
 
@@ -130,7 +130,7 @@ class MissedRunsData:
         """
         guild_data = bot.snowcaloid.data.guild_data.get_data(guild)
         if guild_data.missed_channel and guild_data.missed_post:
-            channel = await bot.snowcaloid.get_guild(guild).fetch_channel(guild_data.missed_channel)
+            channel: TextChannel = await bot.snowcaloid.get_channel(guild_data.missed_channel)
             message = await channel.fetch_message(guild_data.missed_post)
             embeds = []
             embed = Embed(title='List of people with missing runs')
