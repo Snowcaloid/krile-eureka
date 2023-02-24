@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
 from bot import snowcaloid
+import data.message_cache as cache
+from datetime import datetime, timedelta
 from discord.ext import tasks
 from discord import Activity, ActivityType, Embed, Status
 
@@ -151,6 +152,6 @@ async def remove_missed_run_post(data: object):
         if guild:
             channel = guild.get_channel(data["channel"])
             if channel:
-                message = await channel.fetch_message(data["message"])
+                message = await cache.messages.get(data["message"], channel)
                 if message:
                     await message.delete()

@@ -1,9 +1,8 @@
-
+import bot
+import data.message_cache as cache
 from typing import List
-
 from discord import Embed, TextChannel
 from data.table.missed import MissedData
-import bot
 
 class MissedRunsData:
     """Runtime data object containing information
@@ -131,7 +130,7 @@ class MissedRunsData:
         guild_data = bot.snowcaloid.data.guild_data.get_data(guild)
         if guild_data.missed_channel and guild_data.missed_post:
             channel: TextChannel = await bot.snowcaloid.get_channel(guild_data.missed_channel)
-            message = await channel.fetch_message(guild_data.missed_post)
+            message = await cache.messages.get(guild_data.missed_post, channel)
             embeds = []
             embed = Embed(title='List of people with missing runs')
             embeds.append(embed)

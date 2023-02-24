@@ -1,12 +1,13 @@
-from typing import List, Union
+import bot
+import data.message_cache as cache
+from typing import List
 from buttons import ButtonType, PartyLeaderButton
 from data.runtime_guild_data import RuntimeGuildData
-from data.table.database import Database, pg_timestamp
+from data.table.database import pg_timestamp
 from data.table.guilds import GuildData
 from data.table.schedule import ScheduleType, ScheduleData, schedule_type_desc
 from datetime import datetime, date, timedelta
 from discord import Embed, Message, TextChannel
-import bot
 from data.table.tasks import TaskExecutionType
 
 from utils import button_custom_id, get_mention, set_default_footer, get_discord_timestamp
@@ -254,7 +255,7 @@ class SchedulePost:
         """Updates the schedule post."""
         channel: TextChannel = bot.snowcaloid.get_channel(self.channel)
         if channel:
-            post = await channel.fetch_message(self.post)
+            post = await cache.messages.get(self.post, channel)
             if post:
                 embed = post.embeds[0]
                 embed.clear_fields()
@@ -302,7 +303,7 @@ class SchedulePost:
             pl_channel = guild_data.get_pl_channel(entry.type)
             if pl_channel:
                 channel: TextChannel = bot.snowcaloid.get_channel(pl_channel.channel_id)
-                message = await channel.fetch_message(entry.post_id)
+                message = await cache.messages.get(entry.post_id, channel)
         if message:
             embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nParty leader recruitment")
             embed.description = (

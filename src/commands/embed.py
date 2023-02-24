@@ -1,6 +1,7 @@
+import bot
+import data.message_cache as cache
 from typing import Optional
 from discord.ext.commands import GroupCog
-import bot
 from discord import Embed, Interaction, Message, TextChannel
 from discord.app_commands import check, command, Choice
 from buttons import ButtonType
@@ -42,7 +43,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         if bot.snowcaloid.data.query.running(interaction.user.id, QueryType.EMBED):
             return await default_response(interaction,'Another embed process is currently running.')
         await default_defer(interaction)
-        message = await channel.fetch_message(int(message_id))
+        message = await cache.messages.get(int(message_id), channel)
         if message:
             if bot.snowcaloid.user != message.author:
                 return await default_response(interaction,'It\'s only possible to edit my own embeds.')
