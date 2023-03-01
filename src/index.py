@@ -14,6 +14,8 @@ from commands.missed import MissedCommands
 from commands.log import LogCommands
 import tasks
 
+unload_commands = False
+
 # Restore all Button functionality
 async def recreate_view(bot: bot.Snowcaloid):
     bot.data.load_db_view()
@@ -37,10 +39,11 @@ async def recreate_view(bot: bot.Snowcaloid):
 async def on_ready():
     await bot.snowcaloid.data.load_db_data()
     bot.snowcaloid.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
-    await bot.snowcaloid.add_cog(EmbedCommands())
-    await bot.snowcaloid.add_cog(MissedCommands())
-    await bot.snowcaloid.add_cog(ScheduleCommands())
-    await bot.snowcaloid.add_cog(LogCommands())
+    if not unload_commands:
+        await bot.snowcaloid.add_cog(EmbedCommands())
+        await bot.snowcaloid.add_cog(MissedCommands())
+        await bot.snowcaloid.add_cog(ScheduleCommands())
+        await bot.snowcaloid.add_cog(LogCommands())
     await bot.snowcaloid.tree.sync()
     print(f'{bot.snowcaloid.user} has connected to Discord!')
     if not tasks.task_loop.is_running():
