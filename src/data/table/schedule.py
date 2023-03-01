@@ -13,6 +13,10 @@ class ScheduleType(Enum):
     BA_RECLEAR = 'BARC'
     BA_SPECIAL = 'BASPEC'
     BA_ALL = 'BA_ALL'
+    DRS_NORMAL = 'DRS'
+    DRS_RECLEAR = 'DRSRC'
+    DRS_ALL = 'DRS_ALL'
+    CUSTOM = 'CUSTOM'
 
 def schedule_type_desc(type: ScheduleType) -> str:
     if type == ScheduleType.BA_NORMAL.value:
@@ -23,6 +27,14 @@ def schedule_type_desc(type: ScheduleType) -> str:
         return "Baldesion Arsenal Special Run"
     elif type == ScheduleType.BA_ALL.value:
         return "All types of BA runs"
+    elif type == ScheduleType.DRS_NORMAL.value:
+        return "Delubrum Reginae Savage"
+    elif type == ScheduleType.DRS_RECLEAR.value:
+        return "Delubrum Reginae Savage Reclear"
+    elif type == ScheduleType.DRS_ALL.value:
+        return "All types of DRS runs"
+    elif type == ScheduleType.CUSTOM.value:
+        return "Custom schedule run"
 
 class ScheduleData:
     id: int

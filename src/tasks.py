@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from discord.ext import tasks
 from discord import Activity, ActivityType, Embed, Status
 
-from data.table.schedule import schedule_type_desc
+from data.table.schedule import ScheduleType, schedule_type_desc
 from data.table.tasks import TaskExecutionType
 from utils import set_default_footer
 
@@ -77,73 +77,90 @@ async def send_pl_passcodes(data: object):
     """Sends all allocated party leaders and the raid leader the passcodes for the run."""
     if data and data["guild"] and data["entry_id"]:
         entry = snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
-        guild = snowcaloid.get_guild(data["guild"])
-        member = guild.get_member(entry.leader)
-        await member.send((
-            'Raid Leader notification:\n'
-            f'Main party passcode: {str(int(entry.pass_main)).zfill(4)}\n'
-            f'Support passcode: {str(int(entry.pass_supp)).zfill(4)}'
-        ))
-        for user in entry.party_leaders:
-            if user and user != entry.leader and user != entry.party_leaders[6]:
-                member = guild.get_member(user)
+        if entry:
+            guild = snowcaloid.get_guild(data["guild"])
+            member = guild.get_member(entry.leader)
+            use_support = False
+            if entry.type.startswith('BA'):
+                parties = ['1', '2', '3', '4', '5', '6']
+                use_support = True
+            elif entry.type.startswith('DRS'):
+                parties = ['A', 'B', 'C', 'D', 'E', 'F']
+            support = f'Support passcode: {str(int(entry.pass_supp)).zfill(4)}' if use_support else ''
+            await member.send((
+                'Raid Leader notification:\n'
+                f'Main party passcode: {str(int(entry.pass_main)).zfill(4)}\n{support}'
+            ))
+            for user in entry.party_leaders:
+                if user and user != entry.leader and user != entry.party_leaders[6]:
+                    member = guild.get_member(user)
+                    await member.send((
+                        'Party Leader notification:\n'
+                        f'You are party {parties[entry.party_leaders.index(user)]}.\n'
+                        f'The main party passcode is {str(int(entry.pass_main)).zfill(4)}'
+                    ))
+            if entry.party_leaders[6]:
+                member = guild.get_member(entry.party_leaders[6])
                 await member.send((
                     'Party Leader notification:\n'
-                    f'The main party passcode is {str(int(entry.pass_main)).zfill(4)}'
+                    'You are support party.'
+                    f'The support passcode is {str(int(entry.pass_supp)).zfill(4)}'
                 ))
-        if entry.party_leaders[6]:
-            member = guild.get_member(entry.party_leaders[6])
-            await member.send((
-                'Party Leader notification:\n'
-                f'The support passcode is {str(int(entry.pass_supp)).zfill(4)}'
-            ))
 
 async def post_main_passcode(data: object):
     """Sends the main party passcode embed to the allocated passcode channel."""
     if data and data["guild"] and data["entry_id"]:
-        guild_data = snowcaloid.data.guild_data.get_data(data["guild"])
         entry = snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
-        if entry and guild_data:
-            channel_data = guild_data.get_channel(type=entry.type)
-            if channel_data:
-                guild = snowcaloid.get_guild(data["guild"])
-                channel = guild.get_channel(channel_data.channel_id)
-                if channel:
-                    rl = guild.get_member(entry.leader)
-                    embed=Embed(
-                        title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nPasscode",
-                        description=(
+        if entry:
+            guild_data = snowcaloid.data.guild_data.get_data(data["guild"])
+            if entry and guild_data:
+                channel_data = guild_data.get_channel(type=entry.type)
+                if channel_data:
+                    guild = snowcaloid.get_guild(data["guild"])
+                    channel = guild.get_channel(channel_data.channel_id)
+                    if channel:
+                        rl = guild.get_member(entry.leader)
+                        desc = schedule_type_desc(entry.type) if entry.type != ScheduleType.CUSTOM.value else entry.description
+                        description = (
                             f'Raid Leader: {rl.mention}\n\n'
-                            f'**The passcode for MAIN parties (1-6) is going to be: {str(int(entry.pass_main)).zfill(4)}**\n'
+                            f'**The passcode for main parties is going to be: {str(int(entry.pass_main)).zfill(4)}**\n'
+                        )
+                        if entry.type.startswith('BA'):
+                            description += (
                             'This passcode will not work for support parties.\n\n'
                             '*Do not forget to bring __Spirit of Remembered__ and proper actions.*'
-                        ))
-                    message = await channel.send(embed=embed)
-                    await set_default_footer(message)
+                        )
+                        embed=Embed(
+                            title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + desc + "\nPasscode",
+                            description=description)
+                        message = await channel.send(embed=embed)
+                        await set_default_footer(message)
 
 async def post_support_passcode(data: object):
     """Sends the support party passcode embed to the allocated passcode channel."""
     if data and data["guild"] and data["entry_id"]:
-        guild_data = snowcaloid.data.guild_data.get_data(data["guild"])
         entry = snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
-        if entry and guild_data:
-            channel_data = guild_data.get_support_channel(type=entry.type)
-            if channel_data:
-                guild = snowcaloid.get_guild(data["guild"])
-                channel = guild.get_channel(channel_data.channel_id)
-                if channel:
-                    rl = guild.get_member(entry.leader)
-                    embed=Embed(
-                        title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nPasscode",
-                        description=(
-                            f'Raid Leader: {rl.mention}\n\n'
-                            f'**The passcode for the SUPPORT party is going to be: {str(int(entry.pass_supp)).zfill(4)}**\n'
-                            'This passcode will not work for main (1-6) parties.\n\n'
-                            '*Do not forget to bring __Spirit of Remembered__ and proper actions.*\n'
-                            'Support needs to bring dispel for the NM Ovni.'
-                        ))
-                    message = await channel.send(embed=embed)
-                    await set_default_footer(message)
+        if entry:
+            guild_data = snowcaloid.data.guild_data.get_data(data["guild"])
+            if entry and guild_data:
+                channel_data = guild_data.get_support_channel(type=entry.type)
+                if channel_data:
+                    guild = snowcaloid.get_guild(data["guild"])
+                    channel = guild.get_channel(channel_data.channel_id)
+                    if channel:
+                        rl = guild.get_member(entry.leader)
+                        desc = schedule_type_desc(entry.type) if entry.type != ScheduleType.CUSTOM.value else entry.description
+                        embed=Embed(
+                            title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + desc + "\nPasscode",
+                            description=(
+                                f'Raid Leader: {rl.mention}\n\n'
+                                f'**The passcode for the SUPPORT party is going to be: {str(int(entry.pass_supp)).zfill(4)}**\n'
+                                'This passcode will not work for main (1-6) parties.\n\n'
+                                '*Do not forget to bring __Spirit of Remembered__ and proper actions.*\n'
+                                'Support needs to bring dispel for the NM Ovni.'
+                            ))
+                        message = await channel.send(embed=embed)
+                        await set_default_footer(message)
 
 async def remove_missed_run_post(data: object):
     """Removes a missed run post."""

@@ -129,6 +129,11 @@ class RuntimeGuildData:
             self.set_schedule_channel(guild, ScheduleType.BA_SPECIAL.value, channel)
             return
 
+        if type == ScheduleType.DRS_ALL.value:
+            self.set_schedule_channel(guild, ScheduleType.DRS_NORMAL.value, channel)
+            self.set_schedule_channel(guild, ScheduleType.DRS_RECLEAR.value, channel)
+            return
+
         self.get_data(guild).remove_channel(type=type)
         self.get_data(guild).add_channel(channel, type)
         db = bot.snowcaloid.data.db
@@ -161,6 +166,11 @@ class RuntimeGuildData:
             self.set_party_leader_channel(guild, ScheduleType.BA_NORMAL.value, channel)
             self.set_party_leader_channel(guild, ScheduleType.BA_RECLEAR.value, channel)
             self.set_party_leader_channel(guild, ScheduleType.BA_SPECIAL.value, channel)
+            return
+
+        if type == ScheduleType.DRS_ALL.value:
+            self.set_party_leader_channel(guild, ScheduleType.DRS_NORMAL.value, channel)
+            self.set_party_leader_channel(guild, ScheduleType.DRS_RECLEAR.value, channel)
             return
 
         self.get_data(guild).remove_channel(type=type)

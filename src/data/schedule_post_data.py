@@ -123,6 +123,7 @@ class SchedulePost:
         if not db.connected():
             db.connect()
             try:
+                description = description.replace('\'', '\'\'')
                 id = db.query((
                     'insert into schedule (schedule_post, leader, type, timestamp, description, pass_main, pass_supp) '
                     f'values ({self.post}, {entry.leader}, \'{entry.type}\', {pg_timestamp(entry.timestamp)}, '
@@ -185,14 +186,6 @@ class SchedulePost:
                 else:
                     entry.pass_main = 0
                     entry.pass_supp = 0
-                    guild_data = bot.snowcaloid.data.guild_data.get_data(self.guild)
-                    if guild_data:
-                        channel_data = guild_data.get_channel(type=entry.type)
-                        if channel_data:
-                            bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
-                        channel_data = guild_data.get_support_channel(type=entry.type)
-                        if channel_data:
-                            bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
                 if set_str:
                     set_str += f', pass_main={str(entry.pass_main)}, pass_supp={str(entry.pass_supp)} '
                 else:
@@ -205,12 +198,17 @@ class SchedulePost:
                     set_str += f', type=\'{type}\''
                 if description:
                     entry.description = description
+                    description = description.replace('\'', '\'\'')
                     set_str += f', description=\'{description}\''
                 if is_passcode_update or is_time_update:
                     bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
                     bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
                     bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
                     bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
+                    channel_data = bot.snowcaloid.data.guild_data.get_data(self.guild).get_channel(type=entry.type)
+                    if channel_data.channel_id:
+                        bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
+                        bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
                     bot.snowcaloid.data.tasks.add_task(entry.timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
                     if entry.pass_main:
                         bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
@@ -277,9 +275,14 @@ class SchedulePost:
                 for data in per_date:
                     schedule_on_day = ''
                     for entry in data._list:
-                        schedule_on_day = "\n".join([schedule_on_day,
-                                                    entry.timestamp.strftime("%H:%M") + f' ST ({get_discord_timestamp(entry.timestamp)} LT): {schedule_type_desc(entry.type)} (Leader: {await get_mention(self.guild, entry.leader)})'])
-                        if entry.description:
+                        desc = (
+                            f'{entry.timestamp.strftime("%H:%M")} '
+                            f'ST ({get_discord_timestamp(entry.timestamp)} '
+                            f'LT): {schedule_type_desc(entry.type) if entry.type != ScheduleType.CUSTOM.value else entry.description} '
+                            f'(Leader: {await get_mention(self.guild, entry.leader)})'
+                        )
+                        schedule_on_day = "\n".join([schedule_on_day, desc])
+                        if entry.description and entry.type != ScheduleType.CUSTOM.value:
                             schedule_on_day += f' [{entry.description}]'
                     embed.add_field(name=data._date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))
 
@@ -312,22 +315,32 @@ class SchedulePost:
                 entry = self.get_entry(id)
             else:
                 raise Exception('missing entry in update_pl_post')
+        if entry.type == ScheduleType.CUSTOM.value:
+            return
         if not message:
             pl_channel = guild_data.get_pl_channel(entry.type)
             if pl_channel:
                 channel: TextChannel = bot.snowcaloid.get_channel(pl_channel.channel_id)
                 message = await cache.messages.get(entry.post_id, channel)
         if message:
-            embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + schedule_type_desc(entry.type) + "\nParty leader recruitment")
+            desc = schedule_type_desc(entry.type) if entry.type != ScheduleType.CUSTOM.value else entry.description
+            use_support = False
+            if entry.type.startswith('BA'):
+                parties = ['1', '2', '3', '4', '5', '6']
+                use_support = True
+            elif entry.type.startswith('DRS'):
+                parties = ['A', 'B', 'C', 'D', 'E', 'F']
+            embed = Embed(title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + desc + "\nParty leader recruitment")
+            support = f'Support: {await get_mention(self.guild, entry.party_leaders[6])}\n' if use_support else ''
             embed.description = (
                 f'Raid Leader: {await get_mention(self.guild, entry.leader)}\n'
-                f'Party 1: {await get_mention(self.guild, entry.party_leaders[0])}\n'
-                f'Party 2: {await get_mention(self.guild, entry.party_leaders[1])}\n'
-                f'Party 3: {await get_mention(self.guild, entry.party_leaders[2])}\n'
-                f'Party 4: {await get_mention(self.guild, entry.party_leaders[3])}\n'
-                f'Party 5: {await get_mention(self.guild, entry.party_leaders[4])}\n'
-                f'Party 6: {await get_mention(self.guild, entry.party_leaders[5])}\n'
-                f'Support: {await get_mention(self.guild, entry.party_leaders[6])}\n\n'
+                f'Party {parties[0]}: {await get_mention(self.guild, entry.party_leaders[0])}\n'
+                f'Party {parties[1]}: {await get_mention(self.guild, entry.party_leaders[1])}\n'
+                f'Party {parties[2]}: {await get_mention(self.guild, entry.party_leaders[2])}\n'
+                f'Party {parties[3]}: {await get_mention(self.guild, entry.party_leaders[3])}\n'
+                f'Party {parties[4]}: {await get_mention(self.guild, entry.party_leaders[4])}\n'
+                f'Party {parties[5]}: {await get_mention(self.guild, entry.party_leaders[5])}\n'
+                f'{support}\n'
                 '*Use the button to volunteer to host a party.\n'
                 'Please note, your entry may be removed at the Raid Leader\'s discretion.*'
             )
@@ -352,10 +365,17 @@ class SchedulePost:
             message = await channel.send(f'Recruitment post #{str(id)}')
             entry.post_id = message.id
             view = PersistentView()
+            use_support = False
+            if entry.type.startswith('BA'):
+                parties = ['1', '2', '3', '4', '5', '6']
+                use_support = True
+            elif entry.type.startswith('DRS'):
+                parties = ['A', 'B', 'C', 'D', 'E', 'F']
             for i in range(1, 7):
-                button = PartyLeaderButton(label=str(i), custom_id=button_custom_id(f'pl{i}', message, ButtonType.PL_POST), row=1 if i < 4 else 2)
+                button = PartyLeaderButton(label=parties[i-1], custom_id=button_custom_id(f'pl{i}', message, ButtonType.PL_POST), row=1 if i < 4 else 2)
                 view.add_item(button)
-            view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
+            if use_support:
+                view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
             await self.update_pl_post(guild_data, entry=entry, message=message)
             await message.edit(view=view)
             bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
