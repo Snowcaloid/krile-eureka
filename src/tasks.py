@@ -11,7 +11,7 @@ from utils import set_default_footer
 @tasks.loop(seconds=1) # The delay is calculated from the end of execution of the last task.
 async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
     """Main loop, which runs required tasks at required times. await is necessery."""
-    if bot.snowcaloid.data.ready:
+    if bot.snowcaloid.data.ready and bot.snowcaloid.ws:
         task = bot.snowcaloid.data.tasks.get_next()
         if task:
             if task.task_type == TaskExecutionType.UPDATE_STATUS:
@@ -37,8 +37,6 @@ async def refresh_bot_status():
     bot.snowcaloid.data.db.connect()
     try:
         q = bot.snowcaloid.data.db.query('select type, timestamp from schedule order by timestamp limit 1')
-        if bot.snowcaloid.ws is None:
-            return
         if q and q[0][1] > datetime.utcnow():
             now = datetime.utcnow()
             delta: timedelta = q[0][1] - now
