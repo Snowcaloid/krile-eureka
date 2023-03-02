@@ -1,9 +1,10 @@
 import bot
 from enum import Enum
 from discord.ui import Button
-from discord import Interaction, Embed, Role, Member
+from discord import Interaction, Role, Member
 from typing import List
 from logger import guild_log_message
+from utils import default_defer, default_response
 
 
 class ButtonType(Enum):
@@ -16,6 +17,7 @@ class RoleSelectionButton(Button):
     """Buttons, which add or remove a role from the user who interacts with them"""
     async def callback(self, interaction: Interaction):
         if str(interaction.message.id) in self.custom_id:
+            await default_defer(interaction)
             roles: List[Role] = list(filter(lambda role : role.name == self.label, await interaction.guild.fetch_roles()))
             if not roles:
                 roles.append(await interaction.guild.create_role(name=self.label))
@@ -25,14 +27,10 @@ class RoleSelectionButton(Button):
             if isinstance(interaction.user, Member):
                 if interaction.user.get_role(role.id):
                     await interaction.user.remove_roles(role)
-                    await interaction.response.send_message(
-                        embed=Embed(title='Success', description=f'You have removed the role {role.name} from yourself'),
-                        ephemeral=True)
+                    await default_response(interaction, f'You have removed the role {role.name} from yourself')
                 else:
                     await interaction.user.add_roles(role)
-                    await interaction.response.send_message(
-                        embed=Embed(title='Success', description=f'You have been granted the role {role.name}'),
-                        ephemeral=True)
+                    await default_response(interaction, f'You have been granted the role {role.name}')
 
 
 class PartyLeaderButton(Button):
@@ -40,6 +38,7 @@ class PartyLeaderButton(Button):
     from party leader position of a run."""
     async def callback(self, interaction: Interaction):
         if str(interaction.message.id) in self.custom_id:
+            await default_defer(interaction)
             entry = bot.snowcaloid.data.schedule_posts.get_post(interaction.guild_id).get_entry_by_pl_post(interaction.message.id)
             field = 'pl' + self.custom_id[-1] if self.custom_id[-1] != '7' else 'pls'
             index = int(self.custom_id[-1]) - 1
@@ -54,7 +53,7 @@ class PartyLeaderButton(Button):
                     bot.snowcaloid.data.db.disconnect()
                 guild_data = bot.snowcaloid.data.guild_data.get_data(interaction.guild_id)
                 await bot.snowcaloid.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(guild_data, entry=entry)
-                await interaction.response.send_message(f'You have been set as Party Leader for Party {party_name}', ephemeral=True)
+                await default_response(interaction, f'You have been set as Party Leader for Party {party_name}')
                 run = await entry.to_string(interaction.guild_id)
                 await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has registered for Party {party_name} on {run}')
             elif current_value and (interaction.user.id == current_value or interaction.user.id == entry.leader):
@@ -67,7 +66,7 @@ class PartyLeaderButton(Button):
                     bot.snowcaloid.data.db.disconnect()
                 guild_data = bot.snowcaloid.data.guild_data.get_data(interaction.guild_id)
                 await bot.snowcaloid.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(guild_data, entry=entry)
-                await interaction.response.send_message(f'{interaction.guild.get_member(current_value).display_name} has been removed from party {party_name}', ephemeral=True)
+                await default_response(interaction, f'{interaction.guild.get_member(current_value).display_name} has been removed from party {party_name}')
 
                 run = await entry.to_string(interaction.guild_id)
 
@@ -79,9 +78,9 @@ class PartyLeaderButton(Button):
 
                 await guild_log_message(interaction.guild_id, message)
             elif current_value and interaction.user.id != current_value:
-                await interaction.response.send_message(f'Party {party_name} is already taken by {(interaction.guild.get_member(current_value)).display_name}', ephemeral=True)
+                await default_response(interaction, f'Party {party_name} is already taken by {(interaction.guild.get_member(current_value)).display_name}')
             else:
-                await interaction.response.send_message(f'You\'re already assigned to a party.', ephemeral=True)
+                await default_response(interaction, f'You\'re already assigned to a party.')
 
 
 class MissedRunButton(Button):
@@ -100,33 +99,33 @@ class MissedRunButton(Button):
 
     async def callback(self, interaction: Interaction):
         if str(interaction.message.id) in self.custom_id:
-            await interaction.response.defer(thinking=True, ephemeral=True)
+            await default_defer(interaction)
             if interaction.user.id in self.users:
-                return await interaction.followup.send('You have already been noted. This only works once per post.', ephemeral=True)
+                return await default_response(interaction, 'You have already been noted. This only works once per post.')
             data = bot.snowcaloid.data
             if data.missed_runs.eligable(interaction.guild_id, interaction.user.id):
-                return await interaction.followup.send((
+                return await default_response(interaction, (
                     'You already reacted 3 times. You are eligable to contact a raid leader '
                     'shortly before their next run to gain access to an early passcode '
                     'at their discretion.'
-                    ), ephemeral=True)
+                    ))
             role_name = data.guild_data.get_data(interaction.guild_id).missed_role
             if role_name:
                 for role in interaction.user.roles:
                     if role.name == role_name:
                         break
                 else: # if not terminated by break
-                    return await interaction.followup.send(f'You do not have the role "{role_name}".', ephemeral=True)
+                    return await default_response(interaction, f'You do not have the role "{role_name}".')
             data.missed_runs.inc(interaction.guild_id, interaction.user.id)
             self.users.append(interaction.user.id)
             await data.missed_runs.update_post(interaction.guild_id)
             if data.missed_runs.eligable(interaction.guild_id, interaction.user.id):
-                return await interaction.followup.send((
+                return await default_response(interaction, (
                     'You reacted 3 times. You are eligible to contact a raid leader '
                     'shortly before their next run to gain access to an early passcode '
                     'at their discretion.'
-                    ), ephemeral=True)
-            return await interaction.followup.send((
+                    ))
+            return await default_response(interaction, (
                 'You have been noted. You can notify a raid leader in '
                 f'{3-data.missed_runs.get_data(interaction.guild_id, interaction.user.id).amount} runs.'
             ))
