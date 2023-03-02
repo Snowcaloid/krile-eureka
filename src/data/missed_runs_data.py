@@ -129,7 +129,7 @@ class MissedRunsData:
         """
         guild_data = bot.snowcaloid.data.guild_data.get_data(guild)
         if guild_data.missed_channel and guild_data.missed_post:
-            channel: TextChannel = await bot.snowcaloid.get_channel(guild_data.missed_channel)
+            channel: TextChannel = bot.snowcaloid.get_channel(guild_data.missed_channel)
             message = await cache.messages.get(guild_data.missed_post, channel)
             embeds = []
             embed = Embed(title='List of people with missing runs')
