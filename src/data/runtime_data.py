@@ -92,6 +92,8 @@ class RuntimeData(QueryOwner):
 
     async def load_db_data(self):
         """Load general data from the db."""
+        if self.ready:
+            self.__init__()
         self.guild_data.load()
         for data in self.guild_data._list:
             for guild in bot.snowcaloid.guilds:

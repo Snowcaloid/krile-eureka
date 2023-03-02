@@ -362,30 +362,31 @@ class SchedulePost:
         pl_channel = guild_data.get_pl_channel(entry.type)
         if pl_channel:
             channel: TextChannel = bot.snowcaloid.get_channel(pl_channel.channel_id)
-            message = await channel.send(f'Recruitment post #{str(id)}')
-            entry.post_id = message.id
-            view = PersistentView()
-            use_support = False
-            if entry.type.startswith('BA'):
-                parties = ['1', '2', '3', '4', '5', '6']
-                use_support = True
-            elif entry.type.startswith('DRS'):
-                parties = ['A', 'B', 'C', 'D', 'E', 'F']
-            for i in range(1, 7):
-                button = PartyLeaderButton(label=parties[i-1], custom_id=button_custom_id(f'pl{i}', message, ButtonType.PL_POST), row=1 if i < 4 else 2)
-                view.add_item(button)
-            if use_support:
-                view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
-            await self.update_pl_post(guild_data, entry=entry, message=message)
-            await message.edit(view=view)
-            bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
-            bot.snowcaloid.data.db.connect()
-            try:
-                bot.snowcaloid.data.db.query(f'update schedule set post_id={entry.post_id} where id={id}')
-                for button in view.children:
-                    bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.custom_id}\', \'{button.label}\')')
-            finally:
-                bot.snowcaloid.data.db.disconnect()
+            if channel:
+                message = await channel.send(f'Recruitment post #{str(id)}')
+                entry.post_id = message.id
+                view = PersistentView()
+                use_support = False
+                if entry.type.startswith('BA'):
+                    parties = ['1', '2', '3', '4', '5', '6']
+                    use_support = True
+                elif entry.type.startswith('DRS'):
+                    parties = ['A', 'B', 'C', 'D', 'E', 'F']
+                for i in range(1, 7):
+                    button = PartyLeaderButton(label=parties[i-1], custom_id=button_custom_id(f'pl{i}', message, ButtonType.PL_POST), row=1 if i < 4 else 2)
+                    view.add_item(button)
+                if use_support:
+                    view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
+                await self.update_pl_post(guild_data, entry=entry, message=message)
+                await message.edit(view=view)
+                bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
+                bot.snowcaloid.data.db.connect()
+                try:
+                    bot.snowcaloid.data.db.query(f'update schedule set post_id={entry.post_id} where id={id}')
+                    for button in view.children:
+                        bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.custom_id}\', \'{button.label}\')')
+                finally:
+                    bot.snowcaloid.data.db.disconnect()
         else:
             print(f'Info: no party leader post has been made due to the missing channel for type {type} in guild {bot.snowcaloid.get_guild(self.guild).name}')
 

@@ -1,4 +1,4 @@
-from bot import snowcaloid
+import bot
 import data.message_cache as cache
 from datetime import datetime, timedelta
 from discord.ext import tasks
@@ -11,8 +11,8 @@ from utils import set_default_footer
 @tasks.loop(seconds=1) # The delay is calculated from the end of execution of the last task.
 async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
     """Main loop, which runs required tasks at required times. await is necessery."""
-    if snowcaloid.data.ready:
-        task = snowcaloid.data.tasks.get_next()
+    if bot.snowcaloid.data.ready:
+        task = bot.snowcaloid.data.tasks.get_next()
         if task:
             if task.task_type == TaskExecutionType.UPDATE_STATUS:
                 await refresh_bot_status()
@@ -29,14 +29,16 @@ async def task_loop(): # You can think of it as sleep(1000) after the last proce
             elif task.task_type == TaskExecutionType.REMOVE_MISSED_RUN_POST:
                 await remove_missed_run_post(task.data)
 
-            snowcaloid.data.tasks.remove_task(task.id)
+            bot.snowcaloid.data.tasks.remove_task(task.id)
 
 async def refresh_bot_status():
     """Changes bot's status to <Playing Run type in [time until next run]>, or empties it."""
     next_exec = datetime.utcnow() + timedelta(minutes=1)
-    snowcaloid.data.db.connect()
+    bot.snowcaloid.data.db.connect()
     try:
-        q = snowcaloid.data.db.query('select type, timestamp from schedule order by timestamp limit 1')
+        q = bot.snowcaloid.data.db.query('select type, timestamp from schedule order by timestamp limit 1')
+        if bot.snowcaloid.ws is None:
+            return
         if q and q[0][1] > datetime.utcnow():
             now = datetime.utcnow()
             delta: timedelta = q[0][1] - now
@@ -48,37 +50,37 @@ async def refresh_bot_status():
                 if need_comma:
                     desc += ', '
                 desc += f' {str(delta.seconds // 3600)} hours, {str((delta.seconds % 3600) // 60)} minutes'
-            await snowcaloid.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
+            await bot.snowcaloid.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
         else:
-            await snowcaloid.change_presence(activity=None, status=None)
+            await bot.snowcaloid.change_presence(activity=None, status=None)
     finally:
-        snowcaloid.data.db.disconnect()
-        snowcaloid.data.tasks.add_task(next_exec, TaskExecutionType.UPDATE_STATUS)
+        bot.snowcaloid.data.db.disconnect()
+        bot.snowcaloid.data.tasks.add_task(next_exec, TaskExecutionType.UPDATE_STATUS)
 
 async def remove_old_run(data: object):
     """Removes run <id> from runtime data and the database."""
     if data and data["id"]:
-        for post in snowcaloid.data.schedule_posts._list:
+        for post in bot.snowcaloid.data.schedule_posts._list:
             post.remove(data["id"])
             await post.update_post()
 
 async def remove_old_pl_post(data: object):
     """Removes Party leader recruitment post."""
     if data and data["guild"] and data["channel"]:
-        guild = snowcaloid.get_guild(data["guild"])
+        guild = bot.snowcaloid.get_guild(data["guild"])
         channel = guild.get_channel(data["channel"])
         async for message in channel.history(limit=50):
             if len(message.content.split('#')) == 2:
                 id = int(message.content.split('#')[1])
-                if not snowcaloid.data.schedule_posts.get_post(guild.id).contains(id):
+                if not bot.snowcaloid.data.schedule_posts.get_post(guild.id).contains(id):
                     await message.delete()
 
 async def send_pl_passcodes(data: object):
     """Sends all allocated party leaders and the raid leader the passcodes for the run."""
     if data and data["guild"] and data["entry_id"]:
-        entry = snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
+        entry = bot.snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
         if entry:
-            guild = snowcaloid.get_guild(data["guild"])
+            guild = bot.snowcaloid.get_guild(data["guild"])
             member = guild.get_member(entry.leader)
             use_support = False
             if entry.type.startswith('BA'):
@@ -110,13 +112,13 @@ async def send_pl_passcodes(data: object):
 async def post_main_passcode(data: object):
     """Sends the main party passcode embed to the allocated passcode channel."""
     if data and data["guild"] and data["entry_id"]:
-        entry = snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
+        entry = bot.snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
         if entry:
-            guild_data = snowcaloid.data.guild_data.get_data(data["guild"])
+            guild_data = bot.snowcaloid.data.guild_data.get_data(data["guild"])
             if entry and guild_data:
                 channel_data = guild_data.get_channel(type=entry.type)
                 if channel_data:
-                    guild = snowcaloid.get_guild(data["guild"])
+                    guild = bot.snowcaloid.get_guild(data["guild"])
                     channel = guild.get_channel(channel_data.channel_id)
                     if channel:
                         rl = guild.get_member(entry.leader)
@@ -139,13 +141,13 @@ async def post_main_passcode(data: object):
 async def post_support_passcode(data: object):
     """Sends the support party passcode embed to the allocated passcode channel."""
     if data and data["guild"] and data["entry_id"]:
-        entry = snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
+        entry = bot.snowcaloid.data.schedule_posts.get_post(data["guild"]).get_entry(data["entry_id"])
         if entry:
-            guild_data = snowcaloid.data.guild_data.get_data(data["guild"])
+            guild_data = bot.snowcaloid.data.guild_data.get_data(data["guild"])
             if entry and guild_data:
                 channel_data = guild_data.get_support_channel(type=entry.type)
                 if channel_data:
-                    guild = snowcaloid.get_guild(data["guild"])
+                    guild = bot.snowcaloid.get_guild(data["guild"])
                     channel = guild.get_channel(channel_data.channel_id)
                     if channel:
                         rl = guild.get_member(entry.leader)
@@ -165,7 +167,7 @@ async def post_support_passcode(data: object):
 async def remove_missed_run_post(data: object):
     """Removes a missed run post."""
     if data and data["guild"] and data["channel"] and data["message"]:
-        guild = snowcaloid.get_guild(data["guild"])
+        guild = bot.snowcaloid.get_guild(data["guild"])
         if guild:
             channel = guild.get_channel(data["channel"])
             if channel:

@@ -130,25 +130,26 @@ class MissedRunsData:
         guild_data = bot.snowcaloid.data.guild_data.get_data(guild)
         if guild_data.missed_channel and guild_data.missed_post:
             channel: TextChannel = bot.snowcaloid.get_channel(guild_data.missed_channel)
-            message = await cache.messages.get(guild_data.missed_post, channel)
-            embeds = []
-            embed = Embed(title='List of people with missing runs')
-            embeds.append(embed)
-            i = 0
-            description = ''
-            gld = bot.snowcaloid.get_guild(guild)
-            for missed_data in self.get_guild_data(guild):
-                i += 1
-                if i % 150 == 0:
+            if channel:
+                message = await cache.messages.get(guild_data.missed_post, channel)
+                embeds = []
+                embed = Embed(title='List of people with missing runs')
+                embeds.append(embed)
+                i = 0
+                description = ''
+                gld = bot.snowcaloid.get_guild(guild)
+                for missed_data in self.get_guild_data(guild):
+                    i += 1
+                    if i % 150 == 0:
+                        embed.description = description.strip()
+                        embed = Embed()
+                        embeds.append(embed)
+                        description = ''
+                    member = gld.get_member(missed_data.user)
+                    if member:
+                        name = member.nick if member.nick else member.name
+                        description = "\n".join([description, f'{str(missed_data.amount)} - {name}'])
+                if description:
                     embed.description = description.strip()
-                    embed = Embed()
-                    embeds.append(embed)
-                    description = ''
-                member = gld.get_member(missed_data.user)
-                if member:
-                    name = member.nick if member.nick else member.name
-                    description = "\n".join([description, f'{str(missed_data.amount)} - {name}'])
-            if description:
-                embed.description = description.strip()
 
-            await message.edit(embeds=embeds)
+                await message.edit(embeds=embeds)
