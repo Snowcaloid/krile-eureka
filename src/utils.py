@@ -1,8 +1,8 @@
 from datetime import datetime
 from enum import Enum
 import time
+import buttons
 from discord import Interaction, Message, Member
-from buttons import ButtonType
 from dateutil.tz import tzlocal, tzutc
 import bot
 
@@ -33,7 +33,7 @@ def get_discord_timestamp(date: datetime, timestamp_type: DiscordTimestampType =
     return f'<t:{int(time.mktime(datetime(*date_tuple).timetuple()))}:{timestamp_type.value}>'
 
 
-def button_custom_id(id: str, message: Message, type: ButtonType) -> str:
+def button_custom_id(id: str, message: Message, type: buttons.ButtonType) -> str:
     """Generate custom_id for a button."""
     return f'{message.id}-{type.value}-{id}'
 
