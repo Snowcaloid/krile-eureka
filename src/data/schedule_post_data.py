@@ -175,15 +175,7 @@ class SchedulePost:
                 is_passcode_update = (not passcode and entry.pass_main) or (passcode and not entry.pass_main)
                 if passcode and (not entry.pass_main or not entry.pass_supp):
                     entry.generate_passcode(True)
-                    guild_data = bot.snowcaloid.data.guild_data.get_data(self.guild)
-                    if guild_data:
-                        channel_data = guild_data.get_channel(type=entry.type)
-                        if channel_data:
-                            bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
-                        channel_data = guild_data.get_support_channel(type=entry.type)
-                        if channel_data:
-                            bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": entry.id})
-                else:
+                elif not passcode:
                     entry.pass_main = 0
                     entry.pass_supp = 0
                 if set_str:
