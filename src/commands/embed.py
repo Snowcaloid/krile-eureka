@@ -41,7 +41,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
     @check(permission_admin)
     async def edit(self, interaction: Interaction, channel: TextChannel, message_id: str):
         if bot.snowcaloid.data.query.running(interaction.user.id, QueryType.EMBED):
-            return await default_response(interaction,'Another embed process is currently running.')
+            return await interaction.response.send_message('Another embed process is currently running.', ephemeral=True)
         await default_defer(interaction)
         message = await cache.messages.get(int(message_id), channel)
         if message:
