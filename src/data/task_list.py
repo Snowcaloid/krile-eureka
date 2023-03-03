@@ -63,14 +63,29 @@ class TaskList:
         Args:
             id (int): Task id
         """
-        for taskdata in self._list:
-            if taskdata.id == id:
-                self._list.remove(taskdata)
         bot.snowcaloid.data.db.connect()
         try:
             bot.snowcaloid.data.db.query(f'delete from tasks where id={id}')
         finally:
             bot.snowcaloid.data.db.disconnect()
+        for taskdata in self._list:
+            if taskdata.id == id:
+                self._list.remove(taskdata)
+
+    def remove_all(self, type: TaskExecutionType):
+        """Removes a task type from the runtime object and the database.
+
+        Args:
+            type (TaskExecutionType): type of tasks that should be removed
+        """
+        bot.snowcaloid.data.db.connect()
+        try:
+            bot.snowcaloid.data.db.query(f'delete from tasks where task_type={type.value}')
+        finally:
+            bot.snowcaloid.data.db.disconnect()
+        for taskdata in self._list:
+            if taskdata.task_type == type:
+                self._list.remove(taskdata)
 
     def remove_task_by_data(self, type: TaskExecutionType, data: object):
         """Removes a task from the runtime object and the database.

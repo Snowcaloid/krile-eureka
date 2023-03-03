@@ -52,6 +52,7 @@ async def refresh_bot_status():
         else:
             await bot.snowcaloid.change_presence(activity=None, status=None)
     finally:
+        bot.snowcaloid.data.tasks.remove_all(TaskExecutionType.UPDATE_STATUS)
         bot.snowcaloid.data.db.disconnect()
         bot.snowcaloid.data.tasks.add_task(next_exec, TaskExecutionType.UPDATE_STATUS)
 
