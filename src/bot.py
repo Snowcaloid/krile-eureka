@@ -58,7 +58,8 @@ class Snowcaloid(Bot):
         This method is called after snowcaloid.on_ready event.
         """
         await self.data.load_db_data()
-        self.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
+        if not self.data.tasks.empty():
+            self.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
         if not unload_commands:
             await self.add_cog(EmbedCommands())
             await self.add_cog(MissedCommands())
