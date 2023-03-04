@@ -79,3 +79,15 @@ class MissedCommands(GroupCog, group_name='missed', group_description='Commands 
             if i == 25:
                 break
         return users
+
+    #region error-handling
+    @create_list.error
+    @run.error
+    @accept.error
+    async def handle_permission_admin(self, interaction: Interaction, error):
+        if interaction.response.is_done():
+            if interaction.followup:
+                await interaction.followup.send('You have insufficient rights to use this command.', ephemeral=True)
+        else:
+            await interaction.response.send_message('You have insufficient rights to use this command.', ephemeral=True)
+    #endregion

@@ -204,6 +204,14 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
             return await default_response(interaction, f'Button {label} doesn\'t exist yet.')
         bot.snowcaloid.data.embeds.remove_button(interaction.user.id, label)
         await self.debug_followup(interaction)
+
+    @finish.autocomplete('button_type')
+    async def autocomplete_button_type(self, interaction: Interaction, current: str):
+        return filter(lambda c: c.name.lower().startswith(current.lower()), [
+            Choice(name='Role selection Button', value=ButtonType.ROLE_SELECTION.value),
+            Choice(name='Party leader Post Button (must end with party numeber or "s")', value=ButtonType.PL_POST.value),
+            Choice(name='Missed run Button', value=ButtonType.MISSEDRUN.value),
+        ])
     #endregion
 
     #region error-handling
@@ -229,11 +237,3 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         else:
             await interaction.response.send_message('You have insufficient rights to use this command.', ephemeral=True)
     #endregion
-
-    @finish.autocomplete('button_type')
-    async def autocomplete_button_type(self, interaction: Interaction, current: str):
-        return filter(lambda c: c.name.lower().startswith(current.lower()), [
-            Choice(name='Role selection Button', value=ButtonType.ROLE_SELECTION.value),
-            Choice(name='Party leader Post Button (must end with party numeber or "s")', value=ButtonType.PL_POST.value),
-            Choice(name='Missed run Button', value=ButtonType.MISSEDRUN.value),
-        ])

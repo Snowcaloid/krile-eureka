@@ -18,7 +18,7 @@ def permission_admin(interaction: Union[Interaction, InteractionResponse]) -> bo
 
 def permission_raid_leader(interaction: Union[Interaction, InteractionResponse]) -> bool:
     for role in interaction.user.roles:
-        if 'raid leader' in role.name.lower():
+        if 'raid lead' in role.name.lower():
             return True
     return permission_admin(interaction)
 

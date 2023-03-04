@@ -44,3 +44,14 @@ class LogCommands(GroupCog, group_name='log', group_description='Commands regard
 
         # Privately let the user know we have turned logging off.
         await interaction.response.send_message('Messages will no longer be sent to the log channel.')
+
+    #region error-handling
+    @channel.error
+    @disable.error
+    async def handle_permission_admin(self, interaction: Interaction, error):
+        if interaction.response.is_done():
+            if interaction.followup:
+                await interaction.followup.send('You have insufficient rights to use this command.', ephemeral=True)
+        else:
+            await interaction.response.send_message('You have insufficient rights to use this command.', ephemeral=True)
+    #endregion

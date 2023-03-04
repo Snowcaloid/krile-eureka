@@ -257,3 +257,19 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                     dt = f'{str(hour)}:{str(i).zfill(2)}'
                     result.append(Choice(name=dt, value=dt))
         return result
+
+    #region error-handling
+    @initialize.error
+    @add.error
+    @remove.error
+    @edit.error
+    @passcode_channel.error
+    @support_passcode_channel.error
+    @party_leader_channel.error
+    async def handle_permission_admin(self, interaction: Interaction, error):
+        if interaction.response.is_done():
+            if interaction.followup:
+                await interaction.followup.send('You have insufficient rights to use this command.', ephemeral=True)
+        else:
+            await interaction.response.send_message('You have insufficient rights to use this command.', ephemeral=True)
+    #endregion
