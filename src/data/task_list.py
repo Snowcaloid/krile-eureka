@@ -39,12 +39,12 @@ class TaskList:
             date_tuple = (dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
             return int(mod_time.mktime(datetime(*date_tuple).timetuple()))
         self._list.sort(key=sort)
-        bot.snowcaloid.data.db.connect()
+        bot.krile.data.db.connect()
         try:
-            id = bot.snowcaloid.data.db.query(f'insert into tasks (execution_time, task_type, data) values ({pg_timestamp(time)}, {type.value}, \'{dumps(data)}\') returning id')
+            id = bot.krile.data.db.query(f'insert into tasks (execution_time, task_type, data) values ({pg_timestamp(time)}, {type.value}, \'{dumps(data)}\') returning id')
             taskdata.id = id
         finally:
-            bot.snowcaloid.data.db.disconnect()
+            bot.krile.data.db.disconnect()
 
     def empty(self) -> bool:
         """Is the task list empty?"""
@@ -63,11 +63,11 @@ class TaskList:
         Args:
             id (int): Task id
         """
-        bot.snowcaloid.data.db.connect()
+        bot.krile.data.db.connect()
         try:
-            bot.snowcaloid.data.db.query(f'delete from tasks where id={id}')
+            bot.krile.data.db.query(f'delete from tasks where id={id}')
         finally:
-            bot.snowcaloid.data.db.disconnect()
+            bot.krile.data.db.disconnect()
         for taskdata in self._list:
             if taskdata.id == id:
                 self._list.remove(taskdata)
@@ -78,11 +78,11 @@ class TaskList:
         Args:
             type (TaskExecutionType): type of tasks that should be removed
         """
-        bot.snowcaloid.data.db.connect()
+        bot.krile.data.db.connect()
         try:
-            bot.snowcaloid.data.db.query(f'delete from tasks where task_type={type.value}')
+            bot.krile.data.db.query(f'delete from tasks where task_type={type.value}')
         finally:
-            bot.snowcaloid.data.db.disconnect()
+            bot.krile.data.db.disconnect()
         for taskdata in self._list:
             if taskdata.task_type == type:
                 self._list.remove(taskdata)
@@ -97,17 +97,17 @@ class TaskList:
         for taskdata in self._list:
             if taskdata.task_type == type and dumps(taskdata.data) == dumps(data):
                 self._list.remove(taskdata)
-        bot.snowcaloid.data.db.connect()
+        bot.krile.data.db.connect()
         try:
-            bot.snowcaloid.data.db.query(f'delete from tasks where task_type={type.value} and data=\'{dumps(data)}\'')
+            bot.krile.data.db.query(f'delete from tasks where task_type={type.value} and data=\'{dumps(data)}\'')
         finally:
-            bot.snowcaloid.data.db.disconnect()
+            bot.krile.data.db.disconnect()
 
     def load(self):
         """Load the list of tasks from the database."""
-        bot.snowcaloid.data.db.connect()
+        bot.krile.data.db.connect()
         try:
-            q = bot.snowcaloid.data.db.query('select id, execution_time, task_type, data from tasks order by execution_time')
+            q = bot.krile.data.db.query('select id, execution_time, task_type, data from tasks order by execution_time')
             for record in q:
                 taskdata = TaskData(record[1], TaskExecutionType(record[2]))
                 taskdata.id = record[0]
@@ -115,4 +115,4 @@ class TaskList:
                     taskdata.data = loads(record[3])
                 self._list.append(taskdata)
         finally:
-            bot.snowcaloid.data.db.disconnect()
+            bot.krile.data.db.disconnect()

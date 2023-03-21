@@ -15,7 +15,7 @@ class LogCommands(GroupCog, group_name='log', group_description='Commands regard
     @check(permission_admin)
     async def channel(self, interaction: Interaction, target_channel: TextChannel):
         # Handle the change in the database.
-        result: DatabaseOperation = bot.snowcaloid.data.guild_data.set_log_channel(interaction.guild_id, target_channel.id)
+        result: DatabaseOperation = bot.krile.data.guild_data.set_log_channel(interaction.guild_id, target_channel.id)
 
         # Convert the result to something the user can understand.
         if result == DatabaseOperation.NONE:
@@ -40,7 +40,7 @@ class LogCommands(GroupCog, group_name='log', group_description='Commands regard
         await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has disabled logging, good bye!')
 
         # Remove the log channel
-        bot.snowcaloid.data.guild_data.set_log_channel(interaction.guild_id, None)
+        bot.krile.data.guild_data.set_log_channel(interaction.guild_id, None)
 
         # Privately let the user know we have turned logging off.
         await interaction.response.send_message('Messages will no longer be sent to the log channel.')

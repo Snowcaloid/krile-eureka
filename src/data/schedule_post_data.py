@@ -95,12 +95,12 @@ class SchedulePost:
         for data in self._list:
             if data.id == id:
                 self._list.remove(data)
-                bot.snowcaloid.data.db.connect()
+                bot.krile.data.db.connect()
                 try:
-                    bot.snowcaloid.data.db.query(f'update schedule set finished=true where id={id}')
-                    bot.snowcaloid.data.db.query(f'delete from buttons where button_id ~ \'{data.post_id}\'')
+                    bot.krile.data.db.query(f'update schedule set finished=true where id={id}')
+                    bot.krile.data.db.query(f'delete from buttons where button_id ~ \'{data.post_id}\'')
                 finally:
-                    bot.snowcaloid.data.db.disconnect()
+                    bot.krile.data.db.disconnect()
 
     def add_entry(self, leader: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> ScheduleData:
         """Add an event to the guild's schedule.
@@ -119,7 +119,7 @@ class SchedulePost:
         if auto_passcode and (not entry.pass_main or not entry.pass_supp):
             entry.generate_passcode(True)
         self._list.append(entry)
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         if not db.connected():
             db.connect()
             try:
@@ -130,11 +130,11 @@ class SchedulePost:
                     f'\'{entry.description}\', {str(int(entry.pass_main))}, {str(int(entry.pass_supp))}) returning id'
                 ))
                 entry.id = id
-                bot.snowcaloid.data.tasks.add_task(timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
+                bot.krile.data.tasks.add_task(timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
                 if auto_passcode:
-                    bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
-                    bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
-                    bot.snowcaloid.data.tasks.add_task(timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
+                    bot.krile.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
+                    bot.krile.data.tasks.add_task(timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
+                    bot.krile.data.tasks.add_task(timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
             finally:
                 db.disconnect()
         return entry
@@ -193,21 +193,21 @@ class SchedulePost:
                     description = description.replace('\'', '\'\'')
                     set_str += f', description=\'{description}\''
                 if is_passcode_update or is_time_update:
-                    bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
-                    bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
-                    bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
-                    bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
-                    channel_data = bot.snowcaloid.data.guild_data.get_data(self.guild).get_channel(type=entry.type)
+                    bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
+                    bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
+                    bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
+                    bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
+                    channel_data = bot.krile.data.guild_data.get_data(self.guild).get_channel(type=entry.type)
                     if channel_data.channel_id:
-                        bot.snowcaloid.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
-                        bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
-                    bot.snowcaloid.data.tasks.add_task(entry.timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
+                        bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
+                        bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
+                    bot.krile.data.tasks.add_task(entry.timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
                     if entry.pass_main:
-                        bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
-                        bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
-                        bot.snowcaloid.data.tasks.add_task(entry.timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
+                        bot.krile.data.tasks.add_task(entry.timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
+                        bot.krile.data.tasks.add_task(entry.timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
+                        bot.krile.data.tasks.add_task(entry.timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
 
-                db = bot.snowcaloid.data.db
+                db = bot.krile.data.db
                 db.connect()
                 try:
                     db.query(f'update schedule set {set_str} where id={id}')
@@ -229,7 +229,7 @@ class SchedulePost:
         Raises:
             Error_Cannot_Remove_Schedule: The user doesn't have permissions to change the event.
         """
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         db.connect()
         try:
             u = db.query(f'select leader from schedule where id={id}')[0][0]
@@ -256,7 +256,7 @@ class SchedulePost:
 
     async def update_post(self):
         """Updates the schedule post."""
-        channel: TextChannel = bot.snowcaloid.get_channel(self.channel)
+        channel: TextChannel = bot.krile.get_channel(self.channel)
         if channel:
             post = await cache.messages.get(self.post, channel)
             if post:
@@ -312,7 +312,7 @@ class SchedulePost:
         if not message:
             pl_channel = guild_data.get_pl_channel(entry.type)
             if pl_channel:
-                channel: TextChannel = bot.snowcaloid.get_channel(pl_channel.channel_id)
+                channel: TextChannel = bot.krile.get_channel(pl_channel.channel_id)
                 message = await cache.messages.get(entry.post_id, channel)
         if message:
             desc = schedule_type_desc(entry.type) if entry.type != ScheduleType.CUSTOM.value else entry.description
@@ -353,7 +353,7 @@ class SchedulePost:
         entry = self.get_entry(id)
         pl_channel = guild_data.get_pl_channel(entry.type)
         if pl_channel:
-            channel: TextChannel = bot.snowcaloid.get_channel(pl_channel.channel_id)
+            channel: TextChannel = bot.krile.get_channel(pl_channel.channel_id)
             if channel:
                 message = await channel.send(f'Recruitment post #{str(id)}')
                 entry.post_id = message.id
@@ -371,16 +371,16 @@ class SchedulePost:
                     view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
                 await self.update_pl_post(guild_data, entry=entry, message=message)
                 await message.edit(view=view)
-                bot.snowcaloid.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
-                bot.snowcaloid.data.db.connect()
+                bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
+                bot.krile.data.db.connect()
                 try:
-                    bot.snowcaloid.data.db.query(f'update schedule set post_id={entry.post_id} where id={id}')
+                    bot.krile.data.db.query(f'update schedule set post_id={entry.post_id} where id={id}')
                     for button in view.children:
-                        bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.custom_id}\', \'{button.label}\')')
+                        bot.krile.data.db.query(f'insert into buttons values (\'{button.custom_id}\', \'{button.label}\')')
                 finally:
-                    bot.snowcaloid.data.db.disconnect()
+                    bot.krile.data.db.disconnect()
         else:
-            print(f'Info: no party leader post has been made due to the missing channel for type {type} in guild {bot.snowcaloid.get_guild(self.guild).name}')
+            print(f'Info: no party leader post has been made due to the missing channel for type {type} in guild {bot.krile.get_guild(self.guild).name}')
 
 
 class SchedulePostData():
@@ -523,7 +523,7 @@ class SchedulePostData():
 
     async def load(self):
         """Loads all schedule posts and events from the database."""
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         db.connect()
         try:
             self._list.clear()

@@ -81,7 +81,7 @@ class MissedRunsData:
             user (int): user id
         """
         self._list.remove(self.get_data(guild, user))
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         db.connect()
         try:
             db.query(f'delete from missed where guild={guild} and user_id={user}')
@@ -97,7 +97,7 @@ class MissedRunsData:
         """
         self.init(guild, user)
         if self.get_data(guild, user).amount:
-            db = bot.snowcaloid.data.db
+            db = bot.krile.data.db
             db.connect()
             try:
                 if db.query(f'select amount from missed where guild={guild} and user_id={user}'):
@@ -109,7 +109,7 @@ class MissedRunsData:
 
     async def load(self):
         """Load all missed runs data from the database"""
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         db.connect()
         try:
             missed = db.query(f'select guild, user_id, amount from missed')
@@ -117,7 +117,7 @@ class MissedRunsData:
                 self._list.append(MissedData(record[0], record[1], record[2]))
         finally:
             db.disconnect()
-        for guild_data in bot.snowcaloid.data.guild_data._list:
+        for guild_data in bot.krile.data.guild_data._list:
             await self.update_post(guild_data.guild_id)
 
 
@@ -127,9 +127,9 @@ class MissedRunsData:
         Args:
             guild (int): guild id
         """
-        guild_data = bot.snowcaloid.data.guild_data.get_data(guild)
+        guild_data = bot.krile.data.guild_data.get_data(guild)
         if guild_data.missed_channel and guild_data.missed_post:
-            channel: TextChannel = bot.snowcaloid.get_channel(guild_data.missed_channel)
+            channel: TextChannel = bot.krile.get_channel(guild_data.missed_channel)
             if channel:
                 message = await cache.messages.get(guild_data.missed_post, channel)
                 embeds = []
@@ -137,7 +137,7 @@ class MissedRunsData:
                 embeds.append(embed)
                 i = 0
                 description = ''
-                gld = bot.snowcaloid.get_guild(guild)
+                gld = bot.krile.get_guild(guild)
                 for missed_data in self.get_guild_data(guild):
                     i += 1
                     if i % 150 == 0:

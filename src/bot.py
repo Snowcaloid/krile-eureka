@@ -12,10 +12,10 @@ from buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
 import tasks
 
 
-unload_commands = False
+unload_commands = True
 
 
-class Snowcaloid(Bot):
+class Krile(Bot):
     """General bot class.
 
     Properties
@@ -71,4 +71,4 @@ class Snowcaloid(Bot):
         for view in self.recreate_view():
             self.add_view(view)
 
-snowcaloid = Snowcaloid()
+krile = Krile()

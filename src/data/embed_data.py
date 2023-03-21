@@ -347,10 +347,10 @@ class EmbedData:
             user (int): querying user id
         """
         if self.get_entry(user).buttons:
-            bot.snowcaloid.data.db.connect()
+            bot.krile.data.db.connect()
             try:
                 for button in self.get_entry(user).buttons:
-                    if not bot.snowcaloid.data.db.query(f'select button_id from buttons where button_id=\'{button.id}\''):
-                        bot.snowcaloid.data.db.query(f'insert into buttons values (\'{button.id}\', \'{button.label}\')')
+                    if not bot.krile.data.db.query(f'select button_id from buttons where button_id=\'{button.id}\''):
+                        bot.krile.data.db.query(f'insert into buttons values (\'{button.id}\', \'{button.label}\')')
             finally:
-                bot.snowcaloid.data.db.disconnect()
+                bot.krile.data.db.disconnect()

@@ -13,13 +13,13 @@ async def guild_log_message(guild_id: int, message: str):
             message (str): the message to log
     """
     # Retrieve the log channel id for this guild
-    guild_data = bot.snowcaloid.data.guild_data.get_data(guild_id)
+    guild_data = bot.krile.data.guild_data.get_data(guild_id)
 
     if guild_data.log_channel is None:
         # Cannot send logging messages if a channel has not been set
         return
 
-    guild = bot.snowcaloid.get_guild(guild_id)
+    guild = bot.krile.get_guild(guild_id)
 
     if guild is None:
         return

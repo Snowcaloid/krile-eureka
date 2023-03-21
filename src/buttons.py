@@ -41,7 +41,7 @@ class PartyLeaderButton(Button):
     async def callback(self, interaction: Interaction):
         if str(interaction.message.id) in self.custom_id:
             await utils.default_defer(interaction)
-            entry = bot.snowcaloid.data.schedule_posts.get_post(interaction.guild_id).get_entry_by_pl_post(interaction.message.id)
+            entry = bot.krile.data.schedule_posts.get_post(interaction.guild_id).get_entry_by_pl_post(interaction.message.id)
             if entry:
                 field = 'pl' + self.custom_id[-1] if self.custom_id[-1] != '7' else 'pls'
                 index = int(self.custom_id[-1]) - 1
@@ -49,26 +49,26 @@ class PartyLeaderButton(Button):
                 current_value = entry.party_leaders[index]
                 if not current_value and not interaction.user.id in entry.party_leaders:
                     entry.party_leaders[index] = interaction.user.id
-                    bot.snowcaloid.data.db.connect()
+                    bot.krile.data.db.connect()
                     try:
-                        bot.snowcaloid.data.db.query(f'update schedule set {field}={interaction.user.id} where id={entry.id}')
+                        bot.krile.data.db.query(f'update schedule set {field}={interaction.user.id} where id={entry.id}')
                     finally:
-                        bot.snowcaloid.data.db.disconnect()
-                    guild_data = bot.snowcaloid.data.guild_data.get_data(interaction.guild_id)
-                    await bot.snowcaloid.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(guild_data, entry=entry)
+                        bot.krile.data.db.disconnect()
+                    guild_data = bot.krile.data.guild_data.get_data(interaction.guild_id)
+                    await bot.krile.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(guild_data, entry=entry)
                     await utils.default_response(interaction, f'You have been set as Party Leader for Party {party_name}')
                     run = await entry.to_string(interaction.guild_id)
                     await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has registered for Party {party_name} on {run}')
                 elif current_value and (interaction.user.id == current_value or interaction.user.id == entry.leader):
                     is_party_leader_removing_self = interaction.user.id == current_value
                     entry.party_leaders[index] = 0
-                    bot.snowcaloid.data.db.connect()
+                    bot.krile.data.db.connect()
                     try:
-                        bot.snowcaloid.data.db.query(f'update schedule set {field}=0 where id={entry.id}')
+                        bot.krile.data.db.query(f'update schedule set {field}=0 where id={entry.id}')
                     finally:
-                        bot.snowcaloid.data.db.disconnect()
-                    guild_data = bot.snowcaloid.data.guild_data.get_data(interaction.guild_id)
-                    await bot.snowcaloid.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(guild_data, entry=entry)
+                        bot.krile.data.db.disconnect()
+                    guild_data = bot.krile.data.guild_data.get_data(interaction.guild_id)
+                    await bot.krile.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(guild_data, entry=entry)
                     await utils.default_response(interaction, f'{interaction.guild.get_member(current_value).display_name} has been removed from party {party_name}')
 
                     run = await entry.to_string(interaction.guild_id)
@@ -107,7 +107,7 @@ class MissedRunButton(Button):
             await utils.default_defer(interaction)
             if interaction.user.id in self.users:
                 return await utils.default_response(interaction, 'You have already been noted. This only works once per post.')
-            data = bot.snowcaloid.data
+            data = bot.krile.data
             if data.missed_runs.eligable(interaction.guild_id, interaction.user.id):
                 return await utils.default_response(interaction, (
                     'You already reacted 3 times. You are eligable to contact a raid leader '

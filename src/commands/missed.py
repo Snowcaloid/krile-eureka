@@ -18,8 +18,8 @@ class MissedCommands(GroupCog, group_name='missed', group_description='Commands 
     async def create_list(self, interaction: Interaction, channel: TextChannel):
         await default_defer(interaction)
         message = await channel.send('.')
-        bot.snowcaloid.data.guild_data.save_missed_runs_post(interaction.guild_id, channel.id, message.id)
-        await bot.snowcaloid.data.missed_runs.update_post(interaction.guild_id)
+        bot.krile.data.guild_data.save_missed_runs_post(interaction.guild_id, channel.id, message.id)
+        await bot.krile.data.missed_runs.update_post(interaction.guild_id)
         await default_response(interaction, f'Missed run post has been created in #{channel.name}.')
 
     @command(name='run', description='Create a missed run post for 10 minutes.')
@@ -27,7 +27,7 @@ class MissedCommands(GroupCog, group_name='missed', group_description='Commands 
     async def run(self, interaction: Interaction):
         await default_defer(interaction)
         disclaimer = ''
-        role_name = bot.snowcaloid.data.guild_data.get_data(interaction.guild_id).missed_role
+        role_name = bot.krile.data.guild_data.get_data(interaction.guild_id).missed_role
         if role_name:
             disclaimer = f'\nPlease note that this function is exclusive to members with role "{role_name}".'
         message = await interaction.channel.send(
@@ -41,7 +41,7 @@ class MissedCommands(GroupCog, group_name='missed', group_description='Commands 
             label='the button',
             custom_id=button_custom_id('missed', message, ButtonType.MISSEDRUN)))
         await message.edit(view=view)
-        bot.snowcaloid.data.tasks.add_task(
+        bot.krile.data.tasks.add_task(
             datetime.utcnow() + timedelta(minutes=10),
             TaskExecutionType.REMOVE_MISSED_RUN_POST,
             {"guild": interaction.guild_id, "channel": interaction.channel.id, "message": message.id})
@@ -51,10 +51,10 @@ class MissedCommands(GroupCog, group_name='missed', group_description='Commands 
     @check(permission_raid_leader)
     async def accept(self, interaction: Interaction, user: str):
         await default_defer(interaction)
-        if not await bot.snowcaloid.get_guild(interaction.guild_id).fetch_member(int(user)):
+        if not await bot.krile.get_guild(interaction.guild_id).fetch_member(int(user)):
             return await default_response(interaction, 'The requested user cannot be found on this server.')
-        bot.snowcaloid.data.missed_runs.remove(interaction.guild_id, int(user))
-        await bot.snowcaloid.data.missed_runs.update_post(interaction.guild_id)
+        bot.krile.data.missed_runs.remove(interaction.guild_id, int(user))
+        await bot.krile.data.missed_runs.update_post(interaction.guild_id)
         await default_response(interaction, 'User has been removed from the early passcode list.')
 
     @create_list.error

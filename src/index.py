@@ -6,8 +6,8 @@ import os
 import bot
 
 # What the bot does upon connecting to discord for the first time
-@bot.snowcaloid.event
+@bot.krile.event
 async def on_ready():
-    print(f'{bot.snowcaloid.user} has connected to Discord!')
+    print(f'{bot.krile.user} has connected to Discord!')
 
-bot.snowcaloid.run(os.getenv('DISCORD_TOKEN'))
+bot.krile.run(os.getenv('DISCORD_TOKEN'))

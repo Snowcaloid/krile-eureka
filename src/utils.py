@@ -40,7 +40,7 @@ def button_custom_id(id: str, message: Message, type: buttons.ButtonType) -> str
 
 async def get_mention(guild_id: int, user_id: int) -> str:
     if user_id:
-        guild = bot.snowcaloid.get_guild(guild_id)
+        guild = bot.krile.get_guild(guild_id)
         if guild:
             return guild.get_member(user_id).mention
     else:
@@ -55,7 +55,7 @@ async def get_discord_member(guild_id: int, user_id: int) -> Member:
     :param user_id: The ID of the user.
     :return: The discord.Member object.
     """
-    guild = bot.snowcaloid.get_guild(guild_id)
+    guild = bot.krile.get_guild(guild_id)
     return await guild.fetch_member(user_id)
 
 

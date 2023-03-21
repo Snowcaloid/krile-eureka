@@ -96,7 +96,7 @@ class RuntimeData(QueryOwner):
             self.__init__()
         self.guild_data.load()
         for data in self.guild_data._list:
-            for guild in bot.snowcaloid.guilds:
+            for guild in bot.krile.guilds:
                 if data.guild_id == guild.id:
                     guild.fetch_members()
         await self.schedule_posts.load()

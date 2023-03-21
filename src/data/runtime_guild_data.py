@@ -48,7 +48,7 @@ class RuntimeGuildData:
         Args:
             guild (int): guild id
         """
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         db.connect()
         try:
             db.query(f'insert into guilds values ({str(guild)})')
@@ -58,7 +58,7 @@ class RuntimeGuildData:
 
     def load(self):
         """Loads all the guild and channel information from the database."""
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         db.connect()
         try:
             gd = db.query('select guild_id, schedule_channel, schedule_post, missed_channel, missed_post, log_channel, missed_role from guilds')
@@ -79,7 +79,7 @@ class RuntimeGuildData:
             channel (int): Schedule post's channel id.
             post (int): Schedule post's message id.
         """
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         db.connect()
         try:
             db.query(f'update guilds set schedule_channel={str(channel)}, schedule_post={str(post)} where guild_id={guild}')
@@ -98,7 +98,7 @@ class RuntimeGuildData:
             channel (int): Missed runs post's channel id.
             post (int): Missed runs post's message id.
         """
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         if not self.contains(guild):
             self.init(guild)
         self.get_data(guild).missed_channel = channel
@@ -136,7 +136,7 @@ class RuntimeGuildData:
 
         self.get_data(guild).remove_channel(type=type)
         self.get_data(guild).add_channel(channel, type)
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         db.connect()
         try:
             if db.query(f'select channel_id from channels where guild_id={guild} and type=\'{type}\' and not is_pl_channel and not is_support_channel'):
@@ -175,7 +175,7 @@ class RuntimeGuildData:
 
         self.get_data(guild).remove_channel(type=type)
         self.get_data(guild).add_channel(channel, type, True)
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
         db.connect()
         try:
             if db.query(f'select channel_id from channels where guild_id={guild} and type=\'{type}\' and is_pl_channel'):
@@ -209,16 +209,16 @@ class RuntimeGuildData:
 
         self.get_data(guild).remove_channel(type=type)
         self.get_data(guild).add_channel(channel, type, False, True)
-        bot.snowcaloid.data.db.connect()
+        bot.krile.data.db.connect()
         try:
-            if bot.snowcaloid.data.db.query(f'select channel_id from channels where guild_id={guild} and type=\'{type}\' and is_support_channel'):
-                bot.snowcaloid.data.db.query(f'update channels set channel_id={channel} where guild_id={guild} and type=\'{type}\' and is_support_channel')
+            if bot.krile.data.db.query(f'select channel_id from channels where guild_id={guild} and type=\'{type}\' and is_support_channel'):
+                bot.krile.data.db.query(f'update channels set channel_id={channel} where guild_id={guild} and type=\'{type}\' and is_support_channel')
                 return DatabaseOperation.EDITED
             else:
-                bot.snowcaloid.data.db.query(f'insert into channels (guild_id, type, channel_id, is_support_channel) values ({str(guild)}, \'{str(type)}\', {str(channel)}, true)')
+                bot.krile.data.db.query(f'insert into channels (guild_id, type, channel_id, is_support_channel) values ({str(guild)}, \'{str(type)}\', {str(channel)}, true)')
                 return DatabaseOperation.ADDED
         finally:
-            bot.snowcaloid.data.db.disconnect()
+            bot.krile.data.db.disconnect()
 
     def set_log_channel(self, guild_id: int, new_channel_id: int) -> DatabaseOperation:
         """Changes the logging channel for the provided guild.
@@ -230,7 +230,7 @@ class RuntimeGuildData:
         Returns:
             DatabaseOperation: The outcome of the operation.
         """
-        db = bot.snowcaloid.data.db
+        db = bot.krile.data.db
 
         if not self.contains(guild_id):
             self.init(guild_id)
