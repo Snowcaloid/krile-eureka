@@ -97,3 +97,5 @@ class ScheduleTable(TableDefinition):
         self.define_column('pass_main', ColumnType.INTEGER)
         self.define_column('pass_supp', ColumnType.INTEGER)
         self.define_column('post_id', ColumnType.BIGINT)
+        self.define_column('finished', ColumnType.BOOLEAN)
+        self.define_column('canceled', ColumnType.BOOLEAN)

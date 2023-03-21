@@ -97,7 +97,7 @@ class SchedulePost:
                 self._list.remove(data)
                 bot.snowcaloid.data.db.connect()
                 try:
-                    bot.snowcaloid.data.db.query(f'delete from schedule where id={id}')
+                    bot.snowcaloid.data.db.query(f'update schedule set finished=true where id={id}')
                     bot.snowcaloid.data.db.query(f'delete from buttons where button_id ~ \'{data.post_id}\'')
                 finally:
                     bot.snowcaloid.data.db.disconnect()
@@ -234,7 +234,7 @@ class SchedulePost:
         try:
             u = db.query(f'select leader from schedule where id={id}')[0][0]
             if u == leader or admin:
-                db.query(f'delete from schedule where id={id}')
+                db.query(f'update schedule set canceled=true where id={id}')
                 await self.update_post()
             else:
                 raise Error_Cannot_Remove_Schedule()
@@ -530,7 +530,11 @@ class SchedulePostData():
             for guild_data in self.guild_data._list:
                 if guild_data.schedule_post:
                     schedule_post = SchedulePost(guild_data.guild_id, guild_data.schedule_channel, guild_data.schedule_post)
-                    for sch_record in db.query(f'select id, leader, type, timestamp, description, post_id, pl1, pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp from schedule where schedule_post={guild_data.schedule_post}'):
+                    for sch_record in db.query((
+                            'select id, leader, type, timestamp, description, post_id, pl1, '
+                            'pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp from schedule '
+                            f'where schedule_post={guild_data.schedule_post} and not canceled and not finished'
+                        )):
                         entry = schedule_post.add_entry(sch_record[1], sch_record[2], sch_record[3], sch_record[4])
                         entry.id = sch_record[0]
                         entry.post_id = sch_record[5]
