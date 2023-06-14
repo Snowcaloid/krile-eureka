@@ -205,7 +205,8 @@ class SchedulePost:
                     channel_data = bot.krile.data.guild_data.get_data(self.guild).get_channel(type=entry.type)
                     if channel_data.channel_id:
                         bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
-                        bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
+                        if entry.type != ScheduleType.DRS_RECLEAR and entry.type != ScheduleType.DRS_NORMAL:
+                            bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
                     bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=2), TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
                     if entry.pass_main:
                         bot.krile.data.tasks.add_task(entry.timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
@@ -381,7 +382,8 @@ class SchedulePost:
                     view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
                 await self.update_pl_post(guild_data, entry=entry, message=message)
                 await message.edit(view=view)
-                bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
+                if entry.type != ScheduleType.DRS_RECLEAR and entry.type != ScheduleType.DRS_NORMAL:
+                    bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
                 bot.krile.data.db.connect()
                 try:
                     bot.krile.data.db.query(f'update schedule set post_id={entry.post_id} where id={id}')
