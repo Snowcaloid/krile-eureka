@@ -134,7 +134,12 @@ class SchedulePost:
                 if auto_passcode:
                     bot.krile.data.tasks.add_task(timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
                     bot.krile.data.tasks.add_task(timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
-                    bot.krile.data.tasks.add_task(timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
+                    task_time = entry.timestamp
+                    if entry.type == ScheduleType.DRS_RECLEAR or entry.type == ScheduleType.DRS_NORMAL:
+                        task_time = task_time - timedelta(minutes=15)
+                    else:
+                        task_time = task_time - timedelta(minutes=30)
+                    bot.krile.data.tasks.add_task(task_time - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
             finally:
                 db.disconnect()
         return entry
@@ -201,11 +206,16 @@ class SchedulePost:
                     if channel_data.channel_id:
                         bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
                         bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
-                    bot.krile.data.tasks.add_task(entry.timestamp, TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
+                    bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=2), TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
                     if entry.pass_main:
                         bot.krile.data.tasks.add_task(entry.timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
                         bot.krile.data.tasks.add_task(entry.timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
-                        bot.krile.data.tasks.add_task(entry.timestamp - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
+                        task_time = entry.timestamp
+                        if entry.type == ScheduleType.DRS_RECLEAR or entry.type == ScheduleType.DRS_NORMAL:
+                            task_time = task_time - timedelta(minutes=15)
+                        else:
+                            task_time = task_time - timedelta(minutes=30)
+                        bot.krile.data.tasks.add_task(task_time, TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
 
                 db = bot.krile.data.db
                 db.connect()

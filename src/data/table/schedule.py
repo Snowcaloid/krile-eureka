@@ -28,7 +28,7 @@ def schedule_type_desc(type: ScheduleType) -> str:
     elif type == ScheduleType.BA_ALL.value:
         return "All types of BA runs"
     elif type == ScheduleType.DRS_NORMAL.value:
-        return "Delubrum Reginae Savage"
+        return "Delubrum Reginae Savage Prog"
     elif type == ScheduleType.DRS_RECLEAR.value:
         return "Delubrum Reginae Savage Reclear"
     elif type == ScheduleType.DRS_ALL.value:
