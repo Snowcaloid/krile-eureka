@@ -205,14 +205,14 @@ class SchedulePost:
                     channel_data = bot.krile.data.guild_data.get_data(self.guild).get_channel(type=entry.type)
                     if channel_data.channel_id:
                         bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
-                        if entry.type != ScheduleType.DRS_RECLEAR and entry.type != ScheduleType.DRS_NORMAL:
+                        if entry.type != ScheduleType.DRS_RECLEAR.value and entry.type != ScheduleType.DRS_NORMAL.value:
                             bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel_data.channel_id})
                     bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=2), TaskExecutionType.REMOVE_OLD_RUNS, {"id": id})
                     if entry.pass_main:
                         bot.krile.data.tasks.add_task(entry.timestamp - timedelta(hours=1), TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild, "entry_id": id})
                         bot.krile.data.tasks.add_task(entry.timestamp - timedelta(minutes=35), TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild, "entry_id": id})
                         task_time = entry.timestamp
-                        if entry.type == ScheduleType.DRS_RECLEAR or entry.type == ScheduleType.DRS_NORMAL:
+                        if entry.type == ScheduleType.DRS_RECLEAR.value or entry.type == ScheduleType.DRS_NORMAL.value:
                             task_time = task_time - timedelta(minutes=15)
                         else:
                             task_time = task_time - timedelta(minutes=30)
@@ -382,7 +382,10 @@ class SchedulePost:
                     view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
                 await self.update_pl_post(guild_data, entry=entry, message=message)
                 await message.edit(view=view)
-                if entry.type != ScheduleType.DRS_RECLEAR and entry.type != ScheduleType.DRS_NORMAL:
+                if entry.type == ScheduleType.DRS_RECLEAR.value and entry.type == ScheduleType.DRS_NORMAL.value:
+                    await message.create_thread(schedule_type_desc(entry.type))
+
+                if entry.type != ScheduleType.DRS_RECLEAR.value and entry.type != ScheduleType.DRS_NORMAL.value:
                     bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
                 bot.krile.data.db.connect()
                 try:
