@@ -1,5 +1,5 @@
-from discord import Intents
-from discord.ext.commands import Bot
+from discord import Intents, Object, HTTPException
+from discord.ext.commands import Bot, guild_only, is_owner, Context, Greedy
 from data.runtime_data import RuntimeData
 from data.table.tasks import TaskExecutionType
 from commands.embed import EmbedCommands
@@ -9,6 +9,7 @@ from commands.log import LogCommands
 from datetime import datetime
 from views import PersistentView
 from buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
+from typing import Literal, Optional
 import tasks
 
 
@@ -71,4 +72,39 @@ class Krile(Bot):
         for view in self.recreate_view():
             self.add_view(view)
 
+
 krile = Krile()
+
+@krile.command()
+@guild_only()
+@is_owner()
+async def sync(ctx: Context, guilds: Greedy[Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+    if not guilds:
+        if spec == "~":
+            synced = await ctx.bot.tree.sync(guild=ctx.guild)
+        elif spec == "*":
+            ctx.bot.tree.copy_global_to(guild=ctx.guild)
+            synced = await ctx.bot.tree.sync(guild=ctx.guild)
+        elif spec == "^":
+            ctx.bot.tree.clear_commands(guild=ctx.guild)
+            await ctx.bot.tree.sync(guild=ctx.guild)
+            synced = []
+        else:
+            synced = await ctx.bot.tree.sync()
+
+        await ctx.send(
+            f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
+        )
+        return
+
+    ret = 0
+    for guild in guilds:
+        try:
+            await ctx.bot.tree.sync(guild=guild)
+        except HTTPException:
+            pass
+        else:
+            ret += 1
+
+    await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
+
