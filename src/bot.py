@@ -13,9 +13,6 @@ from typing import Literal, Optional
 import tasks
 
 
-unload_commands = True
-
-
 class Krile(Bot):
     """General bot class.
 
@@ -61,11 +58,11 @@ class Krile(Bot):
         await self.data.load_db_data()
         if not self.data.tasks.empty():
             self.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
-        if not unload_commands:
-            await self.add_cog(EmbedCommands())
-            await self.add_cog(MissedCommands())
-            await self.add_cog(ScheduleCommands())
-            await self.add_cog(LogCommands())
+
+        await self.add_cog(EmbedCommands())
+        await self.add_cog(MissedCommands())
+        await self.add_cog(ScheduleCommands())
+        await self.add_cog(LogCommands())
         await self.tree.sync()
         if not tasks.task_loop.is_running():
             tasks.task_loop.start()
