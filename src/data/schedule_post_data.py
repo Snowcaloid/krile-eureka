@@ -382,8 +382,8 @@ class SchedulePost:
                     view.add_item(PartyLeaderButton(label='Support', custom_id=button_custom_id('pl7', message, ButtonType.PL_POST), row=2))
                 await self.update_pl_post(guild_data, entry=entry, message=message)
                 await message.edit(view=view)
-                if entry.type == ScheduleType.DRS_RECLEAR.value and entry.type == ScheduleType.DRS_NORMAL.value:
-                    await message.create_thread(schedule_type_desc(entry.type))
+                if entry.type == ScheduleType.DRS_RECLEAR.value or entry.type == ScheduleType.DRS_NORMAL.value:
+                    await message.create_thread(name=schedule_type_desc(entry.type))
 
                 if entry.type != ScheduleType.DRS_RECLEAR.value and entry.type != ScheduleType.DRS_NORMAL.value:
                     bot.krile.data.tasks.add_task(entry.timestamp + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild, "channel": channel.id})
@@ -548,7 +548,7 @@ class SchedulePostData():
                     for sch_record in db.query((
                             'select id, leader, type, timestamp, description, post_id, pl1, '
                             'pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp from schedule '
-                            f'where schedule_post={guild_data.schedule_post} and not canceled and not finished'
+                            f'where schedule_post={guild_data.schedule_post} and (not canceled or canceled is null) and (not finished or finished is null)'
                         )):
                         entry = schedule_post.add_entry(sch_record[1], sch_record[2], sch_record[3], sch_record[4])
                         entry.id = sch_record[0]
