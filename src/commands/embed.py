@@ -72,10 +72,13 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
             channel = interaction.channel
         message = embeds.get_entry(interaction.user.id).message
         if message is None:
-            message: Message = await channel.send('.')
-        message = await message.edit(
-            embed=embeds.create_embed(interaction.user.id, False),
-            view=embeds.create_view(interaction.user.id, False, message, type))
+            message: Message = await channel.send(
+                embed=embeds.create_embed(interaction.user.id, False),
+                view=embeds.create_view(interaction.user.id, False, message, type))
+        else:
+            message = await message.edit(
+                embed=embeds.create_embed(interaction.user.id, False),
+                view=embeds.create_view(interaction.user.id, False, message, type))
         await set_default_footer(message)
         if embeds.get_entry(interaction.user.id).message:
             await default_response(interaction, f'The message has been edited.')
