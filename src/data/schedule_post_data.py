@@ -139,7 +139,7 @@ class SchedulePost:
                         task_time = task_time - timedelta(minutes=15)
                     else:
                         task_time = task_time - timedelta(minutes=30)
-                    bot.krile.data.tasks.add_task(task_time - timedelta(minutes=30), TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
+                    bot.krile.data.tasks.add_task(task_time, TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
             finally:
                 db.disconnect()
         return entry
