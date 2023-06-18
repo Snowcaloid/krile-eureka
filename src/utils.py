@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 import time
 import buttons
@@ -69,3 +69,14 @@ async def default_defer(interaction: Interaction, ephemeral: bool = True):
 
 async def default_response(interaction: Interaction, text: str):
     await interaction.followup.send(text)
+
+def decode_emoji(emoji: str) -> str:
+    return emoji.encode('ascii').decode('unicode-escape').encode('utf-16', 'surrogatepass').decode('utf-16')
+
+def delta_to_string(delta: timedelta) -> str:
+    hours = delta.seconds // 3600
+    minutes = (delta.seconds - (hours * 3600)) // 60
+    result = f'{str(hours)} hours, {str(minutes)} minutes'
+    if delta.days:
+        result = f'{str(delta.days)} days, {result}'
+    return result

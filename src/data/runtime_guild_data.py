@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import List
-from data.table.channels import ChannelData
-from data.table.database import Database, DatabaseOperation
+from data.table.channels import ChannelData, InfoTitleType
+from data.table.database import DatabaseOperation
 from data.table.guilds import GuildData
 from data.table.schedule import ScheduleType
 import bot
+from data.table.tasks import TaskExecutionType
 
 class RuntimeGuildData:
     """Runtime data object containing information on guild's
@@ -64,9 +66,9 @@ class RuntimeGuildData:
             gd = db.query('select guild_id, schedule_channel, schedule_post, missed_channel, missed_post, log_channel, missed_role from guilds')
             for gd_record in gd:
                 guild_data = GuildData(gd_record[0], gd_record[1], gd_record[2], gd_record[3], gd_record[4], gd_record[5], gd_record[6])
-                cd = db.query(f'select type, channel_id, is_pl_channel, is_support_channel from channels where guild_id={guild_data.guild_id}')
+                cd = db.query(f'select type, channel_id, is_pl_channel, is_support_channel, info_title_type from channels where guild_id={guild_data.guild_id}')
                 for cd_record in cd:
-                    guild_data._channels.append(ChannelData(guild_data.guild_id, cd_record[0], cd_record[1], cd_record[2], cd_record[3]))
+                    guild_data._channels.append(ChannelData(guild_data.guild_id, cd_record[0], cd_record[1], cd_record[2], cd_record[3], cd_record[4]))
                 self._list.append(guild_data)
         finally:
             db.disconnect()
@@ -219,6 +221,55 @@ class RuntimeGuildData:
                 return DatabaseOperation.ADDED
         finally:
             bot.krile.data.db.disconnect()
+
+    def set_info_channel(self, guild: int, type: InfoTitleType, channel: int) -> DatabaseOperation:
+        """Sets the channel whose title will update to accomodate the informations about upcoming runs.
+
+        Args:
+            guild (int): guild id.
+            type (InfoTitleType): Channel Info Title type
+            channel (int): channel id
+
+        Returns:
+            DatabaseOperation: Was the channel changed or added?
+        """
+        if not self.contains(guild):
+            self.init(guild)
+
+        ch = self.get_data(guild).get_channel(info_title_type=type)
+        if ch:
+            self.remove_old_info_title_tasks(guild, ch.channel_id, type)
+            self.get_data(guild).remove_channel(channel_id=ch.channel_id)
+
+        self.get_data(guild).add_info_channel(channel, type)
+        db = bot.krile.data.db
+        db.connect()
+        try:
+            if db.query(f'select channel_id from channels where guild_id={guild} and info_title_type={str(type.value)}'):
+                db.query(f'update channels set channel_id={channel} where guild_id={guild} and info_title_type={str(type.value)}')
+                return DatabaseOperation.EDITED
+            else:
+                db.query(f'insert into channels (guild_id, info_title_type, channel_id) values ({str(guild)}, {str(type.value)}, {str(channel)})')
+                return DatabaseOperation.ADDED
+        finally:
+            db.disconnect()
+            self.start_info_title_task(guild, channel, type)
+
+    def start_info_title_task(self, guild: int, channel: int, info_title_type: InfoTitleType):
+        data = { "guild": guild, "channel": channel, "info_title_type": info_title_type.value }
+        bot.krile.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
+
+    def remove_old_info_title_tasks(self, guild: int, channel: int, info_title_type: InfoTitleType):
+        data = { "guild": guild, "channel": channel, "info_title_type": info_title_type.value }
+        bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
+
+    def get_channel_update_data(self, guild_id: int, type: InfoTitleType) -> object:
+        guild_data = self.get_data(guild_id)
+        channel = guild_data.get_channel(info_title_type=type)
+        if channel:
+            return { "guild": guild_id, "channel": channel.channel_id, "info_title_type": type.value }
+        else:
+            return
 
     def set_log_channel(self, guild_id: int, new_channel_id: int) -> DatabaseOperation:
         """Changes the logging channel for the provided guild.

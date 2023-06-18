@@ -3,6 +3,7 @@ import data.message_cache as cache
 from typing import List
 from buttons import ButtonType, PartyLeaderButton
 from data.runtime_guild_data import RuntimeGuildData
+from data.table.channels import InfoTitleType
 from data.table.database import pg_timestamp
 from data.table.guilds import GuildData
 from data.table.schedule import ScheduleType, ScheduleData, schedule_type_desc
@@ -142,6 +143,9 @@ class SchedulePost:
                     bot.krile.data.tasks.add_task(task_time, TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
             finally:
                 db.disconnect()
+                self.update_channels(InfoTitleType.NEXT_RUN_TYPE, entry.timestamp)
+                self.update_channels(InfoTitleType.NEXT_RUN_START_TIME, entry.timestamp)
+                self.update_channels(InfoTitleType.NEXT_RUN_PASSCODE_TIME, entry.timestamp)
         return entry
 
     def edit_entry(self, id: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool):
@@ -224,6 +228,9 @@ class SchedulePost:
                     db.query(f'update schedule set {set_str} where id={id}')
                 finally:
                     db.disconnect()
+                    self.update_channels(InfoTitleType.NEXT_RUN_TYPE, entry.timestamp, True)
+                    self.update_channels(InfoTitleType.NEXT_RUN_START_TIME, entry.timestamp, True)
+                    self.update_channels(InfoTitleType.NEXT_RUN_PASSCODE_TIME, entry.timestamp, True)
             else:
                 raise Error_Insufficient_Permissions()
         else:
@@ -251,6 +258,9 @@ class SchedulePost:
                 raise Error_Cannot_Remove_Schedule()
         finally:
             db.disconnect()
+            self.update_channels(InfoTitleType.NEXT_RUN_TYPE, None, True)
+            self.update_channels(InfoTitleType.NEXT_RUN_START_TIME, None, True)
+            self.update_channels(InfoTitleType.NEXT_RUN_PASSCODE_TIME, None, True)
         self.remove(id)
 
     def split_per_date(self) -> List[DateSeparatedScheduleData]:
@@ -350,6 +360,16 @@ class SchedulePost:
             message = await message.edit(embed=embed)
             await set_default_footer(message)
 
+    def update_channels(self, info_title_type: InfoTitleType, run_time: datetime = None, delete_cleanup: bool = False):
+        data = bot.krile.data.guild_data.get_channel_update_data(self.guild, info_title_type)
+        # if a cleanup job exists, delete it
+        if delete_cleanup:
+            bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
+
+        bot.krile.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
+        # also post a cleanup job for after the run
+        if run_time:
+            bot.krile.data.tasks.add_task(run_time, TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
 
     async def create_pl_post(self, id: int, guild_data: GuildData):
         """Create the party leader post for event <id>

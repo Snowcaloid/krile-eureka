@@ -94,6 +94,9 @@ class TaskList:
             type (TaskExecutionType): Task type
             data (object): data equaling to what needs to be removed
         """
+        if data is None:
+            return
+
         for taskdata in self._list:
             if taskdata.task_type == type and dumps(taskdata.data) == dumps(data):
                 self._list.remove(taskdata)

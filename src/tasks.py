@@ -2,11 +2,12 @@ import bot
 import data.message_cache as cache
 from datetime import datetime, timedelta
 from discord.ext import tasks
-from discord import Activity, ActivityType, Embed, Status
+from discord import Activity, ActivityType, Embed, Status, VoiceChannel
+from data.table.channels import InfoTitleType
 
 from data.table.schedule import ScheduleType, schedule_type_desc
 from data.table.tasks import TaskExecutionType
-from utils import set_default_footer
+from utils import decode_emoji, set_default_footer
 
 @tasks.loop(seconds=1) # The delay is calculated from the end of execution of the last task.
 async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
@@ -28,6 +29,8 @@ async def task_loop(): # You can think of it as sleep(1000) after the last proce
                 await post_support_passcode(task.data)
             elif task.task_type == TaskExecutionType.REMOVE_MISSED_RUN_POST:
                 await remove_missed_run_post(task.data)
+            elif task.task_type == TaskExecutionType.UPDATE_CHANNEL_TITLE:
+                await update_channel_title(task.data)
 
             bot.krile.data.tasks.remove_task(task.id)
 
@@ -173,3 +176,47 @@ async def remove_missed_run_post(data: object):
                 message = await cache.messages.get(data["message"], channel)
                 if message:
                     await message.delete()
+
+async def try_updating_channel(channel: VoiceChannel, type: InfoTitleType, new_name: str, data: object) -> bool:
+    if channel.name != new_name:
+        if bot.krile.data.channel_updates.can_update(channel.guild.id, type):
+            await channel.edit(name=new_name)
+            bot.krile.data.channel_updates.update(channel.guild.id, type)
+        else:
+            bot.krile.data.tasks.add_task(datetime.utcnow() + timedelta(minutes=3), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
+
+async def set_tbc_channel_name(channel: VoiceChannel, type, emoji: str, data: object):
+    channel_name = decode_emoji(emoji) + ' TBC'
+    await try_updating_channel(channel, type, channel_name, data)
+
+async def update_channel_title(data: object):
+    """Updates channel title according to data."""
+    if data and data["guild"] and data["channel"] and data["info_title_type"]:
+        type: InfoTitleType = InfoTitleType(data["info_title_type"])
+        guild = bot.krile.get_guild(data["guild"])
+        if guild:
+            channel: VoiceChannel = guild.get_channel(data["channel"])
+            if channel:
+                db = bot.krile.data.db
+                db.connect()
+                try:
+                    run_data = db.query('select type, timestamp from schedule where (not canceled or canceled is null) and (not finished or finished is null) order by timestamp limit 1')
+                    if run_data:
+                        run_type = run_data[0][0]
+                        run_time: datetime = run_data[0][1]
+                        passcode_delta = timedelta(minutes=(30 if 'BA' in run_type else 15))
+                        if type == InfoTitleType.NEXT_RUN_PASSCODE_TIME:
+                            await try_updating_channel(channel, type, decode_emoji('\\ud83d\\udd11') + ' ' + (run_time - passcode_delta).strftime('Passcode at %H:%M ST'), data)
+                        elif type == InfoTitleType.NEXT_RUN_START_TIME:
+                            await try_updating_channel(channel, type, decode_emoji('\\ud83d\\udd51') + ' ' + run_time.strftime('%A %H:%M ST'), data)
+                        elif type == InfoTitleType.NEXT_RUN_TYPE:
+                            await try_updating_channel(channel, type, decode_emoji('\\u23ed') + ' ' + schedule_type_desc(run_type), data)
+                    else:
+                        if type == InfoTitleType.NEXT_RUN_PASSCODE_TIME:
+                            await set_tbc_channel_name(channel, type, '\\ud83d\\udd11', data)
+                        elif type == InfoTitleType.NEXT_RUN_START_TIME:
+                            await set_tbc_channel_name(channel, type, '\\ud83d\\udd51', data)
+                        elif type == InfoTitleType.NEXT_RUN_TYPE:
+                            await set_tbc_channel_name(channel, type, '\\u23ed', data)
+                finally:
+                    db.disconnect()

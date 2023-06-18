@@ -2,11 +2,12 @@ import bot
 from calendar import monthrange, month_abbr
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command, Choice
-from discord import Interaction, Embed
+from discord import Interaction, Embed, VoiceChannel
 from discord.channel import TextChannel
 from datetime import date, datetime
 from typing import List, Optional
 from data.schedule_post_data import Error_Insufficient_Permissions, Error_Invalid_Date, Error_Invalid_Schedule_Id, Error_Missing_Schedule_Post, Error_Cannot_Remove_Schedule
+from data.table.channels import InfoTitleType
 from data.table.database import DatabaseOperation
 from data.table.schedule import ScheduleData, ScheduleType, schedule_type_desc
 from utils import set_default_footer, default_defer, default_response
@@ -185,6 +186,24 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         except TimeValueError:
             await default_response(interaction, f'The time format is not correct. If you start typing in format HH:MM, auto-fill will help you.')
 
+    @command(name = "info_channel", description = "Set the channel whose title will be updated to accomodate information about the next run.")
+    @check(permission_admin)
+    async def info_channel(self, interaction: Interaction, type: int, channel: VoiceChannel):
+        await default_defer(interaction)
+        if not type in InfoTitleType._value2member_map_:
+            return await default_response(interaction, f'The type "{type}" is not allowed. Use autocomplete.')
+        bot.krile.data.guild_data.set_info_channel(interaction.guild_id, InfoTitleType(type), channel.id)
+        await default_response(interaction, f'You have set #{channel.name} to change it\'s title for #{InfoTitleType(type).name}.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has set #{channel.name} to change it\'s title for #{InfoTitleType(type).name}.')
+
+    @info_channel.autocomplete('type')
+    async def autocomplete_info_channel_type(self, interaction: Interaction, current: str):
+        return [
+            Choice(name='Next run type', value=InfoTitleType.NEXT_RUN_TYPE.value),
+            Choice(name='Start time of next run', value=InfoTitleType.NEXT_RUN_START_TIME.value),
+            Choice(name='Passcode posting time for the next run', value=InfoTitleType.NEXT_RUN_PASSCODE_TIME.value)
+        ]
+
     @add.autocomplete('type')
     @edit.autocomplete('type')
     async def autocomplete_schedule_type(self, interaction: Interaction, current: str):
@@ -266,10 +285,12 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     @passcode_channel.error
     @support_passcode_channel.error
     @party_leader_channel.error
+    @info_channel.error
     async def handle_permission_admin(self, interaction: Interaction, error):
+        print(error)
         if interaction.response.is_done():
             if interaction.followup:
-                await interaction.followup.send('You have insufficient rights to use this command.', ephemeral=True)
+                await interaction.followup.send('You have insufficient rights to use this command or an error has occured.', ephemeral=True)
         else:
-            await interaction.response.send_message('You have insufficient rights to use this command.', ephemeral=True)
+            await interaction.response.send_message('You have insufficient rights to use this command or an error has occured.', ephemeral=True)
     #endregion

@@ -1,5 +1,6 @@
 from typing import List
 import bot
+from data.channel_updates import ChannelUpdates
 from data.embed_data import EmbedData
 from data.missed_runs_data import MissedRunsData
 from data.schedule_post_data import SchedulePostData
@@ -46,6 +47,7 @@ class RuntimeData(QueryOwner):
     embeds: EmbedData
     schedule_posts: SchedulePostData
     guild_data: RuntimeGuildData
+    channel_updates: ChannelUpdates
     missed_runs: MissedRunsData
     tasks: TaskList
     query: Query
@@ -57,12 +59,13 @@ class RuntimeData(QueryOwner):
         self._loaded_view = []
         self.db = Database()
         self.init_db()
-        self.embeds         = EmbedData()
-        self.guild_data     = RuntimeGuildData()
-        self.missed_runs    = MissedRunsData()
-        self.schedule_posts = SchedulePostData(self.guild_data)
-        self.tasks          = TaskList()
-        self.query          = Query(self)
+        self.embeds          = EmbedData()
+        self.guild_data      = RuntimeGuildData()
+        self.channel_updates = ChannelUpdates()
+        self.missed_runs     = MissedRunsData()
+        self.schedule_posts  = SchedulePostData(self.guild_data)
+        self.tasks           = TaskList()
+        self.query           = Query(self)
 
     def finish_query(self, user: int, type: QueryType) -> None:
         """What happens when a user query is finished
@@ -101,5 +104,6 @@ class RuntimeData(QueryOwner):
                     guild.fetch_members()
         await self.schedule_posts.load()
         await self.missed_runs.load()
+        self.channel_updates.load(self.guild_data)
         self.tasks.load()
         self.ready = True

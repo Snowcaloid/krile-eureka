@@ -10,19 +10,20 @@ class TaskExecutionType(Enum):
     POST_MAIN_PASSCODE = 5
     POST_SUPPORT_PASSCODE = 6
     REMOVE_MISSED_RUN_POST = 7
+    UPDATE_CHANNEL_TITLE = 8
 
 class TaskData:
     id: int
     execution_time: datetime
     task_type: TaskExecutionType
     data: object
-    
+
     def __init__(self, execution_time: datetime, task_type: TaskExecutionType):
         self.execution_time = execution_time
         self.task_type = task_type
         self.id = 0
         self.data = None
-    
+
 class TaskTable(TableDefinition):
     def init_definitions(self):
         self.define_column('id', ColumnType.SERIAL)
