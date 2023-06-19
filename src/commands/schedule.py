@@ -63,7 +63,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             dt = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
             if dt < datetime.utcnow():
                 return await default_response(interaction, f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.')
-            entry: ScheduleData = bot.krile.data.schedule_posts.add_entry(
+            entry: ScheduleData = await bot.krile.data.schedule_posts.add_entry(
                 interaction.guild_id,
                 interaction.user.id,
                 type, dt, description, auto_passcode)
@@ -164,12 +164,12 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                 date = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
                 if date < datetime.utcnow():
                     return await default_response(interaction, f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.')
-            bot.krile.data.schedule_posts.edit_entry(id,
-                                                    interaction.guild_id,
-                                                    interaction.user.id,
-                                                    int(leader or 0),
-                                                    type, dt, tm, description, passcode,
-                                                    permission_admin(interaction))
+            await bot.krile.data.schedule_posts.edit_entry(id,
+                interaction.guild_id,
+                interaction.user.id,
+                int(leader or 0),
+                type, dt, tm, description, passcode,
+                permission_admin(interaction))
             await bot.krile.data.schedule_posts.update_post(interaction.guild_id)
             await bot.krile.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(bot.krile.data.guild_data.get_data(interaction.guild_id), id=id)
             await default_response(interaction, f'The run #{str(id)} has been adjusted.')

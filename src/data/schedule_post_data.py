@@ -10,6 +10,7 @@ from data.table.schedule import ScheduleType, ScheduleData, schedule_type_desc
 from datetime import datetime, date, timedelta
 from discord import Embed, Message, TextChannel
 from data.table.tasks import TaskExecutionType
+from logger import guild_log_message
 
 from utils import button_custom_id, get_mention, set_default_footer, get_discord_timestamp
 from views import PersistentView
@@ -103,7 +104,7 @@ class SchedulePost:
                 finally:
                     bot.krile.data.db.disconnect()
 
-    def add_entry(self, leader: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> ScheduleData:
+    async def add_entry(self, leader: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> ScheduleData:
         """Add an event to the guild's schedule.
 
         Args:
@@ -143,12 +144,12 @@ class SchedulePost:
                     bot.krile.data.tasks.add_task(task_time, TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild, "entry_id": id})
             finally:
                 db.disconnect()
-                self.update_channels(InfoTitleType.NEXT_RUN_TYPE, entry.timestamp)
-                self.update_channels(InfoTitleType.NEXT_RUN_START_TIME, entry.timestamp)
-                self.update_channels(InfoTitleType.NEXT_RUN_PASSCODE_TIME, entry.timestamp)
+                await self.update_channels(InfoTitleType.NEXT_RUN_TYPE, entry.timestamp)
+                await self.update_channels(InfoTitleType.NEXT_RUN_START_TIME, entry.timestamp)
+                await self.update_channels(InfoTitleType.NEXT_RUN_PASSCODE_TIME, entry.timestamp)
         return entry
 
-    def edit_entry(self, id: int, editor: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool):
+    async def edit_entry(self, id: int, editor: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool):
         """Edits the event.
 
         Args:
@@ -228,9 +229,9 @@ class SchedulePost:
                     db.query(f'update schedule set {set_str} where id={id}')
                 finally:
                     db.disconnect()
-                    self.update_channels(InfoTitleType.NEXT_RUN_TYPE, entry.timestamp, True)
-                    self.update_channels(InfoTitleType.NEXT_RUN_START_TIME, entry.timestamp, True)
-                    self.update_channels(InfoTitleType.NEXT_RUN_PASSCODE_TIME, entry.timestamp, True)
+                    await self.update_channels(InfoTitleType.NEXT_RUN_TYPE, entry.timestamp, True)
+                    await self.update_channels(InfoTitleType.NEXT_RUN_START_TIME, entry.timestamp, True)
+                    await self.update_channels(InfoTitleType.NEXT_RUN_PASSCODE_TIME, entry.timestamp, True)
             else:
                 raise Error_Insufficient_Permissions()
         else:
@@ -258,9 +259,9 @@ class SchedulePost:
                 raise Error_Cannot_Remove_Schedule()
         finally:
             db.disconnect()
-            self.update_channels(InfoTitleType.NEXT_RUN_TYPE, None, True)
-            self.update_channels(InfoTitleType.NEXT_RUN_START_TIME, None, True)
-            self.update_channels(InfoTitleType.NEXT_RUN_PASSCODE_TIME, None, True)
+            await self.update_channels(InfoTitleType.NEXT_RUN_TYPE, None, True)
+            await self.update_channels(InfoTitleType.NEXT_RUN_START_TIME, None, True)
+            await self.update_channels(InfoTitleType.NEXT_RUN_PASSCODE_TIME, None, True)
         self.remove(id)
 
     def split_per_date(self) -> List[DateSeparatedScheduleData]:
@@ -360,12 +361,13 @@ class SchedulePost:
             message = await message.edit(embed=embed)
             await set_default_footer(message)
 
-    def update_channels(self, info_title_type: InfoTitleType, run_time: datetime = None, delete_cleanup: bool = False):
+    async def update_channels(self, info_title_type: InfoTitleType, run_time: datetime = None, delete_cleanup: bool = False):
         data = bot.krile.data.guild_data.get_channel_update_data(self.guild, info_title_type)
         # if a cleanup job exists, delete it
         if delete_cleanup:
             bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
 
+        await guild_log_message(self.guild, f'update_channels(): Trying to update {info_title_type.name}...')
         bot.krile.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
         # also post a cleanup job for after the run
         if run_time:
@@ -458,7 +460,7 @@ class SchedulePostData():
                 return entry
         return None
 
-    def add_entry(self, guild: int, leader: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> ScheduleData:
+    async def add_entry(self, guild: int, leader: int, type: ScheduleType, timestamp: datetime, description: str = '', auto_passcode: bool = True) -> ScheduleData:
         """Add an event to the guild's schedule.
 
         Args:
@@ -475,11 +477,11 @@ class SchedulePostData():
             ScheduleData: the event object.
         """
         if self.contains(guild):
-            return self.get_post(guild).add_entry(leader, type, timestamp, description, auto_passcode)
+            return await self.get_post(guild).add_entry(leader, type, timestamp, description, auto_passcode)
         else:
             raise Error_Missing_Schedule_Post()
 
-    def edit_entry(self, id: int, guild: int, editor: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
+    async def edit_entry(self, id: int, guild: int, editor: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
         """Edits the event.
 
         Args:
@@ -498,7 +500,7 @@ class SchedulePostData():
 
         """
         if self.contains(guild):
-            return self.get_post(guild).edit_entry(id, editor, leader, type, date, time, description, passcode, is_admin)
+            return await self.get_post(guild).edit_entry(id, editor, leader, type, date, time, description, passcode, is_admin)
         else:
             raise Error_Missing_Schedule_Post()
 
@@ -570,7 +572,7 @@ class SchedulePostData():
                             'pl2, pl3, pl4, pl5, pl6, pls, pass_main, pass_supp from schedule '
                             f'where schedule_post={guild_data.schedule_post} and (not canceled or canceled is null) and (not finished or finished is null)'
                         )):
-                        entry = schedule_post.add_entry(sch_record[1], sch_record[2], sch_record[3], sch_record[4])
+                        entry = await schedule_post.add_entry(sch_record[1], sch_record[2], sch_record[3], sch_record[4])
                         entry.id = sch_record[0]
                         entry.post_id = sch_record[5]
                         entry.party_leaders = [sch_record[6], sch_record[7], sch_record[8], sch_record[9], sch_record[10], sch_record[11], sch_record[12]]

@@ -1,3 +1,4 @@
+from json import dumps
 import bot
 import data.message_cache as cache
 from datetime import datetime, timedelta
@@ -7,6 +8,7 @@ from data.table.channels import InfoTitleType
 
 from data.table.schedule import ScheduleType, schedule_type_desc
 from data.table.tasks import TaskExecutionType
+from logger import guild_log_message
 from utils import decode_emoji, set_default_footer
 
 @tasks.loop(seconds=1) # The delay is calculated from the end of execution of the last task.
@@ -195,6 +197,7 @@ async def update_channel_title(data: object):
         type: InfoTitleType = InfoTitleType(data["info_title_type"])
         guild = bot.krile.get_guild(data["guild"])
         if guild:
+            await guild_log_message(data["guild"], f'update_channel_title(): Running task for type {type.name}, data: {dumps(data)}')
             channel: VoiceChannel = guild.get_channel(data["channel"])
             if channel:
                 db = bot.krile.data.db
