@@ -166,6 +166,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                     return await default_response(interaction, f'Date {event_date} {event_time} is invalid or not in future. Use autocomplete.')
             bot.krile.data.schedule_posts.edit_entry(id,
                                                     interaction.guild_id,
+                                                    interaction.user.id,
                                                     int(leader or 0),
                                                     type, dt, tm, description, passcode,
                                                     permission_admin(interaction))

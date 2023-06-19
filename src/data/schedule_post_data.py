@@ -148,7 +148,7 @@ class SchedulePost:
                 self.update_channels(InfoTitleType.NEXT_RUN_PASSCODE_TIME, entry.timestamp)
         return entry
 
-    def edit_entry(self, id: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool):
+    def edit_entry(self, id: int, editor: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool):
         """Edits the event.
 
         Args:
@@ -168,7 +168,7 @@ class SchedulePost:
         """
         entry = self.get_entry(id)
         if entry:
-            if leader == entry.leader or is_admin:
+            if editor == entry.leader or is_admin:
                 set_str = ''
                 is_time_update = date or time
                 if is_time_update:
@@ -479,7 +479,7 @@ class SchedulePostData():
         else:
             raise Error_Missing_Schedule_Post()
 
-    def edit_entry(self, id: int, guild: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
+    def edit_entry(self, id: int, guild: int, editor: int, leader: int, type: ScheduleType, date: datetime, time: datetime, description: str, passcode: bool, is_admin: bool) -> int:
         """Edits the event.
 
         Args:
@@ -498,7 +498,7 @@ class SchedulePostData():
 
         """
         if self.contains(guild):
-            return self.get_post(guild).edit_entry(id, leader, type, date, time, description, passcode, is_admin)
+            return self.get_post(guild).edit_entry(id, editor, leader, type, date, time, description, passcode, is_admin)
         else:
             raise Error_Missing_Schedule_Post()
 
