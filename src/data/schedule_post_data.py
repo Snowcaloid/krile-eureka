@@ -368,10 +368,10 @@ class SchedulePost:
             bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
 
         await guild_log_message(self.guild, f'update_channels(): Trying to update {info_title_type.name}...')
-        bot.krile.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
+        bot.krile.data.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
         # also post a cleanup job for after the run
         if run_time:
-            bot.krile.data.tasks.add_task(run_time, TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
+            bot.krile.data.tasks.add_task(run_time + timedelta(minutes=1), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
 
     async def create_pl_post(self, id: int, guild_data: GuildData):
         """Create the party leader post for event <id>
