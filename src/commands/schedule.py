@@ -33,7 +33,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             await set_default_footer(message)
             bot.krile.data.schedule_posts.save(interaction.guild_id, channel.id, message.id)
             await default_response(interaction, f'Schedule has been created in #{channel.name}')
-            await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has created a schedule post in #{channel.name}.')
+            await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has created a schedule post in #{channel.name}.')
 
     @command(name = "add", description = "Add an entry to the schedule.")
     @check(permission_raid_leader)
@@ -71,7 +71,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             if type != ScheduleType.CUSTOM.value:
                 await bot.krile.data.schedule_posts.create_pl_post(interaction.guild_id, entry.id)
             await default_response(interaction, f'The run #{str(entry.id)} has been scheduled.')
-            await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has scheduled a {type} run #{entry.id} for {dt}.')
+            await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has scheduled a {type} run #{entry.id} for {dt}.')
         except Error_Missing_Schedule_Post:
             await default_response(interaction, 'This server has no schedule post. This is required for scheduling.')
         except DateValueError:
@@ -86,7 +86,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         try:
             await bot.krile.data.schedule_posts.remove_entry(interaction.guild_id, interaction.user.id, permission_admin(interaction), id)
             await default_response(interaction, f'Run #{id} has been deleted.')
-            await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has deleted the run #{id}.')
+            await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has deleted the run #{id}.')
         except Error_Missing_Schedule_Post:
             await default_response(interaction, 'This server has no schedule post. This is required for scheduling.')
         except Error_Cannot_Remove_Schedule:
@@ -105,7 +105,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             await default_response(interaction, f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.')
         else:
             await default_response(interaction, f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".')
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".')
 
     @command(name = "support_passcode_channel", description = "Set the channel, where passcodes for specific type of events will be posted (for support parties).")
     @check(permission_admin)
@@ -118,7 +118,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             await default_response(interaction, f'You have changed the post channel for type "{schedule_type_desc(type)}" to #{channel.name}.')
         else:
             await default_response(interaction, f'You have set #{channel.name} as the post channel for type "{schedule_type_desc(type)}".')
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has set the post channel to #{channel.name} for the "{schedule_type_desc(type)}" type.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set the post channel to #{channel.name} for the "{schedule_type_desc(type)}" type.')
 
     @command(name = "party_leader_channel", description = "Set the channel for party leader posts.")
     @check(permission_admin)
@@ -131,7 +131,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             await default_response(interaction, f'You have changed the party leader recruitment channel for type "{schedule_type_desc(type)}" to #{channel.name}.')
         else:
             await default_response(interaction, f'You have set #{channel.name} as the party leader recruitment channel for type "{schedule_type_desc(type)}".')
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has set the party leader channel to #{channel.name} for the "{schedule_type_desc(type)}" type.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set the party leader channel to #{channel.name} for the "{schedule_type_desc(type)}" type.')
 
     @command(name = "edit", description = "Edit an entry from the schedule.")
     @check(permission_raid_leader)
@@ -173,7 +173,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             await bot.krile.data.schedule_posts.update_post(interaction.guild_id)
             await bot.krile.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(bot.krile.data.guild_data.get_data(interaction.guild_id), id=id)
             await default_response(interaction, f'The run #{str(id)} has been adjusted.')
-            await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has adjusted run #{str(id)}')
+            await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has adjusted run #{str(id)}')
         except Error_Invalid_Date:
             await default_response(interaction, f'Date is invalid or not in future. Use autocomplete.')
         except Error_Missing_Schedule_Post:
@@ -195,7 +195,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             return await default_response(interaction, f'The type "{type}" is not allowed. Use autocomplete.')
         bot.krile.data.guild_data.set_info_channel(interaction.guild_id, InfoTitleType(type), channel.id)
         await default_response(interaction, f'You have set #{channel.name} to change it\'s title for #{InfoTitleType(type).name}.')
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has set #{channel.name} to change it\'s title for #{InfoTitleType(type).name}.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set #{channel.name} to change it\'s title for #{InfoTitleType(type).name}.')
 
     @info_channel.autocomplete('type')
     async def autocomplete_info_channel_type(self, interaction: Interaction, current: str):
@@ -243,10 +243,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         for member in interaction.guild.members:
             for role in member.roles:
                 if role.permissions.administrator or 'raid lead' in role.name.lower():
-                    name = member.name
-                    if member.nick:
-                        name = f'{member.nick} [{name}]'
-                    result.append(Choice(name=name, value=str(member.id)))
+                    result.append(Choice(name=member.display_name, value=str(member.id)))
                     break
         return result
 
@@ -289,6 +286,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     @info_channel.error
     async def handle_permission_admin(self, interaction: Interaction, error):
         print(error)
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')
         if interaction.response.is_done():
             if interaction.followup:
                 await interaction.followup.send('You have insufficient rights to use this command or an error has occured.', ephemeral=True)

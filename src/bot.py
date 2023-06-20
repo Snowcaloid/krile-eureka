@@ -1,5 +1,6 @@
 from discord import Intents, Object, HTTPException
 from discord.ext.commands import Bot, guild_only, is_owner, Context, Greedy
+from commands.ping import PingCommands
 from data.runtime_data import RuntimeData
 from data.table.tasks import TaskExecutionType
 from commands.embed import EmbedCommands
@@ -63,6 +64,7 @@ class Krile(Bot):
         await self.add_cog(MissedCommands())
         await self.add_cog(ScheduleCommands())
         await self.add_cog(LogCommands())
+        await self.add_cog(PingCommands())
         await self.tree.sync()
         if not tasks.task_loop.is_running():
             tasks.task_loop.start()

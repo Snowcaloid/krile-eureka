@@ -31,13 +31,13 @@ class LogCommands(GroupCog, group_name='log', group_description='Commands regard
         await interaction.response.send_message(feedback, ephemeral=True)
 
         # Record this change to the log.
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** set the log channel: {feedback}')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** set the log channel: {feedback}')
 
     @command(name='disable', description='Stop sending messages to the logging channel.')
     @check(permission_admin)
     async def disable(self, interaction: Interaction):
         # Send one final message so the log has a record that it was turned off.
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has disabled logging, good bye!')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has disabled logging, good bye!')
 
         # Remove the log channel
         bot.krile.data.guild_data.set_log_channel(interaction.guild_id, None)
@@ -49,6 +49,8 @@ class LogCommands(GroupCog, group_name='log', group_description='Commands regard
     @channel.error
     @disable.error
     async def handle_permission_admin(self, interaction: Interaction, error):
+        print(error)
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')
         if interaction.response.is_done():
             if interaction.followup:
                 await interaction.followup.send('You have insufficient rights to use this command.', ephemeral=True)

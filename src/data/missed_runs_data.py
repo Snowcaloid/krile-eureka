@@ -147,8 +147,7 @@ class MissedRunsData:
                         description = ''
                     member = gld.get_member(missed_data.user)
                     if member:
-                        name = member.nick if member.nick else member.name
-                        description = "\n".join([description, f'{str(missed_data.amount)} - {name}'])
+                        description = "\n".join([description, f'{str(missed_data.amount)} - {member.display_name}'])
                 if description:
                     embed.description = description.strip()
 

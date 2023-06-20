@@ -6,6 +6,7 @@ from data.runtime_guild_data import RuntimeGuildData
 from data.table.channels import InfoTitleType
 from data.table.database import pg_timestamp
 from data.table.guilds import GuildData
+from data.table.pings import PingType
 from data.table.schedule import ScheduleType, ScheduleData, schedule_type_desc
 from datetime import datetime, date, timedelta
 from discord import Embed, Message, TextChannel
@@ -388,7 +389,8 @@ class SchedulePost:
         if pl_channel:
             channel: TextChannel = bot.krile.get_channel(pl_channel.channel_id)
             if channel:
-                message = await channel.send(f'Recruitment post #{str(id)}')
+                pings = await bot.krile.data.pings.get_mention_string(self.guild, PingType.PL_POST, ScheduleType(entry.type))
+                message = await channel.send(f'{pings} Recruitment post #{str(id)}')
                 entry.post_id = message.id
                 view = PersistentView()
                 use_support = False

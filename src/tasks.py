@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from discord.ext import tasks
 from discord import Activity, ActivityType, Embed, Status, VoiceChannel
 from data.table.channels import InfoTitleType
+from data.table.pings import PingType
 
 from data.table.schedule import ScheduleType, schedule_type_desc
 from data.table.tasks import TaskExecutionType
@@ -73,11 +74,23 @@ async def remove_old_pl_post(data: object):
     if data and data["guild"] and data["channel"]:
         guild = bot.krile.get_guild(data["guild"])
         channel = guild.get_channel(data["channel"])
-        async for message in channel.history(limit=50):
-            if len(message.content.split('#')) == 2:
+        messages = [message async for message in channel.history(limit=100)]
+        delete_messages = []
+        for message in messages:
+            if message.author == bot.krile.user and len(message.content.split('#')) == 2:
                 id = int(message.content.split('#')[1])
-                if not bot.krile.data.schedule_posts.get_post(guild.id).contains(id):
-                    await message.delete()
+                db = bot.krile.data.db
+                db.connect()
+                try:
+                    type = db.query(f'select type from schedule where id={str(id)}')
+                    if type and type[0][0].startswith('DRS'):
+                        continue
+                    if not bot.krile.data.schedule_posts.get_post(guild.id).contains(id):
+                        delete_messages.append(message)
+                finally:
+                    db.disconnect()
+        if delete_messages:
+            await channel.delete_messages(delete_messages)
 
 async def send_pl_passcodes(data: object):
     """Sends all allocated party leaders and the raid leader the passcodes for the run."""
@@ -133,13 +146,22 @@ async def post_main_passcode(data: object):
                         )
                         if entry.type.startswith('BA'):
                             description += (
-                            'This passcode will not work for support parties.\n\n'
-                            '*Do not forget to bring __Spirit of Remembered__ and proper actions.*'
-                        )
+                                'This passcode will not work for support parties.\n\n'
+                                '*Do not forget to bring __Spirit of Remembered__ and proper actions.*'
+                            )
+                        elif entry.type.startswith('DRS'):
+                            description += (
+                                '\nNotes:\n'
+                                '1: Please bring actions and pure essences as shown in our DRS Action Guide (This may differ to what you hold if you have progged on another server),\n'
+                                '2: Prioritise mechanics over damage,\n'
+                                '3: Listen to Raid Leaders and Party Leaders,\n'
+                                '4: Most Importantly: Relax and don\'t stress.\n'
+                            )
                         embed=Embed(
                             title=entry.timestamp.strftime('%A, %d %B %Y %H:%M ') + desc + "\nPasscode",
                             description=description)
-                        message = await channel.send(embed=embed)
+                        pings = await  bot.krile.data.pings.get_mention_string(guild_data.guild_id, PingType.MAIN_PASSCODE, ScheduleType(entry.type))
+                        message = await channel.send(pings, embed=embed)
                         await set_default_footer(message)
 
 async def post_support_passcode(data: object):
@@ -165,7 +187,8 @@ async def post_support_passcode(data: object):
                                 '*Do not forget to bring __Spirit of Remembered__ and proper actions.*\n'
                                 'Support needs to bring dispel for the NM Ovni.'
                             ))
-                        message = await channel.send(embed=embed)
+                        pings = await bot.krile.data.pings.get_mention_string(guild_data.guild_id, PingType.SUPPORT_PASSCODE, ScheduleType(entry.type))
+                        message = await channel.send(pings, embed=embed)
                         await set_default_footer(message)
 
 async def remove_missed_run_post(data: object):

@@ -3,6 +3,7 @@ import bot
 from data.channel_updates import ChannelUpdates
 from data.embed_data import EmbedData
 from data.missed_runs_data import MissedRunsData
+from data.pings_data import PingsRuntimeData
 from data.schedule_post_data import SchedulePostData
 from data.query import Query, QueryOwner, QueryType
 from data.table.register import RegisterTables
@@ -49,6 +50,7 @@ class RuntimeData(QueryOwner):
     guild_data: RuntimeGuildData
     channel_updates: ChannelUpdates
     missed_runs: MissedRunsData
+    pings: PingsRuntimeData
     tasks: TaskList
     query: Query
     ready: bool
@@ -63,6 +65,7 @@ class RuntimeData(QueryOwner):
         self.guild_data      = RuntimeGuildData()
         self.channel_updates = ChannelUpdates()
         self.missed_runs     = MissedRunsData()
+        self.pings           = PingsRuntimeData()
         self.schedule_posts  = SchedulePostData(self.guild_data)
         self.tasks           = TaskList()
         self.query           = Query(self)
@@ -104,6 +107,7 @@ class RuntimeData(QueryOwner):
                     guild.fetch_members()
         await self.schedule_posts.load()
         await self.missed_runs.load()
+        self.pings.load(self.guild_data)
         self.channel_updates.load(self.guild_data)
         self.tasks.load()
         self.ready = True

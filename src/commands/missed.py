@@ -5,6 +5,7 @@ from discord import Embed, Interaction, TextChannel
 from discord.app_commands import check, command, Choice
 from buttons import ButtonType, MissedRunButton
 from data.table.tasks import TaskExecutionType
+from logger import guild_log_message
 from utils import button_custom_id, default_defer, default_response
 from validation import permission_admin, permission_raid_leader
 from views import PersistentView
@@ -69,9 +70,9 @@ class MissedCommands(GroupCog, group_name='missed', group_description='Commands 
         i = 0
         currentlower = current.lower()
         for member in interaction.guild.members:
-            if member.nick:
-                if member.nick.lower().startswith(currentlower):
-                    users.append(Choice(name=member.nick, value=str(member.id)))
+            if member.display_name:
+                if member.display_name.lower().startswith(currentlower):
+                    users.append(Choice(name=member.display_name, value=str(member.id)))
                     i += 1
             elif member.name.lower().startswith(currentlower):
                 users.append(Choice(name=member.name, value=str(member.id)))
@@ -85,6 +86,8 @@ class MissedCommands(GroupCog, group_name='missed', group_description='Commands 
     @run.error
     @accept.error
     async def handle_permission_admin(self, interaction: Interaction, error):
+        print(error)
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')
         if interaction.response.is_done():
             if interaction.followup:
                 await interaction.followup.send('You have insufficient rights to use this command.', ephemeral=True)

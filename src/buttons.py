@@ -58,7 +58,7 @@ class PartyLeaderButton(Button):
                     await bot.krile.data.schedule_posts.get_post(interaction.guild_id).update_pl_post(guild_data, entry=entry)
                     await utils.default_response(interaction, f'You have been set as Party Leader for Party {party_name}')
                     run = await entry.to_string(interaction.guild_id)
-                    await guild_log_message(interaction.guild_id, f'**{interaction.user.name}** has registered for Party {party_name} on {run}')
+                    await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has registered for Party {party_name} on {run}')
                 elif current_value and (interaction.user.id == current_value or interaction.user.id == entry.leader):
                     is_party_leader_removing_self = interaction.user.id == current_value
                     entry.party_leaders[index] = 0
@@ -74,10 +74,10 @@ class PartyLeaderButton(Button):
                     run = await entry.to_string(interaction.guild_id)
 
                     if is_party_leader_removing_self:
-                        message = f'**{interaction.user.name}** has removed themselves from Party {party_name} on {run}'
+                        message = f'**{interaction.user.display_name}** has removed themselves from Party {party_name} on {run}'
                     else:
                         removed_user = interaction.guild.get_member(current_value)
-                        message = f'**{interaction.user.name}** has removed {removed_user.name} from Party {party_name} on {run}'
+                        message = f'**{interaction.user.display_name}** has removed {removed_user.display_name} from Party {party_name} on {run}'
 
                     await guild_log_message(interaction.guild_id, message)
                 elif current_value and interaction.user.id != current_value:

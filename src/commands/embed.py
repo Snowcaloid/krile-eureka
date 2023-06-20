@@ -7,6 +7,7 @@ from discord.app_commands import check, command, Choice
 from buttons import ButtonType
 from data.embed_data import Error_MessageHasNoEmbeds
 from data.query import QueryType
+from logger import guild_log_message
 from utils import default_defer, default_response, set_default_footer
 
 from validation import permission_admin
@@ -234,6 +235,8 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
     @add_button.error
     @remove_button.error
     async def handle_permission_admin(self, interaction: Interaction, error):
+        print(error)
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')
         if interaction.response.is_done():
             if interaction.followup:
                 await interaction.followup.send('You have insufficient rights to use this command.', ephemeral=True)
