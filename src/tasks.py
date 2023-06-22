@@ -220,7 +220,7 @@ async def update_channel_title(data: object):
         type: InfoTitleType = InfoTitleType(data["info_title_type"])
         guild = bot.krile.get_guild(data["guild"])
         if guild:
-            await guild_log_message(data["guild"], f'update_channel_title(): Running task for type {type.name}, data: {dumps(data)}')
+            # await guild_log_message(data["guild"], f'update_channel_title(): Running task for type {type.name}, data: {dumps(data)}')
             channel: VoiceChannel = guild.get_channel(data["channel"])
             if channel:
                 db = bot.krile.data.db

@@ -368,7 +368,7 @@ class SchedulePost:
         if delete_cleanup:
             bot.krile.data.tasks.remove_task_by_data(TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
 
-        await guild_log_message(self.guild, f'update_channels(): Trying to update {info_title_type.name}...')
+        # await guild_log_message(self.guild, f'update_channels(): Trying to update {info_title_type.name}...')
         bot.krile.data.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
         # also post a cleanup job for after the run
         if run_time:
