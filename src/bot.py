@@ -1,4 +1,4 @@
-from discord import Intents, Object, HTTPException
+from discord import Intents, Member, Object, HTTPException
 from discord.ext.commands import Bot, guild_only, is_owner, Context, Greedy
 from commands.ping import PingCommands
 from data.runtime_data import RuntimeData
@@ -11,6 +11,7 @@ from datetime import datetime
 from views import PersistentView
 from buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
 from typing import Literal, Optional
+from logger import guild_log_message
 import tasks
 
 
@@ -73,6 +74,10 @@ class Krile(Bot):
 
 
 krile = Krile()
+
+@krile.event
+async def on_member_join(member: Member):
+    await guild_log_message(member.guild.id, f'{member.mention} joined the server.')
 
 @krile.command()
 @guild_only()
