@@ -42,11 +42,12 @@ async def refresh_bot_status():
     next_exec = datetime.utcnow() + timedelta(minutes=1)
     bot.krile.data.db.connect()
     try:
-        q = bot.krile.data.db.query('select type, timestamp from schedule where (not canceled or canceled is null) and (not finished or finished is null) order by timestamp limit 1')
+        q = bot.krile.data.db.query('select type, timestamp, description from schedule where (not canceled or canceled is null) and (not finished or finished is null) order by timestamp limit 1')
         if q and q[0][1] > datetime.utcnow():
             now = datetime.utcnow()
             delta: timedelta = q[0][1] - now
-            desc = schedule_type_desc(q[0][0]) + ' in '
+            desc = schedule_type_desc(q[0][0]) if q[0][0] != ScheduleType.CUSTOM.value else q[0][2]
+            desc += ' in '
             need_comma = delta.days
             if delta.days:
                 desc += str(delta.days) + ' days'
@@ -226,7 +227,7 @@ async def update_channel_title(data: object):
                 db = bot.krile.data.db
                 db.connect()
                 try:
-                    run_data = db.query('select type, timestamp from schedule where (not canceled or canceled is null) and (not finished or finished is null) order by timestamp limit 1')
+                    run_data = db.query('select type, timestamp, description from schedule where (not canceled or canceled is null) and (not finished or finished is null) order by timestamp limit 1')
                     if run_data:
                         run_type = run_data[0][0]
                         run_time: datetime = run_data[0][1]
@@ -236,7 +237,8 @@ async def update_channel_title(data: object):
                         elif type == InfoTitleType.NEXT_RUN_START_TIME:
                             await try_updating_channel(channel, type, decode_emoji('\\ud83d\\udd51') + ' ' + run_time.strftime('%A %H:%M ST'), data)
                         elif type == InfoTitleType.NEXT_RUN_TYPE:
-                            await try_updating_channel(channel, type, decode_emoji('\\u23ed') + ' ' + schedule_type_desc(run_type), data)
+                            desc = schedule_type_desc(run_type) if run_type != ScheduleType.CUSTOM.value else run_data[0][2]
+                            await try_updating_channel(channel, type, decode_emoji('\\u23ed') + ' ' + desc, data)
                     else:
                         if type == InfoTitleType.NEXT_RUN_PASSCODE_TIME:
                             await set_tbc_channel_name(channel, type, '\\ud83d\\udd11', data)
