@@ -12,6 +12,7 @@ class ScheduleType(Enum):
     BA_NORMAL = 'BA'
     BA_RECLEAR = 'BARC'
     BA_SPECIAL = 'BASPEC'
+    BA_COLLAB = 'BACOL'
     BA_ALL = 'BA_ALL'
     DRS_NORMAL = 'DRS'
     DRS_RECLEAR = 'DRSRC'
@@ -25,6 +26,8 @@ def schedule_type_desc(type: ScheduleType) -> str:
         return "BA Reclear Run"
     elif type == ScheduleType.BA_SPECIAL.value:
         return "BA Special Run"
+    elif type == ScheduleType.BA_COLLAB.value:
+        return "BA Collab Run"
     elif type == ScheduleType.BA_ALL.value:
         return "All types of BA runs"
     elif type == ScheduleType.DRS_NORMAL.value:

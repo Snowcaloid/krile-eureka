@@ -35,7 +35,8 @@ class PingCommands(GroupCog, group_name='ping', group_description='Commands rega
         ba_runs = [
             Choice(name='BA Normal Run',  value=ScheduleType.BA_NORMAL.value),
             Choice(name='BA Reclear Run', value=ScheduleType.BA_RECLEAR.value),
-            Choice(name='BA Special Run', value=ScheduleType.BA_SPECIAL.value)
+            Choice(name='BA Special Run', value=ScheduleType.BA_SPECIAL.value),
+            Choice(name='BA Collab Run', value=ScheduleType.BA_COLLAB.value)
         ]
         drs_runs = [
             Choice(name='DRS Normal Run',  value=ScheduleType.DRS_NORMAL.value),

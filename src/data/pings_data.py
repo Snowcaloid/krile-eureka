@@ -35,6 +35,7 @@ class PingsRuntimeData:
             self.add_ping(guild, ping_type, ScheduleType.BA_NORMAL, tag)
             self.add_ping(guild, ping_type, ScheduleType.BA_RECLEAR, tag)
             self.add_ping(guild, ping_type, ScheduleType.BA_SPECIAL, tag)
+            self.add_ping(guild, ping_type, ScheduleType.BA_COLLAB, tag)
             return
 
         if schedule_type == ScheduleType.DRS_ALL:
@@ -59,6 +60,7 @@ class PingsRuntimeData:
             self.remove_ping(guild, ping_type, ScheduleType.BA_NORMAL, tag)
             self.remove_ping(guild, ping_type, ScheduleType.BA_RECLEAR, tag)
             self.remove_ping(guild, ping_type, ScheduleType.BA_SPECIAL, tag)
+            self.remove_ping(guild, ping_type, ScheduleType.BA_COLLAB, tag)
             return
 
         if schedule_type == ScheduleType.DRS_ALL:

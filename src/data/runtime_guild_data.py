@@ -129,6 +129,7 @@ class RuntimeGuildData:
             self.set_schedule_channel(guild, ScheduleType.BA_NORMAL.value, channel)
             self.set_schedule_channel(guild, ScheduleType.BA_RECLEAR.value, channel)
             self.set_schedule_channel(guild, ScheduleType.BA_SPECIAL.value, channel)
+            self.set_schedule_channel(guild, ScheduleType.BA_COLLAB.value, channel)
             return
 
         if type == ScheduleType.DRS_ALL.value:
@@ -168,6 +169,7 @@ class RuntimeGuildData:
             self.set_party_leader_channel(guild, ScheduleType.BA_NORMAL.value, channel)
             self.set_party_leader_channel(guild, ScheduleType.BA_RECLEAR.value, channel)
             self.set_party_leader_channel(guild, ScheduleType.BA_SPECIAL.value, channel)
+            self.set_party_leader_channel(guild, ScheduleType.BA_COLLAB.value, channel)
             return
 
         if type == ScheduleType.DRS_ALL.value:
@@ -205,6 +207,7 @@ class RuntimeGuildData:
 
         if type == ScheduleType.BA_ALL.value:
             self.set_schedule_support_channel(guild, ScheduleType.BA_NORMAL.value, channel)
+            self.set_schedule_support_channel(guild, ScheduleType.BA_COLLAB.value, channel)
             self.set_schedule_support_channel(guild, ScheduleType.BA_RECLEAR.value, channel)
             self.set_schedule_support_channel(guild, ScheduleType.BA_SPECIAL.value, channel)
             return DatabaseOperation.EDITED
