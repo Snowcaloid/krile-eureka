@@ -12,7 +12,7 @@ def permission_developer(interaction: Union[Interaction, InteractionResponse]) -
 
 def permission_admin(interaction: Union[Interaction, InteractionResponse]) -> bool:
     for role in interaction.user.roles:
-        if role.permissions.administrator:
+        if role.permissions.administrator or role.name.lower() == os.getenv('ROLE_ADMIN').lower():
             return True
     return permission_developer(interaction)
 
@@ -23,11 +23,10 @@ def permission_raid_leader(interaction: Union[Interaction, InteractionResponse])
     return permission_admin(interaction)
 
 def get_raid_leader_permissions(member: Member) -> Tuple[bool, bool]:
-    return True, True # remove this if you want specific setting based on roles
     allow_ba = False
     allow_drs = False
     for role in member.roles:
-        if role.permissions.administrator:
+        if role.permissions.administrator or role.name.lower() == os.getenv('ROLE_ADMIN').lower():
             return True, True
         elif 'ba raid lead' in role.name.lower():
             allow_ba = True
