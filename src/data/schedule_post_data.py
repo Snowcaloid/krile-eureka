@@ -372,7 +372,7 @@ class SchedulePost:
         bot.krile.data.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
         # also post a cleanup job for after the run
         if run_time:
-            bot.krile.data.tasks.add_task(run_time + timedelta(minutes=1), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
+            bot.krile.data.tasks.add_task(run_time + timedelta(hours=2, minutes=1), TaskExecutionType.UPDATE_CHANNEL_TITLE, data)
 
     async def create_pl_post(self, id: int, guild_data: GuildData):
         """Create the party leader post for event <id>
