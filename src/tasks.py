@@ -227,7 +227,7 @@ async def update_channel_title(data: object):
                 db = bot.krile.data.db
                 db.connect()
                 try:
-                    run_data = db.query('select type, timestamp, description from schedule where (not canceled or canceled is null) and (not finished or finished is null) order by timestamp limit 1')
+                    run_data = db.query('select type, timestamp, description from schedule where timestamp > (current_timestamp at time zone \'UTC\') and (not canceled or canceled is null) and (not finished or finished is null) order by timestamp limit 1')
                     if run_data:
                         run_type = run_data[0][0]
                         run_time: datetime = run_data[0][1]
