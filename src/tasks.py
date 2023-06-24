@@ -42,7 +42,7 @@ async def refresh_bot_status():
     next_exec = datetime.utcnow() + timedelta(minutes=1)
     bot.krile.data.db.connect()
     try:
-        q = bot.krile.data.db.query('select type, timestamp, description from schedule where schedule where timestamp > (current_timestamp at time zone \'UTC\') and (not canceled or canceled is null) and (not finished or finished is null) order by timestamp limit 1')
+        q = bot.krile.data.db.query('select type, timestamp, description from schedule where timestamp > (current_timestamp at time zone \'UTC\') and (not canceled or canceled is null) and (not finished or finished is null) order by timestamp limit 1')
         if q and q[0][1] > datetime.utcnow():
             now = datetime.utcnow()
             delta: timedelta = q[0][1] - now
