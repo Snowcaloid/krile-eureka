@@ -183,12 +183,13 @@ class SchedulePost:
                         entry.timestamp = old_timestamp
                         raise Error_Invalid_Date()
                     set_str += f'timestamp={pg_timestamp(entry.timestamp)}'
-                is_passcode_update = (not passcode and entry.pass_main) or (passcode and not entry.pass_main)
-                if passcode and (not entry.pass_main or not entry.pass_supp):
-                    entry.generate_passcode(True)
-                elif not passcode:
-                    entry.pass_main = 0
-                    entry.pass_supp = 0
+                is_passcode_update = not passcode is None and ((not passcode and entry.pass_main) or (passcode and not entry.pass_main))
+                if not passcode is None:
+                    if passcode and (not entry.pass_main or not entry.pass_supp):
+                        entry.generate_passcode(True)
+                    elif not passcode:
+                        entry.pass_main = 0
+                        entry.pass_supp = 0
                 if set_str:
                     set_str += f', pass_main={str(entry.pass_main)}, pass_supp={str(entry.pass_supp)} '
                 else:

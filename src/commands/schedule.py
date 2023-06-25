@@ -138,7 +138,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     async def edit(self, interaction: Interaction, id: int, type: Optional[str] = '',
                    leader: Optional[str] = '', event_date: Optional[str] = '',
                    event_time: Optional[str] = '', description: Optional[str] = '',
-                   passcode: Optional[bool] = True):
+                   passcode: Optional[bool] = None):
         await default_defer(interaction, False)
         try:
             allow_ba, allow_drs = get_raid_leader_permissions(interaction.user)
