@@ -33,7 +33,7 @@ class PermissionValidator:
         allow_bozja = False
         for role in member.roles:
             if role.permissions.administrator or role.name.lower() == os.getenv('ROLE_ADMIN').lower():
-                return True, True
+                return True, True, True
             elif 'ba raid lead' in role.name.lower():
                 allow_ba = True
             elif 'drs raid lead' in role.name.lower():

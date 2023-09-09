@@ -128,7 +128,7 @@ class Event:
 
     @classmethod
     def by_type(cl, type: str) -> Type['Event']:
-        return next((event_base for event_base in cl._registered_events if event_base.type() == type), Event)
+        return next((event_base for event_base in Event._registered_events if event_base.type() == type), Event)
 
 class EventCategoryCollection:
     ALL_WITH_CUSTOM: List[Event]
@@ -145,7 +145,7 @@ class EventCategoryCollection:
 class ScheduledEventUserData:
     event_id: int
     _raid_leader: int
-    _party_leaders: List[int]
+    _party_leaders: List[int] = []
 
     def load(self, event_id: int) -> None:
         db = bot.instance.data.db
@@ -154,10 +154,10 @@ class ScheduledEventUserData:
             self.event_id = event_id
             record = db.query(f'select raid_leader, pl1, pl2, pl3, pl4, pl5, pl6, pls from events where id={event_id}')
             if record:
-                self._raid_leader = record[0]
+                self._raid_leader = record[0][0]
                 self._party_leaders.clear()
                 for i in range(1, 7):
-                    self._party_leaders.append(record[i])
+                    self._party_leaders.append(record[0][i])
         finally:
             db.disconnect()
 
@@ -208,15 +208,15 @@ class ScheduledEvent:
             record = db.query(f'select event_type, pl_post_id, timestamp, description, pass_main, pass_supp from events where id={id}')
             if record:
                 for type in Event._registered_events:
-                    if type.type() == record[0]:
+                    if type.type() == record[0][0]:
                         self.base = type
                         break
                 self.id = id
-                self._pl_post_id = record[1]
-                self._time = record[2]
-                self._description = record[3]
-                self.passcode_main = record[4]
-                self.passcode_supp = record[5]
+                self._pl_post_id = record[0][1]
+                self._time = record[0][2]
+                self._description = record[0][3]
+                self.passcode_main = record[0][4]
+                self.passcode_supp = record[0][5]
                 self.users.load(id)
         finally:
             db.disconnect()

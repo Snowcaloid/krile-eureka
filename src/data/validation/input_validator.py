@@ -36,14 +36,14 @@ class InputValidator:
         allow_ba, allow_drs, allow_bozja = PermissionValidator.get_raid_leader_permissions(member)
         event_base = Event.by_type(event_type)
         result = event_base.category() == EventCategory.BA and allow_ba
-        result = result and event_base.category() == EventCategory.DRS and allow_drs
-        result = result and event_base.category() == EventCategory.BOZJA and allow_bozja
+        result = result or (event_base.category() == EventCategory.DRS and allow_drs)
+        result = result or (event_base.category() == EventCategory.BOZJA and allow_bozja)
         if self == InputValidator.RAISING and not result:
             await default_response(interaction, f'You do not have the required raid leading role to interact with run type "{event_base.short_description()}".')
         return result
 
     async def check_custom_run_has_description(self, interaction: Interaction, event_type: str, description: str) -> bool:
-        result = Event.by_type(event_type).category() == EventCategory.CUSTOM and not description
+        result = Event.by_type(event_type).category() != EventCategory.CUSTOM or description
         if self == InputValidator.RAISING and not result:
             await default_response(interaction, 'Description is mandatory for custom runs.')
         return result
