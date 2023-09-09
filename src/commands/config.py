@@ -8,7 +8,7 @@ from data.events.event import Event, EventCategory
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.validation.input_validator import InputValidator
-from utils import filter_choices_by_current, default_defer, default_response, set_default_footer
+from utils import default_defer, default_response, set_default_footer
 from data.validation.permission_validator import PermissionValidator
 from logger import guild_log_message
 
@@ -71,12 +71,11 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         await data.ui.missed_runs_list.rebuild(interaction.guild_id)
         await default_response(interaction, f'Missed run post has been created in #{channel.name}.')
 
-    #@filter_choices_by_current
     @passcode_channel.autocomplete('event_type')
     @party_leader_channel.autocomplete('event_type')
     @support_passcode_channel.autocomplete('event_type')
     async def autocomplete_schedule_type_with_all(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.event_type_with_categories()
+        return AutoCompleteGenerator.event_type_with_categories(current)
 
     #region error-handling
     @create_schedule_post.error

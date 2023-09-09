@@ -10,7 +10,7 @@ from data.runtime_processes import RunTimeProcessType
 from data.validation.input_validator import InputValidator
 from data.validation.process_validator import ProcessValidator
 from logger import guild_log_message
-from utils import default_defer, default_response, filter_choices_by_current, set_default_footer
+from utils import default_defer, default_response, set_default_footer
 
 from data.validation.permission_validator import PermissionValidator
 
@@ -179,9 +179,8 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         await self.debug_followup(interaction)
 
     @finish.autocomplete('button_type')
-    #@filter_choices_by_current
     async def autocomplete_button_type(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.button_type()
+        return AutoCompleteGenerator.button_type(current)
     #endregion
 
     #region error-handling

@@ -2,13 +2,10 @@ import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Interaction
-from discord.channel import TextChannel
 from typing import Optional
-from data.events.event import Event, EventCategory
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.validation.input_validator import InputValidator
-from utils import filter_choices_by_current, default_defer, default_response
+from utils import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
 from logger import guild_log_message
 
@@ -70,9 +67,8 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
 
     @add.autocomplete('event_type')
     @edit.autocomplete('event_type')
-    #@filter_choices_by_current
     async def autocomplete_schedule_type(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.event_type(interaction)
+        return AutoCompleteGenerator.event_type(interaction, current)
 
     @edit.autocomplete('raid_leader')
     async def autocomplete_leader(self, interaction: Interaction, current: str):

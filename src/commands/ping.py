@@ -7,7 +7,7 @@ from data.generators.autocomplete_generator import AutoCompleteGenerator
 from data.guilds.guild_pings import GuildPingType
 from data.validation.input_validator import InputValidator
 from logger import guild_log_message
-from utils import default_defer, default_response, filter_choices_by_current
+from utils import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
 
 ###################################################################################
@@ -46,15 +46,13 @@ class PingCommands(GroupCog, group_name='ping', group_description='Commands rega
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** {feedback}')
         await default_response(interaction, 'You ' + feedback)
 
-    #@filter_choices_by_current
     async def autocomplete_event_type_with_categories(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.event_type_with_categories(interaction)
+        return AutoCompleteGenerator.event_type_with_categories(interaction, current)
 
     @add_role.autocomplete('ping_type')
     @remove_role.autocomplete('ping_type')
-    #@filter_choices_by_current
     async def autocomplete_ping_type(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.ping_type()
+        return AutoCompleteGenerator.ping_type(current)
 
     #region error-handling
     @add_role.error

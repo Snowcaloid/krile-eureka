@@ -1,11 +1,8 @@
-from functools import wraps
-from typing import Callable, List
 from datetime import datetime, timedelta
 import time
 from discord import Interaction, Message, Member
 from dateutil.tz import tzlocal, tzutc
 from enum import Enum
-from discord.app_commands import Choice
 # DO NOT IMPORT OTHER UNITS FROM /src/!
 import bot
 
@@ -78,13 +75,3 @@ def delta_to_string(delta: timedelta) -> str:
     if delta.days:
         result = f'{str(delta.days)} days, {result}'
     return result
-
-# TODO: move to AutoCompleteGenerator
-async def filter_choices_by_current(func: Callable[[object, Interaction, str], List[Choice]]):
-    @wraps(func)
-    async def wrapper(self, interaction: Interaction, current: str):
-        result: List[Choice] = await func(self, interaction, current)
-        if current:
-            result = [choice for choice in result if choice.name.startswith(current)]
-        return result
-    return wrapper

@@ -15,9 +15,9 @@ class GuildChannel:
         try:
             record = db.query(f'select channel_id, event_type, function from channels where id={id}')
             if record:
-                self.id = record[0]
-                self.event_type = record[1]
-                self.function = GuildChannelFunction(record[2])
+                self.id = record[0][0]
+                self.event_type = record[0][1]
+                self.function = GuildChannelFunction(record[0][2])
         finally:
             db.disconnect()
 
@@ -60,7 +60,7 @@ class GuildChannels:
             db = bot.instance.data.db
             db.connect()
             try:
-                db.query(f'update channels set channel_id={id} where guild_id={str(self.guild_id)} and function={{str(function.value)}} and event_type=\'{event_type}\'')
+                db.query(f'update channels set channel_id={id} where guild_id={str(self.guild_id)} and function={str(function.value)} and event_type=\'{event_type}\'')
                 self.load(self.guild_id)
             finally:
                 db.disconnect()
