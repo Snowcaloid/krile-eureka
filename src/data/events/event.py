@@ -224,6 +224,10 @@ class ScheduledEvent:
             db.disconnect()
 
     @property
+    def real_description(self) -> str:
+        return self._description
+
+    @property
     def description(self) -> str:
         if self.base.category == EventCategory.CUSTOM:
             return self._description
@@ -307,7 +311,7 @@ class ScheduledEvent:
     @property
     def schedule_entry_text(self) -> str:
         user = bot.instance.get_guild(self.guild_id).get_member(self.users.raid_leader)
-        return self.base.schedule_entry_text(user.mention, self.time, self.description)
+        return self.base.schedule_entry_text(user.mention, self.time, self.real_description)
 
     @property
     def category(self) -> EventCategory:

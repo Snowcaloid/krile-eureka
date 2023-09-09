@@ -49,7 +49,7 @@ class GuildSchedule:
             self.schedule_post.load(guild_id)
             self._list.clear()
             if self.schedule_post.id:
-                records = db.query(f'select id from events where guild_id={self.guild_id}')
+                records = db.query(f'select id from events where guild_id={self.guild_id} and (not finished or finished is null) and (not canceled or canceled is null)')
                 for record in records:
                     event = ScheduledEvent()
                     event.load(record[0])
