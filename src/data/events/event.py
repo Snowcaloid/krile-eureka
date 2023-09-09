@@ -17,7 +17,7 @@ from utils import DiscordTimestampType, get_discord_member, get_discord_timestam
 PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'p61', 'pls']
 
 class EventCategory(Enum):
-    CUSTOM = 'CUSTOM'
+    CUSTOM = 'CUSTOM_CATEGORY'
     BA = 'BA_CATEGORY'
     DRS = 'DRS_CATEGORY'
     BOZJA = 'BOZJA_CATEGORY'
@@ -60,9 +60,9 @@ class Event:
         return [event_base.as_choice() for event_base in Event.all_events_for_category(category)]
 
     @classmethod
-    def type(cl) -> str: 'CUSTOM'
-    @abstractclassmethod
-    def description(cl) -> str: pass
+    def type(cl) -> str: return 'CUSTOM'
+    @classmethod
+    def description(cl) -> str: return 'Custom run'
     @abstractclassmethod
     def short_description(cl) -> str: pass
     @classmethod
@@ -131,19 +131,7 @@ class Event:
         return next((event_base for event_base in cl._registered_events if event_base.type() == type), Event)
 
 class EventCategoryCollection:
-    BA_ONLY: List[Event] = Event.all_events_for_category(EventCategory.BA)
-    DRS_ONLY: List[Event] = Event.all_events_for_category(EventCategory.DRS)
-    BOZJA_ONLY: List[Event] = Event.all_events_for_category(EventCategory.BOZJA)
-    CUSTOM_ONLY: List[Event] = [Event]
-    BA_WITH_CUSTOM: List[Event] = Event.all_events_for_category(EventCategory.BA) + [Event]
-    DRS_WITH_CUSTOM: List[Event] = Event.all_events_for_category(EventCategory.DRS) + [Event]
-    BOZJA_WITH_CUSTOM: List[Event] = Event.all_events_for_category(EventCategory.BOZJA) + [Event]
-    BA_AND_DRS: List[Event] = Event.all_events_for_category(EventCategory.BA) + Event.all_events_for_category(EventCategory.DRS)
-    BA_AND_DRS_WITH_CUSTOM: List[Event] = Event.all_events_for_category(EventCategory.BA) + Event.all_events_for_category(EventCategory.DRS) + [Event]
-    DRS_AND_BOZJA: List[Event] = Event.all_events_for_category(EventCategory.DRS) + Event.all_events_for_category(EventCategory.BOZJA)
-    DRS_AND_BOZJA_WITH_CUSTOM: List[Event] = Event.all_events_for_category(EventCategory.DRS) + Event.all_events_for_category(EventCategory.BOZJA) + [Event]
-    ALL: List[Event] = Event.all_events_for_category(EventCategory.BA) + Event.all_events_for_category(EventCategory.DRS) + Event.all_events_for_category(EventCategory.BOZJA)
-    ALL_WITH_CUSTOM: List[Event] = Event.all_events_for_category(EventCategory.BA) + Event.all_events_for_category(EventCategory.DRS) + Event.all_events_for_category(EventCategory.BOZJA) + [Event]
+    ALL_WITH_CUSTOM: List[Event]
 
     @classmethod
     def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_custom: bool) -> List[Choice]:

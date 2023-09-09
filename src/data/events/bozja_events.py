@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import Tuple
-from event import Event, EventCategory
+from data.events.event import Event, EventCategory
 
 class BozjaBase(Event):
     @classmethod
@@ -95,10 +95,3 @@ class BozjaAllRounder(BozjaBase):
     def description(cl) -> str: return 'CLL + Dalriada + DRN Run'
     @classmethod
     def short_description(cl) -> str: return 'CLL + Dalriada + DRN Run'
-
-DRN_Newbie.register()
-DRN_Reclear.register()
-Castrum.register()
-Dalriada.register()
-CastrumAndDalriada.register()
-BozjaAllRounder.register()

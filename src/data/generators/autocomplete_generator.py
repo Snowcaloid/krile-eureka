@@ -20,7 +20,7 @@ class AutoCompleteGenerator:
 
     @classmethod
     def event_type_with_categories(cl):
-        return EventCategory.all_category_choices() + EventCategoryCollection.ALL_WITH_CUSTOM
+        return EventCategory.all_category_choices() + [event_base.as_choice() for event_base in EventCategoryCollection.ALL_WITH_CUSTOM]
 
     @classmethod
     def date(cl, current: str) -> List[Choice]:

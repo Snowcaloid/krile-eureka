@@ -12,6 +12,7 @@ from utils import filter_choices_by_current, default_defer, default_response, se
 from data.validation.permission_validator import PermissionValidator
 from logger import guild_log_message
 
+
 class ConfigCommands(GroupCog, group_name='config', group_description='Config commands.'):
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator.is_admin)

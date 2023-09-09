@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import Tuple
-from event import Event, EventCategory
+from data.events.event import Event, EventCategory
 
 class BA_Normal(Event):
     @classmethod
@@ -105,8 +105,3 @@ class BA_Special(BA_Normal):
     def description(cl) -> str: return 'Baldesion Arsenal Special Run'
     @classmethod
     def short_description(cl) -> str: return 'BA Special Run'
-
-BA_Normal.register()
-BA_Reclear.register()
-BA_Collab.register()
-BA_Special.register()

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from time import strftime
 from typing import Tuple
-from event import Event, EventCategory
+from data.events.event import Event, EventCategory
 
 class DRS_Normal(Event):
     @classmethod
@@ -77,6 +77,3 @@ class DRS_Reclear(DRS_Normal):
     def description(cl) -> str: return 'DRS Reclear Run'
     @classmethod
     def short_description(cl) -> str: return 'DRS Reclear Run'
-
-DRS_Normal.register()
-DRS_Reclear.register()

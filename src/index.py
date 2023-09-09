@@ -5,6 +5,9 @@ load_dotenv()
 import os
 import bot
 
+from data.events.event_register import EventRegister
+EventRegister.register_all()
+
 # What the bot does upon connecting to discord for the first time
 @bot.instance.event
 async def on_ready():
