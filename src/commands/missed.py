@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
 from discord.ext.commands import GroupCog
 import bot
-from discord import Embed, Interaction, TextChannel
+from discord import Embed, Interaction
 from discord.app_commands import check, command
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.tasks.tasks import TaskExecutionType
 from logger import guild_log_message
 from utils import default_defer, default_response
@@ -14,17 +13,6 @@ from data.validation.permission_validator import PermissionValidator
 # missed runs
 ###################################################################################
 class MissedCommands(GroupCog, group_name='missed', group_description='Commands regarding missed runs.'):
-    @command(name = "create_list", description = "Create a missed run list.")
-    @check(PermissionValidator.is_admin)
-    async def create_list(self, interaction: Interaction, channel: TextChannel):
-        await default_defer(interaction)
-        message = await channel.send(embed=Embed())
-        data = bot.instance.data
-        data.guilds.get(interaction.guild_id).channels.set(channel.id, GuildChannelFunction.MISSED_POST_CHANNEL)
-        data.guilds.get(interaction.guild_id).missed_runs.assign_message(message.id)
-        await data.ui.missed_runs_list.rebuild(interaction.guild_id)
-        await default_response(interaction, f'Missed run post has been created in #{channel.name}.')
-
     @command(name='run', description='Create a missed run post for 10 minutes.')
     @check(PermissionValidator.is_raid_leader)
     async def run(self, interaction: Interaction):
@@ -52,7 +40,6 @@ class MissedCommands(GroupCog, group_name='missed', group_description='Commands 
         return AutoCompleteGenerator.guild_member(interaction, current)
 
     #region error-handling
-    @create_list.error
     @run.error
     @accept.error
     async def handle_error(self, interaction: Interaction, error):

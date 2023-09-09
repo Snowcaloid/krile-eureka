@@ -79,6 +79,7 @@ def delta_to_string(delta: timedelta) -> str:
         result = f'{str(delta.days)} days, {result}'
     return result
 
+# TODO: move to AutoCompleteGenerator
 async def filter_choices_by_current(func: Callable[[object, Interaction, str], List[Choice]]):
     @wraps(func)
     async def wrapper(self, interaction: Interaction, current: str):
