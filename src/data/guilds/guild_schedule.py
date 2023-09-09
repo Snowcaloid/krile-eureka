@@ -16,9 +16,9 @@ class GuildSchedulePost:
         try:
             self.guild_id = guild_id
             record = db.query(f'select schedule_post, schedule_channel from guilds where guild_id={guild_id}')
-            if record:
-                self.id = record[0]
-                self.channel = record[1]
+            if record and record[0]:
+                self.id = record[0][0]
+                self.channel = record[0][1]
         finally:
             db.disconnect()
 

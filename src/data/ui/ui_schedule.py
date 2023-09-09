@@ -39,7 +39,7 @@ class UISchedule:
         if post:
             embed = post.embeds[0]
             embed.title = 'Upcoming Runs'
-            embed.thumbnail = bot.instance.user.avatar.url
+            embed.set_thumbnail(url=bot.instance.user.avatar.url)
             embed.description = 'Please note times are quoted both in Server Time (ST) and in brackets your Local Time (LT).'
             embed.clear_fields()
             guild.schedule.all.sort(key=lambda e: e.time)

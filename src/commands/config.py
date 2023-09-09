@@ -19,13 +19,14 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         await default_defer(interaction)
         schedule = bot.instance.data.guilds.get(interaction.guild_id).schedule
         if schedule.schedule_post.id:
-            message = await cache.messages.get(schedule.schedule_post.id, schedule.schedule_post.channel)
-            if message:
-                await message.delete()
-        message = await channel.send(embed=Embed())
+            old_channel = bot.instance.get_channel(schedule.schedule_post.channel)
+            old_message = await cache.messages.get(schedule.schedule_post.id, old_channel)
+            if old_message:
+                await old_message.delete()
+        message = await channel.send(embed=Embed(description='...'))
         await set_default_footer(message)
         bot.instance.data.guilds.get(interaction.guild_id).schedule.schedule_post.set(message.id, channel.id)
-        bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
+        await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         await default_response(interaction, f'Schedule has been created in #{channel.name}')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has created a schedule post in #{channel.name}.')
 
@@ -62,7 +63,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator.is_admin)
     async def create_missed_run_list(self, interaction: Interaction, channel: TextChannel):
         await default_defer(interaction)
-        message = await channel.send(embed=Embed())
+        message = await channel.send(embed=Embed(description='...'))
         data = bot.instance.data
         data.guilds.get(interaction.guild_id).channels.set(channel.id, GuildChannelFunction.MISSED_POST_CHANNEL)
         data.guilds.get(interaction.guild_id).missed_runs.assign_message(message.id)

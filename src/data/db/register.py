@@ -16,5 +16,5 @@ class RegisterTables:
         TableDefinitions.register(ChannelTable('channels'))
         TableDefinitions.register(EventsTable('events'))
         TableDefinitions.register(TaskTable('tasks'))
-        TableDefinitions.register(MissedRecordsTable('missed'))
+        TableDefinitions.register(MissedRecordsTable('missed_records'))
         TableDefinitions.register(PingsTable('pings'))

@@ -17,7 +17,7 @@ class MissedCommands(GroupCog, group_name='missed', group_description='Commands 
     @check(PermissionValidator.is_raid_leader)
     async def run(self, interaction: Interaction):
         await default_defer(interaction)
-        message = await interaction.channel.send(embed=Embed())
+        message = await interaction.channel.send(embed=Embed(description='...'))
         await bot.instance.data.ui.missed_run_post.rebuild(interaction.guild_id, message)
         bot.instance.data.tasks.add_task(
             datetime.utcnow() + timedelta(minutes=10),

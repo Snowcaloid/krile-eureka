@@ -25,7 +25,7 @@ class UIMissedRunsList:
             i += 1
             if i % 150 == 0:
                 embed.description = description.strip()
-                embed = Embed()
+                embed = Embed(description='...')
                 embeds.append(embed)
                 description = ''
             member = guild.get_member(missed_data.user)

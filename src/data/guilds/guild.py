@@ -23,6 +23,7 @@ class Guild:
         db = bot.instance.data.db
         db.connect()
         try:
+            self.id = guild_id
             self.schedule.load(guild_id)
             self.channels.load(guild_id)
             self.pings.load(guild_id)

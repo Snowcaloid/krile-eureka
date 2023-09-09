@@ -22,11 +22,11 @@ class GuildMissedRuns:
         try:
             self.guild_id = guild_id
             self._list.clear()
-            db_record = db.query(f'select missed_post from guilds where guild={guild_id}')
+            db_record = db.query(f'select missed_post from guilds where guild_id={guild_id}')
             if db_record:
                 self.message_id = db_record[0]
 
-            db_records = db.query(f'select user_id, amoount from missed where guild={guild_id}')
+            db_records = db.query(f'select user_id, amount from missed_records where guild_id={guild_id}')
             for db_record in db_records:
                 record = GuildMissedRunRecord()
                 record.user = db_record[0]
@@ -39,7 +39,7 @@ class GuildMissedRuns:
         db = bot.instance.data.db
         db.connect()
         try:
-            db.query(f'update guilds set missed_post={str(message_id)} where guild={self.guild_id}')
+            db.query(f'update guilds set missed_post={str(message_id)} where guild_id={self.guild_id}')
             self.load(self.guild_id)
         finally:
             db.disconnect()
@@ -82,9 +82,9 @@ class GuildMissedRuns:
         try:
             record = self.get(user)
             if record:
-                db.query(f'update missed set amount={record.amount + 1} where guild={self.guild_id} and user_id={user}')
+                db.query(f'update missed_records set amount={record.amount + 1} where guild_id={self.guild_id} and user_id={user}')
             else:
-                db.query(f'insert into missed (guild, user_id, amount) values ({self.guild_id}, {user}, {1})')
+                db.query(f'insert into missed_records (guild_id, user_id, amount) values ({self.guild_id}, {user}, {1})')
             self.load(self.guild_id)
         finally:
             db.disconnect()
@@ -93,7 +93,7 @@ class GuildMissedRuns:
         db = bot.instance.data.db
         db.connect()
         try:
-            db.query(f'delete from missed where guild_id={self.guild_id} and user_id={user}')
+            db.query(f'delete from missed_records where guild_id={self.guild_id} and user_id={user}')
             self.load(self.guild_id)
         finally:
             db.disconnect()
