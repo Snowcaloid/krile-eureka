@@ -23,9 +23,9 @@ class GuildPing:
             record = db.query(f'select ping_type, schedule_type, tag from pings where id={id}')
             if record:
                 self.id = id
-                self.type = GuildPingType(record[0])
-                self.event_type = record[1]
-                self.tag = record[2]
+                self.type = GuildPingType(record[0][0])
+                self.event_type = record[0][1]
+                self.tag = record[0][2]
         finally:
             db.disconnect()
 

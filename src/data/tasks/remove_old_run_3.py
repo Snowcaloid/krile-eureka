@@ -14,4 +14,3 @@ class Task_RemoveOldRun(TaskBase):
                 await bot.instance.data.ui.schedule.rebuild(guild.id)
 
 
-Task_RemoveOldRun.register()

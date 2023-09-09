@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from time import strftime
 from typing import Tuple
 from data.events.event import Event, EventCategory
 
@@ -20,7 +19,7 @@ class DRS_Normal(Event):
     def use_pl_post_thread(cl) -> bool: return True
     @classmethod
     def pl_post_thread_title(cl, time: datetime) -> str:
-        return f'{strftime("%A, %d %B %Y", time)} {cl.description()}'
+        return f'{time.strftime("%A, %d %B %Y")} {cl.description()}'
     @classmethod
     def delete_pl_posts(cl) -> bool: return False
     @classmethod

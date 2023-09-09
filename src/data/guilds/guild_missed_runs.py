@@ -24,13 +24,13 @@ class GuildMissedRuns:
             self._list.clear()
             db_record = db.query(f'select missed_post from guilds where guild_id={guild_id}')
             if db_record:
-                self.message_id = db_record[0]
+                self.message_id = db_record[0][0]
 
             db_records = db.query(f'select user_id, amount from missed_records where guild_id={guild_id}')
             for db_record in db_records:
                 record = GuildMissedRunRecord()
-                record.user = db_record[0]
-                record.amount = db_record[1]
+                record.user = db_record[0][0]
+                record.amount = db_record[0][1]
                 self._list.append(record)
         finally:
             db.disconnect()

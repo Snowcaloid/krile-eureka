@@ -20,4 +20,3 @@ class Task_RemoveMissedRunPost(TaskBase):
             await message.delete()
 
 
-Task_RemoveMissedRunPost.register()

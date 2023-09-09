@@ -1,4 +1,3 @@
-from time import strftime
 from typing import Type
 import bot
 import data.cache.message_cache as cache
@@ -139,7 +138,7 @@ class InputValidator:
         result = datetime(year=dt.year, month=dt.month, day=dt.day, hour=tm.hour, minute=tm.minute)
         if result < datetime.utcnow():
             if self == InputValidator.RAISING:
-                await default_response(interaction, f'Date {strftime("%d-%b-%y %H%M", result)} is not in future. Use autocomplete.')
+                await default_response(interaction, f'Date {result.strftime("%d-%b-%y %H%M")} is not in future. Use autocomplete.')
             return None
         return result
 

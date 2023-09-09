@@ -1,12 +1,12 @@
 from enum import Enum
+
+from discord import Member
 import bot
 from abc import abstractclassmethod, abstractclassmethod
 from discord.app_commands import Choice
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
-from time import strftime
 from typing import List, Tuple, Type
-from nullsafe import _
 from data.db.database import pg_timestamp
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
@@ -104,19 +104,20 @@ class Event:
     @classmethod
     def schedule_entry_text(cl, rl: str, time: datetime, custom: str) -> str:
         if custom: custom = f' [{custom}]'
-        return f'**{strftime("%H:%M", time)} ST ({get_discord_timestamp(time)} LT)**: {cl.short_description()} ({rl}){custom}'
+        server_time = time.strftime('%H:%M')
+        return f'**{server_time} ST ({get_discord_timestamp(time)} LT)**: {cl.short_description()} ({rl}){custom}'
 
     @classmethod
     def passcode_post_title(cl, time: datetime) -> str:
-        return f'{strftime(f"%A, %d-%b-%y %H-%M ST {cl.description()} passcode", time)}'
+        return f'{time.strftime(f"%A, %d-%b-%y %H-%M ST {cl.description()} passcode")}'
 
     @classmethod
     def pl_post_title(cl, time: datetime) -> str:
-        return f'{strftime(f"%A, %d-%b-%y %H-%M ST {cl.description()} party leader recruitment", time)}'
+        return f'{time.strftime(f"%A, %d-%b-%y %H-%M ST {cl.description()} party leader recruitment")}'
 
     @classmethod
     def dm_title(cl, time: datetime) -> str:
-        return f'{strftime(f"%A, %d-%b-%y %H-%M ST {cl.description()} passcode notification", time)}'
+        return f'{time.strftime(f"%A, %d-%b-%y %H-%M ST {cl.description()} passcode notification")}'
 
     @classmethod
     def as_choice(cl) -> Choice:
@@ -156,7 +157,7 @@ class ScheduledEventUserData:
             if record:
                 self._raid_leader = record[0][0]
                 self._party_leaders.clear()
-                for i in range(1, 7):
+                for i in range(1, 8):
                     self._party_leaders.append(record[0][i])
         finally:
             db.disconnect()
@@ -205,7 +206,7 @@ class ScheduledEvent:
         db = bot.instance.data.db
         db.connect()
         try:
-            record = db.query(f'select event_type, pl_post_id, timestamp, description, pass_main, pass_supp from events where id={id}')
+            record = db.query(f'select event_type, pl_post_id, timestamp, description, pass_main, pass_supp, guild_id from events where id={id}')
             if record:
                 for type in Event._registered_events:
                     if type.type() == record[0][0]:
@@ -217,6 +218,7 @@ class ScheduledEvent:
                 self._description = record[0][3]
                 self.passcode_main = record[0][4]
                 self.passcode_supp = record[0][5]
+                self.guild_id = record[0][6]
                 self.users.load(id)
         finally:
             db.disconnect()
@@ -240,6 +242,10 @@ class ScheduledEvent:
             db.disconnect()
 
     @property
+    def short_description(self) -> str:
+        return self.base.short_description()
+
+    @property
     def time(self) -> datetime:
         return self._time
 
@@ -256,7 +262,7 @@ class ScheduledEvent:
 
     @property
     def auto_passcode(self) -> bool:
-        return not self.passcode_main and not self.passcode_supp
+        return self.passcode_main != 0 and self.passcode_supp != 0
 
     @auto_passcode.setter
     def auto_passcode(self, value: bool) -> None:
@@ -364,20 +370,20 @@ class ScheduledEvent:
     def support_passcode_delay(self) -> timedelta:
         return self.base.support_passcode_delay()
 
-    def _pl_placeholder(self, pl: str|None) -> str:
-        return pl if pl else 'TBD'
+    def _pl_placeholder(self, member: Member) -> str:
+        return member.display_name if member else 'TBD'
 
     @property
     def pl_post_text(self) -> str:
-        guild_data = bot.instance.get_guild(self.guild_id)
-        rl = guild_data.get_member(self.users.raid_leader)
-        pl1 = self._pl_placeholder(_(guild_data.get_member(self.users.party_leaders[0])).nick)
-        pl2 = self._pl_placeholder(_(guild_data.get_member(self.users.party_leaders[1])).nick)
-        pl3 = self._pl_placeholder(_(guild_data.get_member(self.users.party_leaders[2])).nick)
-        pl4 = self._pl_placeholder(_(guild_data.get_member(self.users.party_leaders[3])).nick)
-        pl5 = self._pl_placeholder(_(guild_data.get_member(self.users.party_leaders[4])).nick)
-        pl6 = self._pl_placeholder(_(guild_data.get_member(self.users.party_leaders[5])).nick)
-        pls = self._pl_placeholder(_(guild_data.get_member(self.users.party_leaders[6])).nick)
+        guild = bot.instance.get_guild(self.guild_id)
+        rl = guild.get_member(self.users.raid_leader)
+        pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0]))
+        pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1]))
+        pl3 = self._pl_placeholder(guild.get_member(self.users.party_leaders[2]))
+        pl4 = self._pl_placeholder(guild.get_member(self.users.party_leaders[3]))
+        pl5 = self._pl_placeholder(guild.get_member(self.users.party_leaders[4]))
+        pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5]))
+        pls = self._pl_placeholder(guild.get_member(self.users.party_leaders[6]))
         return self.base.pl_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls)
 
     def party_leader_dm_text(self, index: int) -> str:
@@ -420,10 +426,9 @@ class ScheduledEvent:
         if channel_data:
             bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild_id, "channel": channel_data.id})
 
-    async def to_string(self, guild_id: int) -> str:
-        # TODO: This object should probably know what guild it belongs to without being told.
-        raid_leader = await get_discord_member(guild_id, self.leader)
-        discord_timestamp = get_discord_timestamp(self.timestamp, DiscordTimestampType.RELATIVE)
-        return f'{self.type} by {raid_leader.display_name} at {self.timestamp} ST {discord_timestamp}'
+    async def to_string(self) -> str:
+        raid_leader = await get_discord_member(self.guild_id, self.users.raid_leader)
+        discord_timestamp = get_discord_timestamp(self.time, DiscordTimestampType.RELATIVE)
+        return f'{self.type} by {raid_leader.display_name} at {self.time} ST {discord_timestamp}'
 
 

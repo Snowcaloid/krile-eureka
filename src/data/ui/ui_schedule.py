@@ -47,7 +47,7 @@ class UISchedule:
             for data in per_date:
                 schedule_on_day = ''
                 for event in data._list:
-                    desc = event.base.schedule_entry_text
+                    desc = event.schedule_entry_text
                     schedule_on_day = "\n".join([schedule_on_day, desc])
                 embed.add_field(name=data._date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))
 

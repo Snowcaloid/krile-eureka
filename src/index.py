@@ -5,6 +5,9 @@ load_dotenv()
 import os
 import bot
 
+from data.tasks.task_registers import TaskRegisters
+TaskRegisters.register_all()
+
 from data.events.event_register import EventRegister
 EventRegister.register_all()
 

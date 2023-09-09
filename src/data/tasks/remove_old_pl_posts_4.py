@@ -20,10 +20,9 @@ class Task_RemoveOldPLPosts(TaskBase):
                     id = int(message.content.split('#')[1])
                     guild_data = bot.instance.data.guilds.get(guild.id)
                     event = guild_data.schedule.get(id)
-                    if event.category != EventCategory.DRS and not guild_data.schedule.contains(id):
+                    if event and event.delete_pl_posts and not guild_data.schedule.contains(id):
                         message_list.append(message)
             if message_list:
                 await channel.delete_messages(message_list)
 
 
-Task_RemoveOldPLPosts.register()

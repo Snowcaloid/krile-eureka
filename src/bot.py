@@ -42,7 +42,7 @@ class Krile(Bot):
         This method is called after instance.on_ready event.
         """
         await self.data.reset()
-        if not self.data.tasks.get_next:
+        if not self.data.tasks.contains(TaskExecutionType.UPDATE_STATUS):
             self.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
 
         await self.add_cog(EmbedCommands())
@@ -64,9 +64,9 @@ async def task_loop(): # You can think of it as sleep(1000) after the last proce
         task = instance.data.tasks.get_next()
         if task is None: return
         try:
-            task.execute()
+            await task.execute()
         finally:
-            instance.data.tasks.remove_task(task.id)
+            instance.data.tasks.remove_task(task)
 
 @instance.event
 async def on_member_join(member: Member):

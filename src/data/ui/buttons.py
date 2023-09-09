@@ -19,12 +19,13 @@ def button_custom_id(id: str, message: Message, type: ButtonType) -> str:
 class BaseButton(Button):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f'insert into buttons values (\'{self.custom_id}\', \'{self.label}\')')
-        finally:
-            db.disconnect()
+        if bot.instance.data.ready:
+            db = bot.instance.data.db
+            db.connect()
+            try:
+                db.query(f'insert into buttons values (\'{self.custom_id}\', \'{self.label}\')')
+            finally:
+                db.disconnect()
 
 class RoleSelectionButton(BaseButton):
     """Buttons, which add or remove a role from the user who interacts with them"""
@@ -52,7 +53,7 @@ class PartyLeaderButton(BaseButton):
     async def callback(self, interaction: Interaction):
         if str(interaction.message.id) in self.custom_id:
             await default_defer(interaction)
-            id = int(interaction.message.content.split('#')[2])
+            id = int(interaction.message.content.split('#')[1])
             guild_data = bot.instance.data.guilds.get(interaction.guild_id)
             event = guild_data.schedule.get(id)
             if event:
@@ -63,7 +64,7 @@ class PartyLeaderButton(BaseButton):
                     event.users.party_leaders[index] = interaction.user.id
                     await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event.id)
                     await default_response(interaction, f'You have been set as Party Leader for Party {party_name}')
-                    run = await event.to_string(interaction.guild_id)
+                    run = await event.to_string()
                     await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has registered for Party {party_name} on {run}')
                 elif current_party_leader and (interaction.user.id == current_party_leader or interaction.user.id == event.users.raid_leader):
                     is_party_leader_removing_self = interaction.user.id == current_party_leader
@@ -71,7 +72,7 @@ class PartyLeaderButton(BaseButton):
                     await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event.id)
                     await default_response(interaction, f'{interaction.guild.get_member(current_party_leader).display_name} has been removed from party {party_name}')
 
-                    run = await event.to_string(interaction.guild_id)
+                    run = await event.to_string()
 
                     if is_party_leader_removing_self:
                         message = f'**{interaction.user.display_name}** has removed themselves from Party {party_name} on {run}'

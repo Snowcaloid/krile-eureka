@@ -18,7 +18,7 @@ class UIPLPost:
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
         if channel is None: return
-        pings = await guild_data.pings.get_mention_string(guild_id, GuildPingType.PL_POST, event.type)
+        pings = await guild_data.pings.get_mention_string(GuildPingType.PL_POST, event.type)
         message = await channel.send(f'{pings} Recruitment post #{str(id)}')
         event.pl_post_id = message.id
         view = PersistentView()

@@ -30,4 +30,3 @@ class Task_PostSupportPasscode(TaskBase):
             await set_default_footer(message)
 
 
-Task_PostSupportPasscode.register()

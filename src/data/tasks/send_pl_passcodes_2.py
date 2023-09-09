@@ -28,10 +28,9 @@ class Task_SendPLPasscodes(TaskBase):
                         ))
                 if event.use_support:
                     member = guild.get_member(event.users.party_leaders[6])
-                    await member.send(Embed(
-                        title=event.dm_title,
-                        description=event.support_party_leader_dm_text
-                    ))
+                    if member:
+                        await member.send(Embed(
+                            title=event.dm_title,
+                            description=event.support_party_leader_dm_text
+                        ))
 
-
-Task_SendPLPasscodes.register()

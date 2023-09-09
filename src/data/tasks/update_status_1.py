@@ -15,6 +15,9 @@ class Task_UpdateStatus(TaskBase):
         bot.instance.data.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskExecutionType.UPDATE_STATUS)
 
     @classmethod
+    def runtime_only(cl) -> bool: return True
+
+    @classmethod
     async def execute(cl, obj: object) -> None:
         next_exec = datetime.utcnow() + timedelta(minutes=1)
         bot.instance.data.db.connect()
@@ -25,14 +28,16 @@ class Task_UpdateStatus(TaskBase):
                 event.load(records[0][0])
                 if event.time > datetime.utcnow():
                     delta: timedelta = event.time - datetime.utcnow()
-                    desc = event.description + ' in '
-                    need_comma = delta.days
                     if delta.days:
-                        desc += str(delta.days) + ' days'
-                    if delta.seconds // 60:
-                        if need_comma:
-                            desc += ', '
-                        desc += f' {str(delta.seconds // 3600)} hours, {str((delta.seconds % 3600) // 60)} minutes'
+                        if delta.seconds // 3600:
+                            desc = f'{str(delta.days)}d {str(delta.seconds // 3600)}h {str((delta.seconds % 3600) // 60)}m'
+                        else:
+                            desc = f'{str(delta.days)}d {str((delta.seconds % 3600) // 60)}m'
+                    elif delta.seconds // 3600:
+                        desc = f'{str(delta.seconds // 3600)}h {str((delta.seconds % 3600) // 60)}m'
+                    else:
+                        desc = f'{str((delta.seconds % 3600) // 60)}m'
+                    desc = f'{event.short_description} in {desc}'
                     await bot.instance.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
             else:
                 await bot.instance.change_presence(activity=None, status=None)
@@ -41,4 +46,4 @@ class Task_UpdateStatus(TaskBase):
             bot.instance.data.db.disconnect()
             bot.instance.data.tasks.add_task(next_exec, TaskExecutionType.UPDATE_STATUS)
 
-Task_UpdateStatus.register()
+
