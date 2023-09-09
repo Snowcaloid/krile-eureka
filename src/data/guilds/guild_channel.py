@@ -42,7 +42,7 @@ class GuildChannels:
 
     def get(self, function: GuildChannelFunction = GuildChannelFunction.NONE, event_type: str = '') -> GuildChannel:
         for channel in self._list:
-            if channel.function == function and event_type == event_type:
+            if channel.function == function and channel.event_type == event_type:
                 return channel
         return None
 

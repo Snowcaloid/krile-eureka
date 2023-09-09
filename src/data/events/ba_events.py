@@ -97,6 +97,10 @@ class BA_Collab(BA_Normal):
     def description(cl) -> str: return 'Baldesion Arsenal Collaboration Run'
     @classmethod
     def short_description(cl) -> str: return 'BA Collab Run'
+    @classmethod
+    def use_passcodes(cl) -> bool: return False
+    @classmethod
+    def use_pl_posts(cl) -> bool: return False
 
 class BA_Special(BA_Normal):
     @classmethod

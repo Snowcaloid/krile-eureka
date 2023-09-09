@@ -43,7 +43,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
             channels_data.set_category(channel.id, function, EventCategory(event_type))
             desc = EventCategory(event_type).value
         await default_response(interaction, f'You have set #{channel.name} as the {function_desc} channel for type "{desc}".')
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set #{channel.name} as the {function_desc} channel for type "{Event.by_type(event_type).short_description()}".')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set #{channel.name} as the {function_desc} channel for type "{desc}".')
 
     @command(name = "passcode_channel", description = "Set the channel, where passcodes for specific type of events will be posted.")
     @check(PermissionValidator.is_admin)
