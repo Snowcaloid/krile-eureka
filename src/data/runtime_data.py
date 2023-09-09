@@ -1,87 +1,36 @@
-from typing import List
 import bot
-from data.channel_updates import ChannelUpdates
-from data.embed_data import EmbedData
-from data.missed_runs_data import MissedRunsData
-from data.pings_data import PingsRuntimeData
-from data.schedule_post_data import SchedulePostData
-from data.query import Query, QueryOwner, QueryType
-from data.table.register import RegisterTables
-from data.table.database import Database
-from data.table.definition import TableDefinitions
-from data.table.buttons import ButtonData
-from data.runtime_guild_data import RuntimeGuildData
-from data.task_list import TaskList
+from data.ui.embeds import EmbedController
+from data.guilds.guild import Guilds
+from data.runtime_processes import RunTimeProccesses, ProcessListener, RunTimeProcessType
+from data.db.register import RegisterTables
+from data.db.database import Database
+from data.db.definition import TableDefinitions
+from data.tasks.tasks import Tasks
+from data.ui.ui import UI
 
-class RuntimeData(QueryOwner):
-    """General Runtime Data Class
-
-    Properties
-    ----------
-    _loaded_view: :class:`List[ButtonData]`
-        A list of buttons, that are loaded upon starting the application,
-        used to restore functionality of buttons upon logging in.
-    db: :class:`Database`
-        Database access. connect -> query -> disconnect
-    embeds: :class:`EmbedData`
-        Runtime data which stores entries for an embed during a user query.
-        It is created with command /embed create, and is emptied upon
-        using /embed finish.
-    schedule_posts: :class:`SchedulePostData`
-        Runtime data which stores a list of Schedule posts and the entries within them.
-        This object has all the functionality regarding scheduling, including setting
-        schedule channels, etc.
-    guild_data: :class:`RuntimeGuildData`
-        Runtime data which stores base properties of a guild, e.g which event type
-        should be posted in which channel.
-    tasks: :class:`TaskList`
-        Runtime data which contains the tasks, which are fired by the main task loop
-        in src/tasks.py.
-    query: :class:`Query`
-        Interactive query data. Currently only used in /embed commands.
-    ready: :class:`bool`
-        Returns True whenever all data has been loaded from the database and is ready
-        to be used.
-    """
-    _loaded_view: List[ButtonData]
-    db: Database
-    embeds: EmbedData
-    schedule_posts: SchedulePostData
-    guild_data: RuntimeGuildData
-    channel_updates: ChannelUpdates
-    missed_runs: MissedRunsData
-    pings: PingsRuntimeData
-    tasks: TaskList
-    query: Query
+class RuntimeData(ProcessListener):
+    """General Runtime Data Class"""
+    db: Database = Database()
+    embed_controller: EmbedController
+    guilds: Guilds = Guilds()
+    ui: UI = UI()
+    tasks: Tasks = Tasks()
+    processes: RunTimeProccesses
     ready: bool
 
     def __init__(self):
         self.ready = False
         RegisterTables.register()
-        self._loaded_view = []
-        self.db = Database()
-        self.init_db()
-        self.embeds          = EmbedData()
-        self.guild_data      = RuntimeGuildData()
-        self.channel_updates = ChannelUpdates()
-        self.missed_runs     = MissedRunsData()
-        self.pings           = PingsRuntimeData()
-        self.schedule_posts  = SchedulePostData(self.guild_data)
-        self.tasks           = TaskList()
-        self.query           = Query(self)
+        self.ensure_database_tables()
+        self.processes = RunTimeProccesses(self)
+        self.embed_controller = EmbedController()
 
-    def finish_query(self, user: int, type: QueryType) -> None:
-        """What happens when a user query is finished
+    def on_finish_process(self, user: int, type: RunTimeProcessType) -> None:
+        if type == RunTimeProcessType.EMBED_CREATION:
+            self.embed_controller.save(user)
+            self.embed_controller.clear(user)
 
-        Args:
-            user (int): user id, whose query is done
-            type (QueryType): which query type has been finished
-        """
-        if type == QueryType.EMBED:
-            self.embeds.save(user)
-            self.embeds.clear(user)
-
-    def init_db(self):
+    def ensure_database_tables(self):
         """Create the database and update the tables."""
         self.db.connect()
         try:
@@ -91,23 +40,13 @@ class RuntimeData(QueryOwner):
         finally:
             self.db.disconnect()
 
-    def load_db_view(self):
-        """Load buttons to be restored."""
-        for record in self.db.query('select * from buttons'):
-            self._loaded_view.append(ButtonData(record[0], record[1]))
-
-    async def load_db_data(self):
+    async def reset(self):
         """Load general data from the db."""
         if self.ready:
             self.__init__()
-        self.guild_data.load()
-        for data in self.guild_data._list:
-            for guild in bot.krile.guilds:
-                if data.guild_id == guild.id:
-                    guild.fetch_members()
-        await self.schedule_posts.load()
-        await self.missed_runs.load()
-        self.pings.load(self.guild_data)
-        self.channel_updates.load(self.guild_data)
+        self.ui.load()
+        self.guilds.load()
+        for guild in bot.instance.guilds:
+            guild.fetch_members()
         self.tasks.load()
         self.ready = True

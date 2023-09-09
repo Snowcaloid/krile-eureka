@@ -3,52 +3,42 @@ from discord import Interaction
 from discord.ext.commands import GroupCog
 from discord.channel import TextChannel
 from discord.app_commands import check, command
-from data.table.database import DatabaseOperation
+from data.guilds.guild_channel_functions import GuildChannelFunction
 from logger import guild_log_message
-from validation import permission_admin
+from utils import default_defer, default_response
+from data.validation.permission_validator import PermissionValidator
 
 ###################################################################################
 # logging
 ##################################################################################
 class LogCommands(GroupCog, group_name='log', group_description='Commands regarding logging events in the log channel.'):
     @command(name='channel', description='Set the channel to use for logging events.')
-    @check(permission_admin)
+    @check(PermissionValidator.is_admin)
     async def channel(self, interaction: Interaction, target_channel: TextChannel):
+        await default_defer(interaction)
         # Handle the change in the database.
-        result: DatabaseOperation = bot.krile.data.guild_data.set_log_channel(interaction.guild_id, target_channel.id)
-
-        # Convert the result to something the user can understand.
-        if result == DatabaseOperation.NONE:
-            feedback = 'The log channel was already set to that.'
-        elif result == DatabaseOperation.ADDED:
-            feedback = 'The log channel has been set.'
-        elif result == DatabaseOperation.EDITED:
-            feedback = 'The log channel has been changed.'
-        else:
-            feedback = 'Unknown operation.'
-
-        # Privately respond to the user with the outcome.
-        await interaction.response.send_message(feedback, ephemeral=True)
-
+        bot.instance.data.guilds.get(interaction.guild_id).channels.set(target_channel.id, GuildChannelFunction.LOGGING)
         # Record this change to the log.
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** set the log channel: {feedback}')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** set the log channel.')
+        # Privately respond to the user with the outcome.
+        await default_response(interaction, f'The log channel has been set to {target_channel.mention}.')
+
 
     @command(name='disable', description='Stop sending messages to the logging channel.')
-    @check(permission_admin)
+    @check(PermissionValidator.is_admin)
     async def disable(self, interaction: Interaction):
+        await default_defer(interaction)
         # Send one final message so the log has a record that it was turned off.
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has disabled logging, good bye!')
-
         # Remove the log channel
-        bot.krile.data.guild_data.set_log_channel(interaction.guild_id, None)
-
+        bot.instance.data.guilds.get(interaction.guild_id).channels.remove(GuildChannelFunction.LOGGING)
         # Privately let the user know we have turned logging off.
-        await interaction.response.send_message('Messages will no longer be sent to the log channel.')
+        await default_response(interaction, 'Messages will no longer be sent to the log channel.')
 
     #region error-handling
     @channel.error
     @disable.error
-    async def handle_permission_admin(self, interaction: Interaction, error):
+    async def handle_error(self, interaction: Interaction, error):
         print(error)
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')
         if interaction.response.is_done():

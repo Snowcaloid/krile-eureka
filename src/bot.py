@@ -2,17 +2,17 @@ from discord import Intents, Member, Object, HTTPException
 from discord.ext.commands import Bot, guild_only, is_owner, Context, Greedy
 from commands.ping import PingCommands
 from data.runtime_data import RuntimeData
-from data.table.tasks import TaskExecutionType
+from data.tasks.tasks import TaskExecutionType
 from commands.embed import EmbedCommands
 from commands.schedule import ScheduleCommands
 from commands.missed import MissedCommands
 from commands.log import LogCommands
 from datetime import datetime
-from views import PersistentView
-from buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
+from data.ui.views import PersistentView
+from data.ui.buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
 from typing import Literal, Optional
 from logger import guild_log_message
-import tasks
+from discord.ext import tasks
 
 
 class Krile(Bot):
@@ -36,29 +36,12 @@ class Krile(Bot):
         super().__init__(command_prefix='/', intents=intents)
         self.data = RuntimeData()
 
-    def recreate_view(self):
-        self.data.load_db_view()
-        views = []
-        i = 0
-        view = PersistentView()
-        views.append(view)
-        for buttondata in self.data._loaded_view:
-            i += 1
-            if i % 20 == 0:
-                view = PersistentView()
-                views.append(view)
-            if ButtonType.ROLE_SELECTION.value in buttondata.button_id:
-                view.add_item(RoleSelectionButton(label=buttondata.label, custom_id=buttondata.button_id))
-            elif ButtonType.PL_POST.value in buttondata.button_id:
-                view.add_item(PartyLeaderButton(label=buttondata.label, custom_id=buttondata.button_id))
-        return views
-
     async def setup_hook(self) -> None:
         """A coroutine to be called to setup the bot.
-        This method is called after snowcaloid.on_ready event.
+        This method is called after instance.on_ready event.
         """
-        await self.data.load_db_data()
-        if not self.data.tasks.empty():
+        await self.data.reset()
+        if not self.data.tasks.get_next:
             self.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
 
         await self.add_cog(EmbedCommands())
@@ -67,19 +50,28 @@ class Krile(Bot):
         await self.add_cog(LogCommands())
         await self.add_cog(PingCommands())
         await self.tree.sync()
-        if not tasks.task_loop.is_running():
-            tasks.task_loop.start()
-        for view in self.recreate_view():
-            self.add_view(view)
+        if not task_loop.is_running():
+            task_loop.start()
 
 
-krile = Krile()
+instance = Krile()
 
-@krile.event
+@tasks.loop(seconds=1) # The delay is calculated from the end of execution of the last task.
+async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
+    """Main loop, which runs required tasks at required times. await is necessery."""
+    if instance.data.ready and instance.ws:
+        task = instance.data.tasks.get_next()
+        if task is None: return
+        try:
+            task.execute()
+        finally:
+            instance.data.tasks.remove_task(task.id)
+
+@instance.event
 async def on_member_join(member: Member):
     await guild_log_message(member.guild.id, f'{member.mention} joined the server.')
 
-@krile.command()
+@instance.command()
 @guild_only()
 @is_owner()
 async def sync(ctx: Context, guilds: Greedy[Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:

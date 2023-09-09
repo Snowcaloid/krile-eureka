@@ -1,9 +1,12 @@
+from functools import wraps
+from typing import Callable, List
 from datetime import datetime, timedelta
-from enum import Enum
 import time
-import buttons
 from discord import Interaction, Message, Member
 from dateutil.tz import tzlocal, tzutc
+from enum import Enum
+from discord.app_commands import Choice
+# DO NOT IMPORT OTHER UNITS FROM /src/!
 import bot
 
 
@@ -33,14 +36,9 @@ def get_discord_timestamp(date: datetime, timestamp_type: DiscordTimestampType =
     return f'<t:{int(time.mktime(datetime(*date_tuple).timetuple()))}:{timestamp_type.value}>'
 
 
-def button_custom_id(id: str, message: Message, type: buttons.ButtonType) -> str:
-    """Generate custom_id for a button."""
-    return f'{message.id}-{type.value}-{id}'
-
-
 async def get_mention(guild_id: int, user_id: int) -> str:
     if user_id:
-        guild = bot.krile.get_guild(guild_id)
+        guild = bot.instance.get_guild(guild_id)
         if guild:
             return guild.get_member(user_id).mention
     else:
@@ -55,7 +53,7 @@ async def get_discord_member(guild_id: int, user_id: int) -> Member:
     :param user_id: The ID of the user.
     :return: The discord.Member object.
     """
-    guild = bot.krile.get_guild(guild_id)
+    guild = bot.instance.get_guild(guild_id)
     return await guild.fetch_member(user_id)
 
 
@@ -80,3 +78,12 @@ def delta_to_string(delta: timedelta) -> str:
     if delta.days:
         result = f'{str(delta.days)} days, {result}'
     return result
+
+async def filter_choices_by_current(func: Callable[[object, Interaction, str], List[Choice]]):
+    @wraps(func)
+    async def wrapper(self, interaction: Interaction, current: str):
+        result: List[Choice] = await func(self, interaction, current)
+        if current:
+            result = [choice for choice in result if choice.name.startswith(current)]
+        return result
+    return wrapper
