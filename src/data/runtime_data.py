@@ -46,7 +46,8 @@ class RuntimeData(ProcessListener):
             self.__init__()
         self.ui.load()
         self.guilds.load()
-        for guild in bot.instance.guilds:
-            guild.fetch_members()
         self.tasks.load()
         self.ready = True
+        for guild in bot.instance.guilds:
+            guild.fetch_members()
+            self.ui.schedule.rebuild(guild.id)
