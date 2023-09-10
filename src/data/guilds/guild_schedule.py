@@ -86,11 +86,9 @@ class GuildSchedule:
     def edit(self, id: int, leader: int, event_type: str, datetime: datetime, description: str,
              auto_passcode: bool) -> ScheduledEvent:
         event = self.get(id)
-        is_time_update = event.time != datetime
-        if is_time_update:
+        if event.time != datetime:
             event.time = datetime
-        is_passcode_update = not auto_passcode is None and event.auto_passcode != auto_passcode
-        if is_passcode_update:
+        if not auto_passcode is None and event.auto_passcode != auto_passcode:
             event.auto_passcode = auto_passcode
         if not leader is None:
             event.users.raid_leader = leader
@@ -98,9 +96,6 @@ class GuildSchedule:
             event.type = event_type
         if description:
             event.description = description
-        if is_passcode_update or is_time_update:
-            event.delete_tasks()
-            event.create_tasks()
         return event
 
     def finish(self, event_id: int):

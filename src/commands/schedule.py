@@ -1,9 +1,11 @@
+from datetime import datetime
 import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Interaction
 from typing import Optional
 from data.generators.autocomplete_generator import AutoCompleteGenerator
+from data.tasks.tasks import TaskExecutionType
 from data.validation.input_validator import InputValidator
 from utils import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
@@ -58,8 +60,17 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if not await InputValidator.RAISING.check_valid_raid_leader(interaction, interaction.user, check_type): return
         event_datetime = await InputValidator.RAISING.check_and_combine_date_and_time_change_for_event(interaction, event_id, event_date, event_time)
         if not event_datetime: return
-        schedule.edit(event_id, raid_leader, event_type, event_datetime,
-                      InputValidator.NORMAL.escape_event_description(description), auto_passcode)
+        is_type_change = event_type != event.type
+        is_passcode_change = not auto_passcode is None and event.auto_passcode != auto_passcode
+        is_time_change = event.time != event_datetime
+        if is_type_change:
+            await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
+        event = schedule.edit(event_id, raid_leader, event_type, event_datetime,
+                              InputValidator.NORMAL.escape_event_description(description), auto_passcode)
+        if is_type_change:
+            await bot.instance.data.ui.pl_post.create(interaction.guild_id, event_id)
+        if is_time_change or is_passcode_change:
+            event.recreate_tasks()
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event_id)
         await default_response(interaction, f'The run #{str(event_id)} has been adjusted.')

@@ -430,6 +430,10 @@ class ScheduledEvent:
         if channel_data:
             bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_PL_POSTS, {"guild": self.guild_id, "channel": channel_data.id})
 
+    def recreate_tasks(self) -> None:
+        self.delete_tasks()
+        self.create_tasks()
+
     async def to_string(self) -> str:
         raid_leader = await get_discord_member(self.guild_id, self.users.raid_leader)
         discord_timestamp = get_discord_timestamp(self.time, DiscordTimestampType.RELATIVE)

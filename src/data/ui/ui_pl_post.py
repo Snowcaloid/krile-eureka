@@ -1,4 +1,5 @@
 from discord import Embed, TextChannel
+from data.guilds.guild_channel import GuildChannel
 from data.guilds.guild_pings import GuildPingType
 import data.cache.message_cache as cache
 import bot
@@ -13,7 +14,7 @@ class UIPLPost:
     async def create(self, guild_id: int, id: int) -> None:
         guild_data = bot.instance.data.guilds.get(guild_id)
         event = guild_data.schedule.get(id)
-        if event is None or event.category == EventCategory.CUSTOM: return
+        if event is None or event.category == EventCategory.CUSTOM or not event.use_pl_posts: return
         channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
@@ -36,7 +37,7 @@ class UIPLPost:
     async def rebuild(self, guild_id: int, id: int, view: PersistentView = None) -> None:
         guild_data = bot.instance.data.guilds.get(guild_id)
         event = guild_data.schedule.get(id)
-        if event is None or event.category == EventCategory.CUSTOM: return
+        if event is None or event.category == EventCategory.CUSTOM or not event.use_pl_posts: return
         channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
@@ -48,3 +49,15 @@ class UIPLPost:
         else:
             message = await message.edit(embed=embed)
         await set_default_footer(message)
+
+
+    async def remove(self, guild_id: int, event_id: int) -> GuildChannel:
+        guild_data = bot.instance.data.guilds.get(guild_id)
+        event = guild_data.schedule.get(event_id)
+        if event is None: return
+        channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
+        if channel_data is None: return
+        channel: TextChannel = bot.instance.get_channel(channel_data.id)
+        message = await cache.messages.get(event.pl_post_id, channel)
+        if message is None: return
+        await message.delete()
