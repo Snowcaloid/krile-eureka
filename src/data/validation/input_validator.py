@@ -5,13 +5,14 @@ from datetime import datetime
 from discord import Interaction, Member, TextChannel
 
 from data.events.event import Event, EventCategory
+from data.ui.buttons import ButtonType
 from utils import default_response
 from data.validation.permission_validator import PermissionValidator
 
 
 class InputValidator:
-    NORMAL: Type['InputValidator']
-    RAISING: Type['InputValidator']
+    NORMAL: 'InputValidator'
+    RAISING: 'InputValidator'
 
     async def check_valid_event_type(self, interaction: Interaction, event_type: str) -> bool:
         result = event_type in Event.all_types()
@@ -64,12 +65,19 @@ class InputValidator:
         message = await cache.messages.get(int(message_id), channel)
         result = not message is None
         if self == InputValidator.RAISING and not result:
-            await default_response(interaction, f'Message with id <{str(message_id)} does not exist in {channel.mention}>.')
+            await default_response(interaction, f'Message with id <{str(message_id)}> does not exist in {channel.mention}.')
+        return result
+
+    async def check_message_author_is_self(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
+        message = await cache.messages.get(int(message_id), channel)
+        result = message.author.id == bot.instance.user.id
+        if self == InputValidator.RAISING and not result:
+            await default_response(interaction, f'Message with id <{str(message_id)}> in {channel.mention} is not sent by {bot.instance.user.mention}.')
         return result
 
     async def check_message_contains_an_embed(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
         message = await cache.messages.get(int(message_id), channel)
-        result = message.embeds.count > 0
+        result = len(message.embeds) > 0
         if self == InputValidator.RAISING and not result:
             await default_response(interaction, f'Message with id <{str(message_id)} does not contain any embeds.')
         return result
@@ -86,10 +94,10 @@ class InputValidator:
             return await default_response(interaction, f'Button #{label} doesn\'t exist yet.')
         return result
 
-    async def check_button_label_changed(self, interaction: Interaction, old_label: str, new_label: str) -> bool:
-        result = old_label != new_label
+    async def check_valid_button_type(self, interaction: Interaction, button_type: str) -> bool:
+        result = button_type is None or button_type in ButtonType._value2member_map_
         if self == InputValidator.RAISING and not result:
-            return await default_response(interaction, f'Button #{old_label} remains unchanged.')
+            return await default_response(interaction, f'Button type {button_type} doesn\'t exist. Use autocomplete.')
         return result
 
     def escape_event_description(self, description: str) -> str:

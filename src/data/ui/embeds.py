@@ -10,9 +10,11 @@ from data.ui.views import PersistentView
 class EmbedButtonData:
     id: str
     label: str
-    def __init__(self, label: str):
+    type: ButtonType
+    def __init__(self, label: str, button_type: ButtonType):
         self.id = ''
         self.label = label
+        self.type = button_type
 
 class EmbedEntry:
     """Helper class for embed entries."""
@@ -64,13 +66,16 @@ class EmbedEntry:
                 self.fields.remove(field)
                 break
 
-    def add_button(self, label: str):
-        self.buttons.append(EmbedButtonData(label))
+    def add_button(self, label: str, button_type: ButtonType):
+        self.buttons.append(EmbedButtonData(label, button_type))
 
-    def edit_button(self, oldlabel: str, newlabel: str):
+    def edit_button(self, label: str, newlabel: str, button_type: ButtonType = None):
         for button in self.buttons:
-            if button.label.lower() == oldlabel.lower():
-                button.label = newlabel
+            if button.label.lower() == label.lower():
+                if newlabel:
+                    button.label = newlabel
+                if button_type:
+                    button.type = button_type
 
     def remove_button(self, label: str):
         for button in self.buttons:
@@ -115,19 +120,18 @@ class EmbedEntry:
             embed.set_thumbnail(url=self.thumbnail)
         return embed
 
-    def create_view(self, debug: bool, message: Message = None, button_type: ButtonType = ButtonType.ROLE_SELECTION) -> PersistentView:
-        if not self.buttons: return None
+    def create_view(self, debug: bool, message: Message = None) -> PersistentView:
         view = PersistentView()
         for button in self.buttons:
             if debug:
                 view.add_item(Button(label=button.label, disabled=True))
             elif message:
-                button.id = button_custom_id(button.label, message, button_type)
-                if button_type == ButtonType.ROLE_SELECTION:
+                button.id = button_custom_id(button.label, message, button.type)
+                if button.type == ButtonType.ROLE_SELECTION:
                     view.add_item(RoleSelectionButton(label=button.label, custom_id=button.id))
-                elif button_type == ButtonType.MISSEDRUN:
+                elif button.type == ButtonType.MISSEDRUN:
                     view.add_item(MissedRunButton(label=button.label, custom_id=button.id))
-                elif button_type == ButtonType.PL_POST:
+                elif button.type == ButtonType.PL_POST:
                     view.add_item(PartyLeaderButton(label=button.label, custom_id=button.id))
         return view
 
@@ -161,7 +165,7 @@ class EmbedController:
             if entry.user == user:
                 self._list.remove(entry)
 
-    def load_from_embed(self, user: int, message: Message):
+    def load_from_message(self, user: int, message: Message):
         """Creates runtime embed data with informations from the embed."""
         embed = message.embeds[0]
         self.clear(user)
