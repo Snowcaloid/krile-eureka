@@ -68,7 +68,7 @@ class GuildPings:
         db.connect()
         try:
             db.query(f'insert into pings (guild_id, ping_type, schedule_type, tag) values ({str(self.guild_id)}, {str(ping_type.value)}, \'{event_type}\', {str(tag)})')
-            self.load()
+            self.load(self.guild_id)
         finally:
             db.disconnect()
 
@@ -76,7 +76,7 @@ class GuildPings:
         db = bot.instance.data.db
         db.connect()
         try:
-            for event_base in category.all_events_for_category():
+            for event_base in Event.all_events_for_category(category):
                 self.remove_ping(ping_type, event_base.type(), tag)
         finally:
             db.disconnect()

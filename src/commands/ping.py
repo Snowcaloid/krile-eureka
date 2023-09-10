@@ -18,7 +18,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Commands rega
     @check(PermissionValidator.is_admin)
     async def add_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_valid_event_type_or_category(interaction, type): return
+        if not await InputValidator.RAISING.check_valid_event_type_or_category(interaction, event_type): return
         pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             pings_data.add_ping(GuildPingType(ping_type), event_type, role.id)
@@ -34,7 +34,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Commands rega
     @check(PermissionValidator.is_admin)
     async def remove_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_valid_event_type_or_category(interaction, type): return
+        if not await InputValidator.RAISING.check_valid_event_type_or_category(interaction, event_type): return
         pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             pings_data.remove_ping(GuildPingType(ping_type), event_type, role.id)
@@ -46,8 +46,10 @@ class PingCommands(GroupCog, group_name='ping', group_description='Commands rega
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** {feedback}')
         await default_response(interaction, 'You ' + feedback)
 
+    @add_role.autocomplete('event_type')
+    @remove_role.autocomplete('event_type')
     async def autocomplete_event_type_with_categories(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.event_type_with_categories(interaction, current)
+        return AutoCompleteGenerator.event_type_with_categories(current)
 
     @add_role.autocomplete('ping_type')
     @remove_role.autocomplete('ping_type')
