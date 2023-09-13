@@ -1,19 +1,39 @@
-from discord import Embed, TextChannel
+from discord import Embed, Message, TextChannel
 import bot
 import data.cache.message_cache as cache
 from data.guilds.guild_channel_functions import GuildChannelFunction
+from data.guilds.guild_message_functions import GuildMessageFunction
 
 
 class UIMissedRunsList:
-    """Embed collection with data on all people who have missed runs."""
-    async def rebuild(self, guild_id: int) -> None:
+    async def create(self, guild_id: int, event_category: str) -> None:
         guild_data = bot.instance.data.guilds.get(guild_id)
         if guild_data is None: return
-        channel_data = guild_data.channels.get(GuildChannelFunction.MISSED_POST_CHANNEL)
+        channel_data = guild_data.channels.get(GuildChannelFunction.MISSED_POST_CHANNEL, event_category)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
         if channel is None: return
-        message = await cache.messages.get(guild_data.missed_runs.message_id, channel)
+        message: Message = await channel.send(embed=Embed(description='...'))
+        old_message_data = guild_data.messages.get(GuildMessageFunction.MISSED_RUNS_LIST, event_category)
+        if old_message_data:
+            old_channel = bot.instance.get_channel(old_message_data.channel_id)
+            if old_channel:
+                old_message: Message = await cache.messages.get(old_message_data.message_id, old_channel)
+                if old_message:
+                    await old_message.delete()
+            guild_data.messages.remove(old_message_data.message_id) # TODO: this code is a code duplicate
+        guild_data.messages.add(message.id, channel.id, GuildMessageFunction.MISSED_RUNS_LIST, event_category)
+        await self.rebuild(guild_id, event_category)
+
+    """Embed collection with data on all people who have missed runs."""
+    async def rebuild(self, guild_id: int, event_category: str) -> None:
+        guild_data = bot.instance.data.guilds.get(guild_id)
+        if guild_data is None: return
+        message_data = guild_data.messages.get(GuildMessageFunction.MISSED_RUNS_LIST, event_category)
+        if message_data is None: return
+        channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
+        if channel is None: return
+        message = await cache.messages.get(message_data.message_id, channel)
         if message is None: return
         embeds = []
         embed = Embed(title='List of people with missing runs')

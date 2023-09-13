@@ -32,6 +32,15 @@ class EventCategory(Enum):
         ]
 
     @classmethod
+    def all_category_choices_short(cl) -> List[Choice]:
+        return [
+            Choice(name='Custom run', value=cl.CUSTOM.value),
+            Choice(name='BA', value=cl.BA.value),
+            Choice(name='DRS', value=cl.DRS.value),
+            Choice(name='Bozja', value=cl.BOZJA.value)
+        ]
+
+    @classmethod
     def as_choice(cl, category: Type['EventCategory']) -> Choice:
         return next(choice for choice in cl.all_category_choices() if choice.value == category.value)
 

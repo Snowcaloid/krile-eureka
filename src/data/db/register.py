@@ -1,6 +1,8 @@
 from data.db.channels import ChannelTable
 from data.db.definition import TableDefinitions
 from data.db.buttons import ButtonsTable
+from data.db.guild_messages import GuildMessagesTable
+from data.db.guild_roles import GuildRolesTable
 from data.db.guilds import GuildTable
 from data.db.missed_records import MissedRecordsTable
 from data.db.pings import PingsTable
@@ -18,3 +20,5 @@ class RegisterTables:
         TableDefinitions.register(TaskTable('tasks'))
         TableDefinitions.register(MissedRecordsTable('missed_records'))
         TableDefinitions.register(PingsTable('pings'))
+        TableDefinitions.register(GuildRolesTable('guild_roles'))
+        TableDefinitions.register(GuildMessagesTable('guild_messages'))

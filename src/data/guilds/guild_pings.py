@@ -4,6 +4,8 @@ from typing import List
 
 from data.events.event import Event, EventCategory
 
+# TODO: technically, this could be united with guild_roles
+
 class GuildPingType(Enum):
     NONE = 0
     MAIN_PASSCODE = 1

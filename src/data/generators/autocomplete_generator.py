@@ -8,23 +8,36 @@ from discord.app_commands import Choice
 from data.events.event import EventCategoryCollection, EventCategory
 
 from data.guilds.guild_pings import GuildPingType
+from data.guilds.guild_role_functions import GuildRoleFunction
 from data.ui.buttons import ButtonType
 from data.validation.permission_validator import PermissionValidator
 
 
 class AutoCompleteGenerator:
     @classmethod
-    def filter_by_current(cl, list: List[Choice], current: str):
+    def filter_by_current(cl, list: List[Choice], current: str) -> List[Choice]:
         return [choice for choice in list if choice.name.lower().startswith(current.lower())]
 
     @classmethod
-    def event_type(cl, interaction: Interaction, current: str):
+    def event_type(cl, interaction: Interaction, current: str) -> List[Choice]:
         allow_ba, allow_drs, allow_bozja = PermissionValidator.get_raid_leader_permissions(interaction.user)
         return cl.filter_by_current(EventCategoryCollection.calculate_choices(allow_ba, allow_drs, allow_bozja, True), current)
 
     @classmethod
-    def event_type_with_categories(cl, current: str):
+    def event_type_with_categories(cl, current: str) -> List[Choice]:
         return cl.filter_by_current(EventCategory.all_category_choices() + [event_base.as_choice() for event_base in EventCategoryCollection.ALL_WITH_CUSTOM], current)
+
+    @classmethod
+    def event_categories(cl, current: str) -> List[Choice]:
+        return cl.filter_by_current(EventCategory.all_category_choices(), current)
+
+    @classmethod
+    def event_categories_short(cl, current: str) -> List[Choice]:
+        return cl.filter_by_current(EventCategory.all_category_choices_short(), current)
+
+    @classmethod
+    def guild_role_functions(cl, current: str) -> List[Choice]:
+        return cl.filter_by_current(GuildRoleFunction.all_function_choices(), current)
 
     @classmethod
     def date(cl, current: str) -> List[Choice]:

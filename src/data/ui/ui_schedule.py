@@ -4,6 +4,7 @@ from discord import TextChannel
 from data.events.event import ScheduledEvent
 import data.cache.message_cache as cache
 import bot
+from data.guilds.guild_message_functions import GuildMessageFunction
 from utils import set_default_footer
 
 class DateSeparatedScheduleData:
@@ -30,20 +31,20 @@ class UISchedule:
         return result
 
     async def rebuild(self, guild_id: int) -> None:
-        guild = bot.instance.data.guilds.get(guild_id)
-        if guild is None: return
-        schedule_post = guild.schedule.schedule_post
-        channel: TextChannel = bot.instance.get_channel(schedule_post.channel)
+        guild_data = bot.instance.data.guilds.get(guild_id)
+        if guild_data is None: return
+        message_data = guild_data.messages.get(GuildMessageFunction.SCHEDULE_POST)
+        channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return
-        post = await cache.messages.get(schedule_post.id, channel)
+        post = await cache.messages.get(message_data.message_id, channel)
         if post:
             embed = post.embeds[0]
             embed.title = 'Upcoming Runs'
             embed.set_thumbnail(url=bot.instance.user.avatar.url)
             embed.description = 'Please note times are quoted both in Server Time (ST) and in brackets your Local Time (LT).'
             embed.clear_fields()
-            guild.schedule.all.sort(key=lambda e: e.time)
-            per_date = self.events_per_date(guild.schedule.all)
+            guild_data.schedule.all.sort(key=lambda e: e.time)
+            per_date = self.events_per_date(guild_data.schedule.all)
             for data in per_date:
                 schedule_on_day = ''
                 for event in data._list:
@@ -54,4 +55,4 @@ class UISchedule:
             await post.edit(embed=embed)
             await set_default_footer(post)
         else:
-            raise Exception(f'UISchedule.rebuild failed: Could not find message with ID {schedule_post.id}')
+            raise Exception(f'UISchedule.rebuild failed: Could not find message with ID {message_data.id}')

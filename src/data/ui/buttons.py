@@ -3,6 +3,7 @@ from enum import Enum
 from discord.ui import Button
 from discord import Interaction, Message, Role, Member
 from typing import List
+from data.validation.permission_validator import PermissionValidator
 from logger import guild_log_message
 from utils import default_defer, default_response
 
@@ -98,29 +99,33 @@ class MissedRunButton(BaseButton):
         List of users who already clicked the button
     """
     users: List[int]
+    event_category: str
 
     def __init__(self, **kw):
         super().__init__(**kw)
         self.users = []
+        self.event_category = ''
 
     async def callback(self, interaction: Interaction):
         if str(interaction.message.id) in self.custom_id:
             await default_defer(interaction)
+            if PermissionValidator.allowed_to_react_to_missed_post(interaction.user, self.event_category):
+                return await default_response(interaction, 'You are not eligable for this function.')
             if interaction.user.id in self.users:
                 return await default_response(interaction, 'You have already been noted. This only works once per post.')
             guild_data = bot.instance.data.guilds.get(interaction.guild_id)
             if guild_data is None: return await default_response(interaction, 'Something went wrong.')
-            if guild_data.missed_runs.eligable(interaction.user.id):
+            if guild_data.missed_runs.eligable(interaction.user.id, self.event_category):
                 return await default_response(interaction, (
                     'You already reacted 3 times. You are eligable to contact a raid leader '
                     'shortly before their next run to gain access to an early passcode '
                     'at their discretion.'))
-            if guild_data.missed_runs.member_allowed(interaction.user):
+            if guild_data.missed_runs.member_allowed(interaction.user, self.event_category):
                 return await default_response(interaction, f'Your roles do not allow you to react to this post.')
-            guild_data.missed_runs.inc(interaction.user.id)
+            guild_data.missed_runs.inc(interaction.user.id, self.event_category)
             self.users.append(interaction.user.id)
-            await bot.instance.data.ui.missed_runs_list.rebuild(interaction.guild_id)
-            if guild_data.missed_runs.eligable(interaction.guild_id, interaction.user.id):
+            await bot.instance.data.ui.missed_runs_list.rebuild(interaction.guild_id, self.event_category)
+            if guild_data.missed_runs.eligable(interaction.user.id, self.event_category):
                 return await default_response(interaction, (
                     'You reacted 3 times. You are eligible to contact a raid leader '
                     'shortly before their next run to gain access to an early passcode '
@@ -128,5 +133,5 @@ class MissedRunButton(BaseButton):
                     ))
             return await default_response(interaction, (
                 'You have been noted. You can notify the raid leader in '
-                f'{3-guild_data.missed_runs.get(interaction.user.id).amount} runs.'
+                f'{3-guild_data.missed_runs.get(interaction.user.id, self.event_category).amount} runs.'
             ))

@@ -5,55 +5,23 @@ from data.db.database import pg_timestamp
 from data.events.event import ScheduledEvent
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 
-class GuildSchedulePost:
-    guild_id: int
-    id: int
-    channel: int
-
-    def load(self, guild_id: int) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            self.guild_id = guild_id
-            record = db.query(f'select schedule_post, schedule_channel from guilds where guild_id={guild_id}')
-            if record and record[0]:
-                self.id = record[0][0]
-                self.channel = record[0][1]
-        finally:
-            db.disconnect()
-
-    def set(self, id: int, channel: int) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f'update guilds set schedule_post={id}, schedule_channel={channel} where guild_id={self.guild_id}')
-            self.load(self.guild_id)
-        finally:
-            db.disconnect()
-
 
 class GuildSchedule:
     _list: List[ScheduledEvent] = []
-    schedule_post: GuildSchedulePost
 
     guild_id: int
-
-    def __init__(self):
-        self.schedule_post = GuildSchedulePost()
 
     def load(self, guild_id: int) -> None:
         db = bot.instance.data.db
         db.connect()
         try:
             self.guild_id = guild_id
-            self.schedule_post.load(guild_id)
             self._list.clear()
-            if self.schedule_post.id:
-                records = db.query(f'select id from events where guild_id={self.guild_id} and (not finished or finished is null) and (not canceled or canceled is null)')
-                for record in records:
-                    event = ScheduledEvent()
-                    event.load(record[0])
-                    self._list.append(event)
+            records = db.query(f'select id from events where guild_id={self.guild_id} and (not finished or finished is null) and (not canceled or canceled is null)')
+            for record in records:
+                event = ScheduledEvent()
+                event.load(record[0])
+                self._list.append(event)
         finally:
             db.disconnect()
 

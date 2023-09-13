@@ -1,8 +1,10 @@
 from typing import List
 import bot
 from data.guilds.guild_channel import GuildChannels
+from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_missed_runs import GuildMissedRuns
 from data.guilds.guild_pings import GuildPings
+from data.guilds.guild_roles import GuildRoles
 from data.guilds.guild_schedule import GuildSchedule
 
 
@@ -12,12 +14,16 @@ class Guild:
     channels: GuildChannels
     pings: GuildPings
     missed_runs: GuildMissedRuns
+    roles: GuildRoles
+    messages: GuildMessages
 
     def __init__(self):
         self.schedule = GuildSchedule()
         self.channels = GuildChannels()
         self.pings = GuildPings()
         self.missed_runs = GuildMissedRuns()
+        self.roles = GuildRoles()
+        self.messages = GuildMessages()
 
     def load(self, guild_id: int) -> None:
         db = bot.instance.data.db
@@ -28,6 +34,8 @@ class Guild:
             self.channels.load(guild_id)
             self.pings.load(guild_id)
             self.missed_runs.load(guild_id)
+            self.roles.load(guild_id)
+            self.messages.load(guild_id)
         finally:
             db.disconnect()
 
