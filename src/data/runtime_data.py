@@ -50,4 +50,4 @@ class RuntimeData(ProcessListener):
         self.ready = True
         for guild in bot.instance.guilds:
             guild.fetch_members()
-            self.ui.schedule.rebuild(guild.id)
+            await self.ui.schedule.rebuild(guild.id)

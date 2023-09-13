@@ -49,6 +49,12 @@ class GuildMessages:
                 return message_data
         return None
 
+    def get_by_message_id(self, message_id: int) -> GuildMessage:
+        for message_data in self._list:
+            if message_data.message_id == message_id:
+                return message_data
+        return None
+
     def add(self, message_id: int, channel_id: int, function: GuildMessageFunction, event_type: str = '') -> None:
         db = bot.instance.data.db
         db.connect()

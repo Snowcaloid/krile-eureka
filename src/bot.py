@@ -1,4 +1,4 @@
-from discord import Intents, Member, Object, HTTPException
+from discord import Intents, Member, Message, Object, HTTPException, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, is_owner, Context, Greedy
 from commands.config import ConfigCommands
 from commands.ping import PingCommands
@@ -9,8 +9,6 @@ from commands.schedule import ScheduleCommands
 from commands.missed import MissedCommands
 from commands.log import LogCommands
 from datetime import datetime
-from data.ui.views import PersistentView
-from data.ui.buttons import ButtonType, RoleSelectionButton, PartyLeaderButton
 from typing import Literal, Optional
 from logger import guild_log_message
 from discord.ext import tasks
@@ -71,6 +69,10 @@ async def task_loop(): # You can think of it as sleep(1000) after the last proce
 @instance.event
 async def on_member_join(member: Member):
     await guild_log_message(member.guild.id, f'{member.mention} joined the server.')
+
+@instance.event
+async def on_raw_message_delete(payload: RawMessageDeleteEvent):
+    instance.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
 
 @instance.command()
 @guild_only()

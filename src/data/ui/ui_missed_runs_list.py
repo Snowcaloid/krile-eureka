@@ -18,7 +18,7 @@ class UIMissedRunsList:
         if old_message_data:
             old_channel = bot.instance.get_channel(old_message_data.channel_id)
             if old_channel:
-                old_message: Message = await cache.messages.get(old_message_data.message_id, old_channel)
+                old_message = await cache.messages.get(old_message_data.message_id, old_channel)
                 if old_message:
                     await old_message.delete()
             guild_data.messages.remove(old_message_data.message_id) # TODO: this code is a code duplicate

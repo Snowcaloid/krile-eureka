@@ -23,8 +23,12 @@ class MissedCommands(GroupCog, group_name='missed', group_description='Commands 
         await bot.instance.data.ui.missed_run_post.rebuild(interaction.guild_id, message, event_category)
         bot.instance.data.tasks.add_task(
             datetime.utcnow() + timedelta(minutes=10),
-            TaskExecutionType.REMOVE_MISSED_RUN_POST,
-            {"guild": interaction.guild_id, "channel": interaction.channel.id, "message": message.id})
+            TaskExecutionType.REMOVE_OLD_MESSAGE,
+            {"guild": interaction.guild_id, "message_id": message.id})
+        bot.instance.data.tasks.add_task(
+            datetime.utcnow() + timedelta(minutes=10),
+            TaskExecutionType.UPDATE_MISSED_RUNS_LIST,
+            {"guild": interaction.guild_id, "event_category": event_category})
         await default_response(interaction, 'Posted.')
 
     @command(name='accept', description='Accept early passcode request.')

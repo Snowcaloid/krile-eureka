@@ -17,18 +17,17 @@ def button_custom_id(id: str, message: Message, type: ButtonType) -> str:
     """Generate custom_id for a button."""
     return f'{message.id}-{type.value}-{id}'
 
-class BaseButton(Button):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if bot.instance.data.ready:
-            db = bot.instance.data.db
-            db.connect()
-            try:
-                db.query(f'insert into buttons values (\'{self.custom_id}\', \'{self.label}\')')
-            finally:
-                db.disconnect()
+def save_buttons(message: Message):
+    if bot.instance.data.ready:
+        db = bot.instance.data.db
+        db.connect()
+        try:
+            for item in message.components:
+                db.query(f'insert into buttons (button_id, message_id, label) values (\'{item.custom_id}\', {message.id}, \'{item.label}\')')
+        finally:
+            db.disconnect()
 
-class RoleSelectionButton(BaseButton):
+class RoleSelectionButton(Button):
     """Buttons, which add or remove a role from the user who interacts with them"""
     async def callback(self, interaction: Interaction):
         if str(interaction.message.id) in self.custom_id:
@@ -48,7 +47,7 @@ class RoleSelectionButton(BaseButton):
                     await default_response(interaction, f'You have been granted the role {role.name}')
 
 
-class PartyLeaderButton(BaseButton):
+class PartyLeaderButton(Button):
     """Buttons, which the intaracting user uses to add or remove themself
     from party leader position of a run."""
     async def callback(self, interaction: Interaction):
@@ -90,7 +89,7 @@ class PartyLeaderButton(BaseButton):
                 await default_response(interaction, 'This run is already over.')
 
 
-class MissedRunButton(BaseButton):
+class MissedRunButton(Button):
     """Buttons, which add missed run data.
 
     Properties
@@ -124,7 +123,6 @@ class MissedRunButton(BaseButton):
                 return await default_response(interaction, f'Your roles do not allow you to react to this post.')
             guild_data.missed_runs.inc(interaction.user.id, self.event_category)
             self.users.append(interaction.user.id)
-            await bot.instance.data.ui.missed_runs_list.rebuild(interaction.guild_id, self.event_category)
             if guild_data.missed_runs.eligable(interaction.user.id, self.event_category):
                 return await default_response(interaction, (
                     'You reacted 3 times. You are eligible to contact a raid leader '

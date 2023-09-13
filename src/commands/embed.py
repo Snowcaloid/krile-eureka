@@ -1,3 +1,4 @@
+from datetime import datetime
 import bot
 import data.cache.message_cache as cache
 from typing import Optional
@@ -5,7 +6,8 @@ from discord.ext.commands import GroupCog
 from discord import Interaction, TextChannel
 from discord.app_commands import check, command
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.ui.buttons import ButtonType
+from data.tasks.tasks import TaskExecutionType
+from data.ui.buttons import ButtonType, save_buttons
 from data.runtime_processes import RunTimeProcessType
 from data.validation.input_validator import InputValidator
 from data.validation.process_validator import ProcessValidator
@@ -74,6 +76,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         channel = interaction.channel if channel is None else channel
         message = await channel.send(embed=embed_data.create_embed(False))
         await message.edit(view=embed_data.create_view(False, message))
+        save_buttons(message)
         await set_default_footer(message)
         await default_response(interaction, f'A message has been sent: {message.jump_url}.')
         bot.instance.data.processes.stop(interaction.user.id, RunTimeProcessType.EMBED_CREATION)
@@ -87,8 +90,10 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         if not await InputValidator.RAISING.check_message_author_is_self(interaction, channel, message_id): return
         embed_data = bot.instance.data.embed_controller.get(interaction.user.id)
         message = await cache.messages.get(message_id, channel)
+        bot.instance.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": message_id})
         await message.edit(embed=embed_data.create_embed(False),
                            view=embed_data.create_view(False, message))
+        save_buttons(message)
         await set_default_footer(message)
         await default_response(interaction, f'The message embed has been replaced: {message.jump_url}.')
         bot.instance.data.processes.stop(interaction.user.id, RunTimeProcessType.EMBED_CREATION)

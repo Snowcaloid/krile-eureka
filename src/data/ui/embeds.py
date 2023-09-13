@@ -182,17 +182,3 @@ class EmbedController:
             for button in view.children:
                 if isinstance(button, Button):
                     entry.add_button(button.label)
-
-    def save(self, user: int):
-        """Saves the created buttons to the database.
-        Args:
-            user (int): querying user id
-        """
-        if self.get(user).buttons:
-            bot.instance.data.db.connect()
-            try:
-                for button in self.get(user).buttons:
-                    if not bot.instance.data.db.query(f'select button_id from buttons where button_id=\'{button.id}\''):
-                        bot.instance.data.db.query(f'insert into buttons values (\'{button.id}\', \'{button.label}\')')
-            finally:
-                bot.instance.data.db.disconnect()

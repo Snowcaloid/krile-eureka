@@ -1,11 +1,12 @@
-from discord import Embed, TextChannel
+from datetime import datetime
+from discord import Embed, Message, TextChannel
 from data.guilds.guild_channel import GuildChannel
 from data.guilds.guild_pings import GuildPingType
 import data.cache.message_cache as cache
 import bot
 from data.events.event import EventCategory
 from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.ui.buttons import ButtonType, PartyLeaderButton, button_custom_id
+from data.ui.buttons import ButtonType, PartyLeaderButton, button_custom_id, save_buttons
 from data.ui.views import PersistentView
 from utils import set_default_footer
 
@@ -29,12 +30,13 @@ class UIPLPost:
                 view.add_item(PartyLeaderButton(
                     label=label,
                     custom_id=button_custom_id(f'pl{i}', message, ButtonType.PL_POST), row=1 if i < 4 else 2))
-        await self.rebuild(guild_id, id, view)
+        message = await self.rebuild(guild_id, id, view)
+        save_buttons(message)
         if event.use_pl_post_thread:
             await message.create_thread(name=event.pl_post_thread_title)
 
 
-    async def rebuild(self, guild_id: int, id: int, view: PersistentView = None) -> None:
+    async def rebuild(self, guild_id: int, id: int, view: PersistentView = None) -> Message:
         guild_data = bot.instance.data.guilds.get(guild_id)
         event = guild_data.schedule.get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_pl_posts: return
@@ -49,6 +51,7 @@ class UIPLPost:
         else:
             message = await message.edit(embed=embed)
         await set_default_footer(message)
+        return message
 
 
     async def remove(self, guild_id: int, event_id: int) -> GuildChannel:

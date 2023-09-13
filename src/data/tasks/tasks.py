@@ -14,11 +14,11 @@ class TaskExecutionType(Enum):
     UPDATE_STATUS = 1
     SEND_PL_PASSCODES = 2
     REMOVE_OLD_RUNS = 3
-    REMOVE_OLD_PL_POSTS = 4
+    REMOVE_OLD_MESSAGE = 4
     POST_MAIN_PASSCODE = 5
     POST_SUPPORT_PASSCODE = 6
-    REMOVE_MISSED_RUN_POST = 7
-
+    UPDATE_MISSED_RUNS_LIST = 7
+    REMOVE_BUTTONS = 8
 
 class TaskBase:
     _registered_tasks: List[Type['TaskBase']] = []
