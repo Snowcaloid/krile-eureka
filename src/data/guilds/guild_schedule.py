@@ -46,7 +46,6 @@ class GuildSchedule:
             ))
             self.load(self.guild_id)
             result = self.get(id)
-            result.create_tasks()
             return result
         finally:
             db.disconnect()

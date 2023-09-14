@@ -1,6 +1,7 @@
 from datetime import datetime
 from discord import Embed, Message, TextChannel
 from data.guilds.guild_channel import GuildChannel
+from data.guilds.guild_message_functions import GuildMessageFunction
 from data.guilds.guild_pings import GuildPingType
 import data.cache.message_cache as cache
 import bot
@@ -31,6 +32,7 @@ class UIPLPost:
                     label=label,
                     custom_id=button_custom_id(f'pl{i}', message, ButtonType.PL_POST), row=1 if i < 4 else 2))
         message = await self.rebuild(guild_id, id, view)
+        guild_data.messages.add(message.id, channel.id, GuildMessageFunction.PL_POST)
         save_buttons(message)
         if event.use_pl_post_thread:
             await message.create_thread(name=event.pl_post_thread_title)

@@ -22,8 +22,9 @@ def save_buttons(message: Message):
         db = bot.instance.data.db
         db.connect()
         try:
-            for item in message.components:
-                db.query(f'insert into buttons (button_id, message_id, label) values (\'{item.custom_id}\', {message.id}, \'{item.label}\')')
+            for action_row in message.components:
+                for item in action_row.children:
+                    db.query(f'insert into buttons (button_id, message_id, label) values (\'{item.custom_id}\', {message.id}, \'{item.label}\')')
         finally:
             db.disconnect()
 
