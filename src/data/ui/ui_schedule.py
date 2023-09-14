@@ -34,6 +34,7 @@ class UISchedule:
         guild_data = bot.instance.data.guilds.get(guild_id)
         if guild_data is None: return
         message_data = guild_data.messages.get(GuildMessageFunction.SCHEDULE_POST)
+        if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return
         post = await cache.messages.get(message_data.message_id, channel)

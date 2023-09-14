@@ -115,3 +115,6 @@ bot-env/
 # Visual Studio Code project settings folder
 .vscode
 *.code-workspace
+
+# secret files
+*.secret

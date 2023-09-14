@@ -1,0 +1,72 @@
+version: '3'
+services:
+  db_production:
+    container_name: db-production-container
+    image: postgres
+    environment:
+      POSTGRES_DB: production
+      POSTGRES_PASSWORD: ${DB_PASS}
+    env_file:
+      - .env
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_production:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 1s
+      retries: 5
+  db_develop:
+    container_name: db-develop-container
+    image: postgres
+    environment:
+      POSTGRES_DB: develop
+      POSTGRES_PASSWORD: ${DB_PASS}
+    env_file:
+      - .env
+    ports:
+      - '5433:5432'
+    volumes:
+      - db_develop:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 1s
+      retries: 5
+  pgadmin:
+    container_name: pgadmin-container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PG_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PG_PASS}
+    env_file:
+      - .env
+    ports:
+      - "5050:80"
+    depends_on:
+      - db_production
+      - db_develop
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+  krile:
+    container_name: krile-container
+    restart: unless-stopped
+    environment:
+      DB_NAME: production
+      DB_HOST: db_production
+      DB_PORT: 5432
+    depends_on:
+      - db_production
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    links:
+      - db_production
+volumes:
+  db_production:
+  db_develop:
+  pgadmin_data:
