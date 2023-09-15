@@ -27,7 +27,6 @@ class RuntimeData(ProcessListener):
 
     def on_finish_process(self, user: int, type: RunTimeProcessType) -> None:
         if type == RunTimeProcessType.EMBED_CREATION:
-            self.embed_controller.save(user)
             self.embed_controller.clear(user)
 
     def ensure_database_tables(self):

@@ -22,14 +22,14 @@ class Task_SendPLPasscodes(TaskBase):
                     user = event.users.party_leaders[i]
                     if user and user != event.users.raid_leader:
                         member = guild.get_member(user)
-                        await member.send(Embed(
+                        await member.send(embed=Embed(
                             title=event.dm_title,
                             description=event.party_leader_dm_text(i)
                         ))
                 if event.use_support:
                     member = guild.get_member(event.users.party_leaders[6])
                     if member:
-                        await member.send(Embed(
+                        await member.send(embed=Embed(
                             title=event.dm_title,
                             description=event.support_party_leader_dm_text
                         ))
