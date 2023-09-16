@@ -6,6 +6,8 @@ RUN pip install -U -r requirements.txt
 # Install project dependencies
 WORKDIR /src
 
+RUN rm -rf src
+
 # Copy the source code in last to optimize rebuilding the image
 COPY . .
 
