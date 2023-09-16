@@ -45,16 +45,6 @@ class GuildMissedRuns:
         record = self.get(user, event_category)
         return not record is None and record.amount >= 3
 
-    def member_allowed(self, member: Member, event_category: str) -> bool:
-        roles_data = bot.instance.data.guilds.get(self.guild_id).roles
-        for role in member.roles:
-            if role.id in [role_data.role_id for role_data in roles_data.get(GuildRoleFunction.ALLOW_MISSED_RUN_APPLICATION, event_category)]:
-                return False
-        for role in member.roles:
-            if role.id in [role_data.role_id for role_data in roles_data.get(GuildRoleFunction.FORBID_MISSED_RUN_APPLICATION, event_category)]:
-                return True
-        return False
-
     def inc(self, user: int, event_category: str) -> None:
         db = bot.instance.data.db
         db.connect()

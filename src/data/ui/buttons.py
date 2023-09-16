@@ -109,7 +109,7 @@ class MissedRunButton(Button):
     async def callback(self, interaction: Interaction):
         if str(interaction.message.id) in self.custom_id:
             await default_defer(interaction)
-            if PermissionValidator.allowed_to_react_to_missed_post(interaction.user, self.event_category):
+            if not PermissionValidator.allowed_to_react_to_missed_post(interaction.user, self.event_category):
                 return await default_response(interaction, 'You are not eligable for this function.')
             if interaction.user.id in self.users:
                 return await default_response(interaction, 'You have already been noted. This only works once per post.')
@@ -120,8 +120,6 @@ class MissedRunButton(Button):
                     'You already reacted 3 times. You are eligable to contact a raid leader '
                     'shortly before their next run to gain access to an early passcode '
                     'at their discretion.'))
-            if guild_data.missed_runs.member_allowed(interaction.user, self.event_category):
-                return await default_response(interaction, f'Your roles do not allow you to react to this post.')
             guild_data.missed_runs.inc(interaction.user.id, self.event_category)
             self.users.append(interaction.user.id)
             if guild_data.missed_runs.eligable(interaction.user.id, self.event_category):
