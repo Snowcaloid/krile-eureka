@@ -7,29 +7,36 @@ from data.guilds.guild_role_functions import GuildRoleFunction
 
 class PermissionValidator:
     @classmethod
-    def is_developer(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
-        rolename = os.getenv('ROLE_DEVELOPER').lower()
-        for role in interaction.user.roles:
-            if rolename in role.name.lower():
-                return True
+    def is_in_guild(cl, interaction: Union[Interaction, InteractionResponse]) -> bool:
+        return not interaction.guild is None
+
+    @classmethod
+    def is_developer(cl, interaction: Union[Interaction, InteractionResponse]) -> bool:
+        if cl.is_in_guild(interaction):
+            rolename = os.getenv('ROLE_DEVELOPER').lower()
+            for role in interaction.user.roles:
+                if rolename in role.name.lower():
+                    return True
         return False
 
     @classmethod
-    def is_admin(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
-        for role in interaction.user.roles:
-            if role.permissions.administrator or role.name.lower() == os.getenv('ROLE_ADMIN').lower():
-                return True
-        return self.is_developer(interaction)
+    def is_admin(cl, interaction: Union[Interaction, InteractionResponse]) -> bool:
+        if cl.is_in_guild(interaction):
+            for role in interaction.user.roles:
+                if role.permissions.administrator or role.name.lower() == os.getenv('ROLE_ADMIN').lower():
+                    return True
+        return cl.is_developer(interaction)
 
     @classmethod
-    def is_raid_leader(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
-        for role in interaction.user.roles:
-            if 'raid lead' in role.name.lower():
-                return True
-        return self.is_admin(interaction)
+    def is_raid_leader(cl, interaction: Union[Interaction, InteractionResponse]) -> bool:
+        if cl.is_in_guild(interaction):
+            for role in interaction.user.roles:
+                if 'raid lead' in role.name.lower():
+                    return True
+        return cl.is_admin(interaction)
 
     @classmethod
-    def get_raid_leader_permissions(self, member: Member) -> Tuple[bool, bool, bool]:
+    def get_raid_leader_permissions(cl, member: Member) -> Tuple[bool, bool, bool]:
         allow_ba = False
         allow_drs = False
         allow_bozja = False
@@ -45,7 +52,7 @@ class PermissionValidator:
         return allow_ba, allow_drs, allow_bozja
 
     @classmethod
-    def allowed_to_react_to_missed_post(self, member: Member, event_category: str) -> bool:
+    def allowed_to_react_to_missed_post(cl, member: Member, event_category: str) -> bool:
         guild_roles = bot.instance.data.guilds.get(member.guild.id).roles
         allowed_roles = guild_roles.get(GuildRoleFunction.ALLOW_MISSED_RUN_APPLICATION, event_category)
         forbidden_roles = guild_roles.get(GuildRoleFunction.FORBID_MISSED_RUN_APPLICATION, event_category)
