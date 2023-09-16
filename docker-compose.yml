@@ -2,7 +2,7 @@ version: '3.8'
 services:
   db_production:
     container_name: db-production-container
-    image: postgres
+    image: postgres:15
     environment:
       POSTGRES_DB: production
       POSTGRES_PASSWORD: ${DB_PASS}
@@ -19,7 +19,7 @@ services:
       retries: 5
   db_develop:
     container_name: db-develop-container
-    image: postgres
+    image: postgres:15
     environment:
       POSTGRES_DB: develop
       POSTGRES_PASSWORD: ${DB_PASS}
