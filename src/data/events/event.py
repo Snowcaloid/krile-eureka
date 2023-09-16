@@ -206,10 +206,13 @@ class ScheduledEvent:
     _pl_post_id: int
     _time: datetime
     guild_id: int
-    users: ScheduledEventUserData = ScheduledEventUserData()
+    users: ScheduledEventUserData
     passcode_main: int
     passcode_supp: int
     _description: str
+
+    def __init__(self):
+        self.users = ScheduledEventUserData()
 
     def load(self, id: int) -> None:
         db = bot.instance.data.db
