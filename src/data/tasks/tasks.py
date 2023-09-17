@@ -40,7 +40,7 @@ class TaskBase:
     def runtime_only(cl) -> bool: return False
 
     @abstractclassmethod
-    async def execute(cl, obj: object) -> None: pass
+    async def internal_execute(cl, obj: object) -> None: pass
 
     @classmethod
     def by_type(cl, task_type: TaskExecutionType) -> Type['TaskBase']:
@@ -52,6 +52,10 @@ class Task:
     id: int
     time: datetime
     data: object
+    list: Type['Tasks']
+
+    def __init__(self, list: Type['Tasks']) -> None:
+        self.list = list
 
     def load(self, id: int) -> None:
         db = bot.instance.data.db
@@ -78,14 +82,18 @@ class Task:
         return self.base.runtime_only()
 
     async def execute(self) -> None:
+        self.list.executing = True
         try:
             await self.base.execute(self.data)
         except Exception as e:
             self.base.handle_exception(e, self.data)
+        finally:
+            self.list.executing = False
 
 class Tasks:
     _list: List[Task] = []
     _runtime_tasks: List[Task] = []
+    executing: bool = False
 
     def load(self):
         db = bot.instance.data.db
@@ -94,7 +102,7 @@ class Tasks:
             self._list.clear()
             records = db.query('select id from tasks order by execution_time')
             for record in records:
-                task = Task()
+                task = Task(self)
                 task.load(record[0])
                 self._list.append(task)
         finally:

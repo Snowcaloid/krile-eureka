@@ -61,6 +61,7 @@ async def task_loop(): # You can think of it as sleep(1000) after the last proce
     if instance.data.ready and instance.ws:
         task = instance.data.tasks.get_next()
         if task is None: return
+        if instance.data.tasks.executing: return
         try:
             await task.execute()
         finally:
