@@ -41,7 +41,7 @@ class UIMissedRunsList:
         i = 0
         description = ''
         guild = bot.instance.get_guild(guild_id)
-        for missed_data in guild_data.missed_runs.all:
+        for missed_data in guild_data.missed_runs.all_for_category(event_category):
             i += 1
             if i % 150 == 0:
                 embed.description = description.strip()

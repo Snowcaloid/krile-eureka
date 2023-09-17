@@ -35,6 +35,9 @@ class GuildMissedRuns:
     def all(self) -> List[GuildMissedRunRecord]:
         return self._list
 
+    def all_for_category(self, event_category: str) -> List[GuildMissedRunRecord]:
+        return [record for record in self.all if record.event_category == event_category]
+
     def get(self, user: int, event_category: str) -> GuildMissedRunRecord:
         for record in self._list:
             if record.user == user and record.event_category == event_category:
