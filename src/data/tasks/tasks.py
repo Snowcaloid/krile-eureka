@@ -113,7 +113,7 @@ class Tasks:
 
     def add_task(self, time: datetime, task_type: TaskExecutionType, data: object = None) -> None:
         if TaskBase.by_type(task_type).runtime_only():
-            task = Task()
+            task = Task(self)
             task.time = time
             task.data = data
             for task_base in TaskBase._registered_tasks:
