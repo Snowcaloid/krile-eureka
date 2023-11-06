@@ -54,7 +54,7 @@ services:
     container_name: krile-container
     restart: unless-stopped
     environment:
-      DISCORD_TOKEN: ${SNOWCALOID_TOKEN}
+      DISCORD_TOKEN: ${KRILE_TOKEN}
       DB_NAME: production
       DB_HOST: db_production
       DB_PORT: 5432
