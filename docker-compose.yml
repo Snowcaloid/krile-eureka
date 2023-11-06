@@ -11,7 +11,7 @@ services:
     volumes:
       - /volume1/docker/docker-volumes/brozma-db-production-container:/var/lib/postgresql/data
     env_file:
-      - stack.env
+      - .env
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 2s
@@ -28,7 +28,7 @@ services:
     volumes:
       - /volume1/docker/docker-volumes/brozma-db-develop-container:/var/lib/postgresql/data
     env_file:
-      - stack.env
+      - .env
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 2s
@@ -49,19 +49,19 @@ services:
     volumes:
       - /volume1/docker/docker-volumes/brozma-pgadmin-container:/var/lib/pgadmin
     env_file:
-      - stack.env
+      - .env
   krile:
     container_name: krile-container
     restart: unless-stopped
     environment:
       DISCORD_TOKEN: ${SNOWCALOID_TOKEN}
-      DB_NAME: develop
-      DB_HOST: db_develop
+      DB_NAME: production
+      DB_HOST: db_production
       DB_PORT: 5432
     depends_on:
       - db_develop
     env_file:
-      - stack.env
+      - .env
     build:
       context: .
       dockerfile: Dockerfile
