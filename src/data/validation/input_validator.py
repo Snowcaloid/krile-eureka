@@ -83,13 +83,13 @@ class InputValidator:
         return result
 
     async def check_embed_contains_field(self, interaction: Interaction, field_id: int) -> bool:
-        result = bot.instance.data.embed_controller.get(interaction.user.id).field_exists(id)
+        result = bot.instance.data.embed_controller.get(interaction.user.id).field_exists(field_id)
         if self == InputValidator.RAISING and not result:
             return await default_response(interaction, f'Field #{str(field_id)} doesn\'t exist yet.')
         return result
 
     async def check_embed_contains_button(self, interaction: Interaction, label: str) -> bool:
-        result = bot.instance.data.embed_controller.get(interaction.user.id).button_exists(id)
+        result = bot.instance.data.embed_controller.get(interaction.user.id).button_exists(label)
         if self == InputValidator.RAISING and not result:
             return await default_response(interaction, f'Button #{label} doesn\'t exist yet.')
         return result
