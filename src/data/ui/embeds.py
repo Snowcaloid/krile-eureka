@@ -1,5 +1,6 @@
 import bot
 from typing import List
+from re import search
 
 from discord import Embed, Message
 from discord.ui import Button
@@ -181,4 +182,10 @@ class EmbedController:
         if view:
             for button in view.children:
                 if isinstance(button, Button):
-                    entry.add_button(button.label)
+                    type_match = search(r'(@[^@]+@)', button.custom_id)
+                    if type_match:
+                        button_type = ButtonType(type_match.group(1))
+                    else:
+                        button_type = ButtonType.ROLE_SELECTION
+
+                    entry.add_button(button.label, button_type)
