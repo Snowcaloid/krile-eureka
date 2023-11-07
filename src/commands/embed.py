@@ -90,7 +90,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         if not await InputValidator.RAISING.check_message_author_is_self(interaction, channel, message_id): return
         embed_data = bot.instance.data.embed_controller.get(interaction.user.id)
         message = await cache.messages.get(message_id, channel)
-        bot.instance.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": message_id})
+        bot.instance.data.ui.view.delete(message_id)
         await message.edit(embed=embed_data.create_embed(False),
                            view=embed_data.create_view(False, message))
         save_buttons(message)
