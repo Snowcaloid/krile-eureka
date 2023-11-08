@@ -14,7 +14,7 @@ from data.tasks.tasks import TaskExecutionType
 
 from utils import DiscordTimestampType, get_discord_member, get_discord_timestamp
 
-PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'p16', 'pls']
+PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 
 class EventCategory(Enum):
     CUSTOM = 'CUSTOM_CATEGORY'
