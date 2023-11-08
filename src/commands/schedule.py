@@ -43,6 +43,8 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if not await InputValidator.RAISING.check_run_exists(interaction, event_id): return
         if not await InputValidator.RAISING.check_allowed_to_change_run(interaction, event_id): return
         bot.instance.data.guilds.get(interaction.guild_id).schedule.cancel(event_id)
+        await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
+        await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         await default_response(interaction, f'Run #{event_id} has been cenceled.')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has canceled the run #{event_id}.')
 
