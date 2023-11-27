@@ -89,9 +89,9 @@ class EmbedEntry:
                     button.type = button_type
                 break
 
-    def insert_button(self, label_at_position: str, label: str, button_type: ButtonType):
+    def insert_button(self, position: int, label: str, button_type: ButtonType):
         for button in self.buttons:
-            if button.label.lower() == label_at_position.lower():
+            if self.buttons.index(button) == position:
                 self.buttons.insert(self.buttons.index(button), EmbedButtonData(label, button_type))
                 break
 
