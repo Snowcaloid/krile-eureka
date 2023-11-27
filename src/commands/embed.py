@@ -235,12 +235,15 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
     @description_add.error
     @description_add_blank.error
     @description_edit.error
+    @description_insert.error
     @description_remove.error
     @field_add.error
     @field_edit.error
+    @field_insert.error
     @field_remove.error
     @button_add.error
     @button_edit.error
+    @button_insert.error
     @button_remove.error
     async def handle_error(self, interaction: Interaction, error):
         print(error)
