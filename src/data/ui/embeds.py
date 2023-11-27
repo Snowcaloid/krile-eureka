@@ -65,7 +65,7 @@ class EmbedEntry:
             self.fields.insert(id, field)
             field["id"] = id
             for fld in self.fields:
-                if fld["id"] >= id:
+                if fld["id"] >= id and fld != field:
                     fld["id"] = fld["id"] + 1
 
     def remove_field(self, id: int):
