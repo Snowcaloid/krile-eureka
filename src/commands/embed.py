@@ -91,8 +91,8 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         embed_data = bot.instance.data.embed_controller.get(interaction.user.id)
         message = await cache.messages.get(message_id, channel)
         bot.instance.data.ui.view.delete(message_id)
-        await message.edit(embed=embed_data.create_embed(False),
-                           view=embed_data.create_view(False, message))
+        await message.edit(view=embed_data.create_view(False, message))
+        await message.edit(embed=embed_data.create_embed(False))
         save_buttons(message)
         await set_default_footer(message)
         await default_response(interaction, f'The message embed has been replaced: {message.jump_url}.')
