@@ -126,7 +126,7 @@ class Event:
 
     @classmethod
     def dm_title(cl, time: datetime) -> str:
-        return f'{time.strftime(f"%A, %d-%b-%y %H-%M ST {cl.description()} passcode notification")}'
+        return f'{time.strftime(f"Students of Baldesion %A, %d-%b-%y %H-%M ST {cl.description()} passcode notification")}'
 
     @classmethod
     def as_choice(cl) -> Choice:

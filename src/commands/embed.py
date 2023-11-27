@@ -124,6 +124,14 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         bot.instance.data.embed_controller.get(interaction.user.id).edit_desc_line(id, description)
         await self.debug_followup(interaction)
 
+    @command(name = "description_insert", description = "Insert description line at position in the embed.")
+    @check(PermissionValidator.is_admin)
+    async def description_insert(self, interaction: Interaction, id: int, description: str):
+        await default_defer(interaction)
+        if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.EMBED_CREATION): return
+        bot.instance.data.embed_controller.get(interaction.user.id).insert_desc_line(id, description)
+        await self.debug_followup(interaction)
+
     @command(name = "description_remove", description = "Remove description from the embed.")
     @check(PermissionValidator.is_admin)
     async def description_remove(self, interaction: Interaction, id: int):
@@ -149,6 +157,15 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.EMBED_CREATION): return
         if not await InputValidator.RAISING.check_embed_contains_field(interaction, id): return
         bot.instance.data.embed_controller.get(interaction.user.id).edit_field({"title": title, "desc": description, "id": id})
+        await self.debug_followup(interaction)
+
+    @command(name = "field_insert", description = "Insert a field at position in the embed.")
+    @check(PermissionValidator.is_admin)
+    async def field_insert(self, interaction: Interaction, id: int, title: str, description: str):
+        await default_defer(interaction)
+        if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.EMBED_CREATION): return
+        if not await InputValidator.RAISING.check_embed_contains_field(interaction, id): return
+        bot.instance.data.embed_controller.get(interaction.user.id).insert_field(id, {"title": title, "desc": description, "id": id})
         await self.debug_followup(interaction)
 
     @command(name = "field_remove", description = "Remove a field from the embed.")
@@ -182,6 +199,17 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         if not await InputValidator.RAISING.check_valid_button_type(interaction, button_type): return
         if button_type: button_type = ButtonType(button_type)
         bot.instance.data.embed_controller.get(interaction.user.id).edit_button(label, new_label, button_type)
+        await self.debug_followup(interaction)
+
+    @command(name = "button_insert", description = "Insert button at position of the embed.")
+    @check(PermissionValidator.is_admin)
+    async def button_insert(self, interaction: Interaction, position: int, label: str, button_type: str):
+        await default_defer(interaction)
+        if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.EMBED_CREATION): return
+        if not await InputValidator.RAISING.check_valid_button_type(interaction, button_type): return
+        if not await InputValidator.RAISING.check_button_position_in_range(interaction, position): return
+        if button_type: button_type = ButtonType(button_type)
+        bot.instance.data.embed_controller.get(interaction.user.id).insert_button(position, label, button_type)
         await self.debug_followup(interaction)
 
     @command(name = "button_remove", description = "Removes role button from the embed.")

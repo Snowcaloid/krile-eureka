@@ -19,7 +19,6 @@ class EmbedButtonData:
 
 class EmbedEntry:
     """Helper class for embed entries."""
-    _id_counter: int
 
     user: int
     message: Message
@@ -36,7 +35,6 @@ class EmbedEntry:
         self.title = 'Use /embed title to change the title'
         self.desc_lines = []
         self.fields = []
-        self._id_counter = 0
         self.image = ''
         self.thumbnail = ''
         self.buttons = []
@@ -47,24 +45,36 @@ class EmbedEntry:
     def edit_desc_line(self, line: int, desc: str):
         self.desc_lines[line] = desc
 
+    def insert_desc_line(self, line: int, desc: str):
+        self.desc_lines.insert(line, desc)
+
     def remove_desc_line(self, line: int):
         if line < len(self.desc_lines):
             self.desc_lines.remove(self.desc_lines[line])
 
     def add_field(self, field: object):
-        field["id"] = self._id_counter
-        self._id_counter += 1
         self.fields.append(field)
+        field["id"] = self.fields.index(field)
 
     def edit_field(self, id: int, field: object):
-        for fld in self.fields:
-            if fld["id"] == id:
-                self.fields[self.fields.index(fld)] = field
+        if id < len(self.fields):
+            self.fields[id] = field
+
+    def insert_field(self, id: int, field: object):
+        if id < len(self.fields):
+            self.fields.insert(id, field)
+            field["id"] = id
+            for fld in self.fields:
+                if fld["id"] >= id:
+                    fld["id"] = fld["id"] + 1
 
     def remove_field(self, id: int):
         for field in self.fields:
             if field["id"] == id:
                 self.fields.remove(field)
+                for fld in self.fields:
+                    if fld["id"] >= id:
+                        fld["id"] = fld["id"] - 1
                 break
 
     def add_button(self, label: str, button_type: ButtonType):
@@ -77,6 +87,13 @@ class EmbedEntry:
                     button.label = newlabel
                 if button_type:
                     button.type = button_type
+                break
+
+    def insert_button(self, label_at_position: str, label: str, button_type: ButtonType):
+        for button in self.buttons:
+            if button.label.lower() == label_at_position.lower():
+                self.buttons.insert(self.buttons.index(button), EmbedButtonData(label, button_type))
+                break
 
     def remove_button(self, label: str):
         for button in self.buttons:

@@ -42,7 +42,11 @@ class UISchedule:
             embed = post.embeds[0]
             embed.title = 'Upcoming Runs'
             embed.set_thumbnail(url=bot.instance.user.avatar.url)
-            embed.description = 'Please note times are quoted both in Server Time (ST) and in brackets your Local Time (LT).'
+            embed.description = (
+                'Please note times are quoted both in Server Time (ST) and in brackets your Local Time (LT).\n'
+                'The runs are free-for-all, no signups. Passcodes are posted 30 minutes prior to the run.\n'
+                'Just join via the private party finder in Adventuring Forays tab whenever the passcodes are posted.'
+            )
             embed.clear_fields()
             guild_data.schedule.all.sort(key=lambda e: e.time)
             per_date = self.events_per_date(guild_data.schedule.all)
