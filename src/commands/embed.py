@@ -6,7 +6,6 @@ from discord.ext.commands import GroupCog
 from discord import Interaction, TextChannel
 from discord.app_commands import check, command
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.tasks.tasks import TaskExecutionType
 from data.ui.buttons import ButtonType, save_buttons
 from data.runtime_processes import RunTimeProcessType
 from data.validation.input_validator import InputValidator
@@ -91,10 +90,9 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         embed_data = bot.instance.data.embed_controller.get(interaction.user.id)
         message = await cache.messages.get(message_id, channel)
         bot.instance.data.ui.view.delete(message_id)
-        await message.edit(embed=embed_data.create_embed(False),
-                           view=embed_data.create_view(False, message))
+        message = await message.edit(embed=embed_data.create_embed(False),
+                                     view=embed_data.create_view(False, message))
         save_buttons(message)
-        message = await channel.fetch_message(message.id)
         await set_default_footer(message)
         await default_response(interaction, f'The message embed has been replaced: {message.jump_url}.')
         bot.instance.data.processes.stop(interaction.user.id, RunTimeProcessType.EMBED_CREATION)

@@ -1,6 +1,7 @@
 from discord import Intents, Member, Message, Object, HTTPException, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, is_owner, Context, Greedy
 from commands.config import ConfigCommands
+from commands.copy import CopyCommands
 from commands.ping import PingCommands
 from data.runtime_data import RuntimeData
 from data.tasks.tasks import TaskExecutionType
@@ -49,6 +50,7 @@ class Krile(Bot):
         await self.add_cog(LogCommands())
         await self.add_cog(PingCommands())
         await self.add_cog(ConfigCommands())
+        await self.add_cog(CopyCommands())
         if not task_loop.is_running():
             task_loop.start()
 

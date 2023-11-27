@@ -5,6 +5,7 @@ from typing import List
 class RunTimeProcessType(Enum):
     NONE = 0
     EMBED_CREATION = 1
+    COPYING_MESSAGE = 2
 
 class RunningProcessRecord:
     user: int

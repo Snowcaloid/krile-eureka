@@ -7,11 +7,13 @@ from data.db.database import Database
 from data.db.definition import TableDefinitions
 from data.tasks.tasks import Tasks
 from data.ui.ui import UI
+from data.ui.copied_messages import MessageCopyController
 
 class RuntimeData(ProcessListener):
     """General Runtime Data Class"""
     db: Database = Database()
     embed_controller: EmbedController
+    message_copy_controller: MessageCopyController
     guilds: Guilds = Guilds()
     ui: UI = UI()
     tasks: Tasks = Tasks()
