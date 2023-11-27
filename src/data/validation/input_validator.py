@@ -101,7 +101,7 @@ class InputValidator:
         return result
 
     async def check_button_position_in_range(self, interaction: Interaction, position: int) -> bool:
-        result = position < len(bot.instance.data.embed_controller.get(interaction.user.id))
+        result = position < len(bot.instance.data.embed_controller.get(interaction.user.id).buttons)
         if self == InputValidator.RAISING and not result:
             await default_response(interaction, f'Position {str(position)} is out of bounds.')
         return result
