@@ -223,6 +223,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
 
     @button_add.autocomplete('button_type')
     @button_edit.autocomplete('button_type')
+    @button_insert.autocomplete('button_type')
     async def autocomplete_button_type(self, interaction: Interaction, current: str):
         return AutoCompleteGenerator.button_type(current)
     #endregion
