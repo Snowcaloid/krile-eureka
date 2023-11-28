@@ -43,7 +43,7 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
         message_source = bot.instance.data.message_copy_controller.get(interaction.user.id)
         message_dest = await cache.messages.get(str(message_id), channel)
         message_dest = await message_dest.edit(content=message_source.content, embeds=message_source.embeds,
-                                               files=[await a.to_file() for a in message_source.attachments])
+                                               attachments=[await a.to_file() for a in message_source.attachments])
         await set_default_footer(message_dest)
         bot.instance.data.processes.stop(interaction.user.id, RunTimeProcessType.COPYING_MESSAGE)
         await default_response(interaction, f'Edited the message: {message_dest.jump_url}.')
