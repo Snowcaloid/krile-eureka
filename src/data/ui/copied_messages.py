@@ -8,7 +8,7 @@ class MessageCopyController:
     _list: Dict[int, Message]
 
     def __init__(self):
-        self._list = []
+        self._list = {}
 
     def get(self, user: int) -> Message:
         if user in self._list:
