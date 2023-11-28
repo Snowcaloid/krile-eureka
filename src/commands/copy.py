@@ -2,7 +2,7 @@ import bot
 import data.cache.message_cache as cache
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
-from discord import Interaction
+from discord import Interaction, Thread
 from discord.channel import TextChannel
 from data.runtime_processes import RunTimeProcessType
 from data.validation.input_validator import InputValidator
@@ -18,14 +18,14 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
     async def message(self, interaction: Interaction, channel: TextChannel, message_id: str):
         await default_defer(interaction)
         if not await ProcessValidator.RAISING.check_another_process_running(interaction, RunTimeProcessType.COPYING_MESSAGE): return
-        bot.instance.data.processes.start(interaction.user.id, RunTimeProcessType.COPYING_MESSAGE)
         message = await cache.messages.get(str(message_id), channel)
         bot.instance.data.message_copy_controller.add(interaction.user.id, message)
-        await default_response(interaction, f'Copied message.')
+        bot.instance.data.processes.start(interaction.user.id, RunTimeProcessType.COPYING_MESSAGE)
+        await default_response(interaction, f'Copied message.\n{message.content}')
 
     @command(name = "post", description = "Post the copied message in a channel.")
     @check(PermissionValidator.is_admin)
-    async def post(self, interaction: Interaction, channel: TextChannel):
+    async def post(self, interaction: Interaction, channel: TextChannel | Thread):
         await default_defer(interaction)
         if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.COPYING_MESSAGE): return
         message = bot.instance.data.message_copy_controller.get(interaction.user.id)
@@ -36,7 +36,7 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
 
     @command(name = "replace", description = "Replace a message with the copied message.")
     @check(PermissionValidator.is_admin)
-    async def replace(self, interaction: Interaction, channel: TextChannel, message_id: str):
+    async def replace(self, interaction: Interaction, channel: TextChannel | Thread, message_id: str):
         await default_defer(interaction)
         if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.COPYING_MESSAGE): return
         if not await InputValidator.RAISING.check_message_exists(interaction, channel, str(message_id)): return
@@ -48,10 +48,19 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
         bot.instance.data.processes.stop(interaction.user.id, RunTimeProcessType.COPYING_MESSAGE)
         await default_response(interaction, f'Edited the message: {message_dest.jump_url}.')
 
+    @command(name = "cancel", description = "Cancel copying a message.")
+    @check(PermissionValidator.is_admin)
+    async def cancel(self, interaction: Interaction):
+        await default_defer(interaction)
+        if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.COPYING_MESSAGE): return
+        bot.instance.data.processes.stop(interaction.user.id, RunTimeProcessType.COPYING_MESSAGE)
+        await default_response(interaction, f'Canceled.')
+
     #region error-handling
     @message.error
     @post.error
     @replace.error
+    @cancel.error
     async def handle_error(self, interaction: Interaction, error):
         print(error)
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')
