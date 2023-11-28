@@ -42,9 +42,11 @@ class RoleSelectionButton(Button):
             if isinstance(interaction.user, Member):
                 if interaction.user.get_role(role.id):
                     await interaction.user.remove_roles(role)
+                    await guild_log_message(interaction.guild_id, f'{interaction.user.mention} has removed their role **{role.name}**.')
                     await default_response(interaction, f'You have removed the role {role.name} from yourself')
                 else:
                     await interaction.user.add_roles(role)
+                    await guild_log_message(interaction.guild_id, f'{interaction.user.mention} has taken the role **{role.name}**.')
                     await default_response(interaction, f'You have been granted the role {role.name}')
 
 
