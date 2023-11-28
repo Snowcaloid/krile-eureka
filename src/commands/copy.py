@@ -29,7 +29,7 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
         await default_defer(interaction)
         if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.COPYING_MESSAGE): return
         message = bot.instance.data.message_copy_controller.get(interaction.user.id)
-        message = await channel.send(message.content, embeds=message.embeds)
+        message = await channel.send(message.content, embeds=message.embeds, files=[await a.to_file() for a in message.attachments])
         await set_default_footer(message)
         bot.instance.data.processes.stop(interaction.user.id, RunTimeProcessType.COPYING_MESSAGE)
         await default_response(interaction, f'Sent the message: {message.jump_url}.')
@@ -42,7 +42,8 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
         if not await InputValidator.RAISING.check_message_exists(interaction, channel, str(message_id)): return
         message_source = bot.instance.data.message_copy_controller.get(interaction.user.id)
         message_dest = await cache.messages.get(str(message_id), channel)
-        message_dest = await message_dest.edit(content=message_source.content, embeds=message_source.embeds)
+        message_dest = await message_dest.edit(content=message_source.content, embeds=message_source.embeds,
+                                               files=[await a.to_file() for a in message_source.attachments])
         await set_default_footer(message_dest)
         bot.instance.data.processes.stop(interaction.user.id, RunTimeProcessType.COPYING_MESSAGE)
         await default_response(interaction, f'Edited the message: {message_dest.jump_url}.')
