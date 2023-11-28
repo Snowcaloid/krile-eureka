@@ -26,6 +26,7 @@ class RuntimeData(ProcessListener):
         self.ensure_database_tables()
         self.processes = RunTimeProccesses(self)
         self.embed_controller = EmbedController()
+        self.message_copy_controller = MessageCopyController()
 
     def on_finish_process(self, user: int, type: RunTimeProcessType) -> None:
         if type == RunTimeProcessType.EMBED_CREATION:
