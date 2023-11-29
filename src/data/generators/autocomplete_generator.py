@@ -44,11 +44,11 @@ class AutoCompleteGenerator:
         result = []
         if len(current) >= 2 and current[0:2].isdigit():
             day = int(current[0:2])
-            for i in range(1, 12):
+            for i in range(1, 13):
                 if monthrange(date.today().year, i)[1] >= day and date.today() <= date(date.today().year, i, day):
                     dt = f'{str(day)}-{month_abbr[i]}-{str(date.today().year)}'
                     result.append(Choice(name=dt, value=dt))
-            for i in range(1, 12):
+            for i in range(1, 13):
                 if monthrange(date.today().year + 1, i)[1] >= day:
                     dt = f'{str(day)}-{month_abbr[i]}-{str(date.today().year + 1)}'
                     result.append(Choice(name=dt, value=dt))
