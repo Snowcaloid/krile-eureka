@@ -79,6 +79,6 @@ services:
     networks:
       - krile_network
 networks:
-  network:
+  krile_network:
     driver: bridge
     name: krile_network
