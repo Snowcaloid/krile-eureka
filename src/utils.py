@@ -57,7 +57,7 @@ async def get_discord_member(guild_id: int, user_id: int) -> Member:
 async def set_default_footer(message: Message):
     if message and message.embeds:
         message.embeds[len(message.embeds) - 1].set_footer(text=f'Message ID: {str(message.id)}')
-        await message.edit(embeds=message.embeds)
+        return await message.edit(embeds=message.embeds)
 
 async def default_defer(interaction: Interaction, ephemeral: bool = True):
     await interaction.response.defer(thinking=True, ephemeral=ephemeral)

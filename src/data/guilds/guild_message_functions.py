@@ -8,6 +8,7 @@ class GuildMessageFunction(Enum):
     PL_POST = 2
     MISSED_RUN_POST = 3
     MISSED_RUNS_LIST = 4
+    WEATHER_POST = 5
 
     @classmethod
     def all_function_choices(cl) -> List[Choice]:
@@ -15,5 +16,6 @@ class GuildMessageFunction(Enum):
             Choice(name='Schedule Posts', value=GuildMessageFunction.SCHEDULE_POST.value),
             Choice(name='Party leader posts', value=GuildMessageFunction.PL_POST.value),
             Choice(name='Missed run posts', value=GuildMessageFunction.MISSED_RUN_POST.value),
-            Choice(name='Missed runs lists', value=GuildMessageFunction.MISSED_RUNS_LIST.value)
+            Choice(name='Missed runs lists', value=GuildMessageFunction.MISSED_RUNS_LIST.value),
+            Choice(name='Eureka weather posts', value=GuildMessageFunction.WEATHER_POST.value)
         ]

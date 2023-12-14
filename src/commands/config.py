@@ -36,6 +36,21 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         await default_response(interaction, f'Schedule has been created in #{channel.name}')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has created a schedule post in #{channel.name}.')
 
+    @command(name = "create_weather_post", description = "Create an updated weather post for a guild.")
+    @check(PermissionValidator.is_admin)
+    async def create_weather_post(self, interaction: Interaction, channel: TextChannel):
+        await default_defer(interaction)
+        guild_data = bot.instance.data.guilds.get(interaction.guild_id)
+        message_data = guild_data.messages.get(GuildMessageFunction.WEATHER_POST)
+        if message_data:
+            await bot.instance.data.ui.weather_post.remove(interaction.guild_id)
+            guild_data.messages.remove(message_data.message_id)
+        message = await channel.send(embed=Embed(description='...'))
+        guild_data.messages.add(message.id, channel.id, GuildMessageFunction.WEATHER_POST)
+        await bot.instance.data.ui.weather_post.rebuild(interaction.guild_id)
+        await default_response(interaction, f'Static Weather Post has been created in #{channel.name}')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has created a static weather post in #{channel.name}.')
+
     async def config_channel(self, interaction: Interaction, event_type: str, channel: TextChannel,
                              function: GuildChannelFunction, function_desc: str):
         await default_defer(interaction)

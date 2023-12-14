@@ -4,6 +4,7 @@ from data.ui.ui_missed_runs_list import UIMissedRunsList
 from data.ui.ui_pl_post import UIPLPost
 from data.ui.ui_schedule import UISchedule
 from data.ui.ui_view import UIView
+from data.ui.ui_weather_info import UIWeatherPost
 
 
 class UI:
@@ -12,6 +13,7 @@ class UI:
     missed_run_post: UIMissedRunPost = UIMissedRunPost()
     pl_post: UIPLPost = UIPLPost()
     view: UIView = UIView()
+    weather_post: UIWeatherPost = UIWeatherPost()
 
     def load(self) -> None:
         db = bot.instance.data.db

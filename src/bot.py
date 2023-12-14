@@ -1,5 +1,6 @@
-from discord import Intents, Member, Message, Object, HTTPException, RawMessageDeleteEvent
-from discord.ext.commands import Bot, guild_only, is_owner, Context, Greedy
+import os
+from discord import Intents, Member, Object, HTTPException, RawMessageDeleteEvent
+from discord.ext.commands import Bot, guild_only, has_role, Context, Greedy
 from commands.config import ConfigCommands
 from commands.copy import CopyCommands
 from commands.ping import PingCommands
@@ -79,7 +80,7 @@ async def on_raw_message_delete(payload: RawMessageDeleteEvent):
 
 @instance.command()
 @guild_only()
-@is_owner()
+@has_role(os.getenv('ROLE_DEVELOPER'))
 async def sync(ctx: Context, guilds: Greedy[Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
     if not guilds:
         if spec == "~":

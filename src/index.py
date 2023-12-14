@@ -6,6 +6,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+
+if os.getenv('WAIT_DEBUG') == 'TRUE':
+    debugpy.wait_for_client()
+
 import bot
 
 from data.tasks.task_registers import TaskRegisters
