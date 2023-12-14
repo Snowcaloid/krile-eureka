@@ -80,5 +80,5 @@ services:
       - krile_network
 networks:
   krile_network:
-    driver: bridge
     name: krile_network
+    external: true
