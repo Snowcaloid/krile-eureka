@@ -17,6 +17,8 @@ services:
       interval: 2s
       timeout: 1s
       retries: 5
+    networks:
+      - krile_network
   db_develop:
     container_name: db-develop-container
     image: postgres:15
@@ -34,6 +36,8 @@ services:
       interval: 2s
       timeout: 1s
       retries: 5
+    networks:
+      - krile_network
   pgadmin:
     container_name: pgadmin-container
     image: dpage/pgadmin4
@@ -50,6 +54,8 @@ services:
       - /volume1/docker/docker-volumes/brozma-pgadmin-container:/var/lib/pgadmin
     env_file:
       - .env
+    networks:
+      - krile_network
   krile:
     container_name: krile-container
     restart: unless-stopped
@@ -70,6 +76,8 @@ services:
     links:
       - db_develop
       - db_production
+    networks:
+      - krile_network
 networks:
   network:
     driver: bridge
