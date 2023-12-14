@@ -70,3 +70,7 @@ services:
     links:
       - db_develop
       - db_production
+networks:
+  network:
+    driver: bridge
+    name: krile_network
