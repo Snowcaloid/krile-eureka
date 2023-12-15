@@ -18,7 +18,7 @@ class UIWeatherPost:
         message = await cache.messages.get(message_data.message_id, channel)
         if message is None: return
         current_time = to_eorzea_time(datetime.utcnow())
-        emoji = ':crescent_moon:' if current_time.hour > 17 or current_time.hour < 6 else ':sun:'
+        emoji = ':crescent_moon:' if current_time.hour > 17 or current_time.hour < 6 else ':sunny:'
         embed = Embed(title='Eureka Weather info', description=(
             'The post is updated every minute and is therefore the time displayed below might be a bit delayed.\n'
             'Following information is displayed in your local time.\n'
