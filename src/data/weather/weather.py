@@ -43,18 +43,18 @@ def get_time_ms(time_normal: datetime) -> int:
 def get_weather_chance_value(time_ms: int) -> int:
     unix = time_ms // 1000
     # Get Eorzea hour for weather start
-    bell = unix / 175
+    bell = unix // 175
     # Do the magic 'cause for calculations 16:00 is 0, 00:00 is 8, and 08:00 is 16
     increment = (bell + 8 - bell % 8) % 24
 
     # Take Eorzea days since unix epoch
-    total_days = unix // 4200
+    total_days = (unix // 4200) & 0xFFFFFFFF
 
     # The following math all needs to be done as unsigned integers.
-    calc_base = int(total_days * 0x64 + increment)
+    calc_base = (total_days * 0x64 + increment) & 0xFFFFFFFF
 
-    step1 = (calc_base << 0xB ^ calc_base)
-    step2 = (step1 >> 8 ^ step1)
+    step1 = (calc_base << 0xB ^ calc_base) & 0xFFFFFFFF
+    step2 = (step1 >> 8 ^ step1) & 0xFFFFFFFF
 
     return step2 % 0x64
 
