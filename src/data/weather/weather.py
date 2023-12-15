@@ -41,9 +41,9 @@ def get_time_ms(time_normal: datetime) -> int:
     return time_normal.timestamp() * 1000
 
 def get_weather_chance_value(time_ms: int) -> int:
-    unix = time_ms // 1000
+    unix = int(time_ms // 1000)
     # Get Eorzea hour for weather start
-    bell = unix // 175
+    bell = int(unix // 175)
     # Do the magic 'cause for calculations 16:00 is 0, 00:00 is 8, and 08:00 is 16
     increment = (bell + 8 - bell % 8) % 24
 
@@ -82,7 +82,7 @@ def floor_time_to_start_of_weather(time_ms: int) -> int:
 def find_next_weather(
     time: datetime, zone_id: int, search_weather: str, max_time_ms: Optional[int] = None
 ) -> Optional[int]:
-    time_ms = get_time_ms(time)
+    time_ms = get_time_ms(time) + 8 * 175 * 1000
     max_time_ms = (max_time_ms or 1000 * 60 * 1000) + time_ms
 
     while time_ms < max_time_ms:
@@ -96,8 +96,8 @@ def find_next_weather(
 def find_next_weather_multiple(
     time: int, zone_id: int, search_weather: str, count: int, max_time_ms: Optional[int] = None
 ) -> Optional[int]:
-    time_ms = get_time_ms(time)
-    max_time_ms = (max_time_ms or 10000 * 60 * 1000) + time_ms
+    time_ms = get_time_ms(time) + 8 * 175 * 1000
+    max_time_ms = (max_time_ms or 31 * 24 * 60 * 1000) + time_ms
 
     found_count = 0
     result = None
@@ -127,7 +127,10 @@ def next_weather(zone: int, weather: str, count: int = 0) -> str:
     else:
         time_ms = find_next_weather(datetime.utcnow(), zone, weather)
 
-    return get_discord_timestamp(datetime.fromtimestamp(time_ms / 1000), DiscordTimestampType.LONG_DATE_TIME)
+    if time_ms:
+        return get_discord_timestamp(datetime.fromtimestamp(time_ms / 1000), DiscordTimestampType.RELATIVE)
+    else:
+        return 'N/A'
 
 def find_next_hour(time_ms: int, search_hour: int) -> int:
     one_hour = 1000 * 175

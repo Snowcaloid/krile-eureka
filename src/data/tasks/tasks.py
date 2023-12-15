@@ -19,6 +19,7 @@ class TaskExecutionType(Enum):
     POST_SUPPORT_PASSCODE = 6
     UPDATE_MISSED_RUNS_LIST = 7
     REMOVE_BUTTONS = 8
+    UPDATE_WEATHER_POSTS = 9
 
 class TaskBase:
     _registered_tasks: List[Type['TaskBase']] = []
@@ -172,7 +173,7 @@ class Tasks:
 
     def remove_all(self, type: TaskExecutionType):
         if TaskBase.by_type(type).runtime_only():
-            self._runtime_tasks = list(filter(lambda task: task.type == type, self._runtime_tasks))
+            self._runtime_tasks = list(filter(lambda task: task.type != type, self._runtime_tasks))
         else:
             db = bot.instance.data.db
             db.connect()
@@ -187,7 +188,7 @@ class Tasks:
             return
 
         if TaskBase.by_type(type).runtime_only():
-            self._runtime_tasks = list(filter(lambda task: task.type == type and task.data == data, self._runtime_tasks))
+            self._runtime_tasks = list(filter(lambda task: task.type != type and task.data == data, self._runtime_tasks))
         else:
             db = bot.instance.data.db
             db.connect()
