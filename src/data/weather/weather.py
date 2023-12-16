@@ -147,6 +147,12 @@ def find_next_night(time_ms: int) -> int:
 def find_next_day(time_ms: int) -> int:
     return find_next_hour(time_ms, 6)
 
+def next_day() -> datetime:
+    return datetime.fromtimestamp(find_next_day(get_time_ms(datetime.utcnow())) // 1000)
+
+def next_night() -> datetime:
+    return datetime.fromtimestamp(find_next_night(get_time_ms(datetime.utcnow())) // 1000)
+
 def to_eorzea_time(date: datetime):
     EORZEA_MULTIPLIER = 3600 / 175
     epoch_ticks = (date - datetime(1970, 1, 1)).total_seconds()
