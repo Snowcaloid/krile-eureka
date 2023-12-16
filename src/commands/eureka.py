@@ -10,9 +10,8 @@ class EurekaCommands(GroupCog, group_name='eureka', group_description='Eureka co
     @command(name = "weather", description = "Get weather information.")
     async def weather(self, interaction: Interaction):
         await default_defer(interaction, False)
-        message = await interaction.channel.send(embed=Embed(description='...'))
-        message = await bot.instance.data.ui.weather_post.rebuild(interaction.guild_id, message)
-        await default_response(interaction, f'{message.jump_url}')
+        message = await default_response(interaction, '_ _')
+        await bot.instance.data.ui.weather_post.rebuild(interaction.guild_id, message)
 
     #region error-handling
     @weather.error

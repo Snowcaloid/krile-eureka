@@ -63,7 +63,7 @@ async def default_defer(interaction: Interaction, ephemeral: bool = True):
     await interaction.response.defer(thinking=True, ephemeral=ephemeral)
 
 async def default_response(interaction: Interaction, text: str):
-    await interaction.followup.send(text)
+    return await interaction.followup.send(text, wait=True)
 
 def decode_emoji(emoji: str) -> str:
     return emoji.encode('ascii').decode('unicode-escape').encode('utf-16', 'surrogatepass').decode('utf-16')
