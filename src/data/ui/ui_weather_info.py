@@ -9,13 +9,15 @@ from utils import set_default_footer
 class UIWeatherPost:
     """Eureka Weather Info post."""
 
-    async def rebuild(self, guild_id: int) -> Message:
-        guild_data = bot.instance.data.guilds.get(guild_id)
-        message_data = guild_data.messages.get(GuildMessageFunction.WEATHER_POST)
-        if message_data is None: return
-        channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
-        if channel is None: return
-        message = await cache.messages.get(message_data.message_id, channel)
+    async def rebuild(self, guild_id: int, message: Message = None) -> Message:
+        if message is None:
+            guild_data = bot.instance.data.guilds.get(guild_id)
+            message_data = guild_data.messages.get(GuildMessageFunction.WEATHER_POST)
+            if message_data is None: return
+            channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
+            if channel is None: return
+            message = await cache.messages.get(message_data.message_id, channel)
+
         if message is None: return
         current_time = to_eorzea_time(datetime.utcnow())
         emoji = ':crescent_moon:' if current_time.hour > 17 or current_time.hour < 6 else ':sunny:'

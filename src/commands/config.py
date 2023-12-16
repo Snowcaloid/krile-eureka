@@ -126,6 +126,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
 
     #region error-handling
     @create_schedule_post.error
+    @create_weather_post.error
     @passcode_channel.error
     @support_passcode_channel.error
     @party_leader_channel.error
