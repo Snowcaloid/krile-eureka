@@ -97,7 +97,7 @@ def find_next_weather_multiple(
     time: int, zone_id: int, search_weather: str, count: int, max_time_ms: Optional[int] = None
 ) -> Optional[int]:
     time_ms = get_time_ms(time) + 8 * 175 * 1000
-    max_time_ms = (max_time_ms or 31 * 24 * 60 * 1000) + time_ms
+    max_time_ms = (max_time_ms or 31 * 24 * 60 * 60 * 1000) + time_ms
 
     found_count = 0
     result = None
