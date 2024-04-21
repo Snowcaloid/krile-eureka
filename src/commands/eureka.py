@@ -9,7 +9,7 @@ from logger import guild_log_message
 class EurekaCommands(GroupCog, group_name='eureka', group_description='Eureka commands.'):
     @command(name = "weather", description = "Get weather information.")
     async def weather(self, interaction: Interaction):
-        await default_defer(interaction, False)
+        await default_defer(interaction)
         message = await default_response(interaction, '_ _')
         await bot.instance.data.ui.weather_post.rebuild(interaction.guild_id, message)
 
