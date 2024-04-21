@@ -1,7 +1,7 @@
 import bot
 from enum import Enum
 from discord.ui import Button
-from discord import Interaction, Message, Role, Member
+from discord import Embed, Interaction, Message, Role, Member
 from typing import List
 from data.validation.permission_validator import PermissionValidator
 from logger import guild_log_message
@@ -10,6 +10,7 @@ from utils import default_defer, default_response
 
 class ButtonType(Enum):
     ROLE_SELECTION = "@ROLE@"
+    ROLE_DISPLAY = "@ROLEDISP@"
     PL_POST = "@PL@"
     MISSEDRUN = "@MISSED@"
 
@@ -48,6 +49,20 @@ class RoleSelectionButton(Button):
                     await interaction.user.add_roles(role)
                     await guild_log_message(interaction.guild_id, f'{interaction.user.mention} has taken the role **{role.name}**.')
                     await default_response(interaction, f'You have been granted the role {role.name}')
+
+
+class RoleDisplayButton(Button):
+    """Buttons, which display roles to the person who clicks them"""
+    async def callback(self, interaction: Interaction):
+        if str(interaction.message.id) in self.custom_id:
+            await default_defer(interaction)
+            roles: List[Role] = interaction.user.roles
+
+            embed = Embed(title='Below, you will see your current roles')
+            for role in roles:
+                embed.description += f'{role.mention}\n'
+
+            await interaction.followup.send('', wait=True, embed=embed)
 
 
 class PartyLeaderButton(Button):

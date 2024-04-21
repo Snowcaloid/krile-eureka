@@ -1,7 +1,7 @@
 from typing import List
 
 import bot
-from data.ui.buttons import ButtonType, PartyLeaderButton, RoleSelectionButton
+from data.ui.buttons import ButtonType, PartyLeaderButton, RoleDisplayButton, RoleSelectionButton
 from data.db.buttons import ButtonData
 from data.ui.views import PersistentView
 
@@ -28,6 +28,8 @@ class UIView:
                     self.view_list.append(view)
                 if ButtonType.ROLE_SELECTION.value in buttondata.button_id:
                     view.add_item(RoleSelectionButton(label=buttondata.label, custom_id=buttondata.button_id))
+                elif ButtonType.ROLE_DISPLAY.value in buttondata.button_id:
+                    view.add_item(RoleDisplayButton(label=buttondata.label, custom_id=buttondata.button_id))
                 elif ButtonType.PL_POST.value in buttondata.button_id:
                     view.add_item(PartyLeaderButton(label=buttondata.label, custom_id=buttondata.button_id))
             for view in self.view_list:

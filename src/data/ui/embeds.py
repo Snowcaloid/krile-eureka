@@ -4,7 +4,7 @@ from re import search
 
 from discord import Embed, Message
 from discord.ui import Button
-from data.ui.buttons import ButtonType, MissedRunButton, PartyLeaderButton, RoleSelectionButton, button_custom_id
+from data.ui.buttons import ButtonType, MissedRunButton, PartyLeaderButton, RoleDisplayButton, RoleSelectionButton, button_custom_id
 
 from data.ui.views import PersistentView
 
@@ -147,6 +147,8 @@ class EmbedEntry:
                 button.id = button_custom_id(button.label, message, button.type)
                 if button.type == ButtonType.ROLE_SELECTION:
                     view.add_item(RoleSelectionButton(label=button.label, custom_id=button.id))
+                elif button.type == ButtonType.ROLE_DISPLAY:
+                    view.add_item(RoleDisplayButton(label=button.label, custom_id=button.id))
                 elif button.type == ButtonType.MISSEDRUN:
                     view.add_item(MissedRunButton(label=button.label, custom_id=button.id))
                 elif button.type == ButtonType.PL_POST:

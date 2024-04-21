@@ -106,6 +106,7 @@ class AutoCompleteGenerator:
     def button_type(cl, current: str) -> List[Choice]:
         return cl.filter_by_current([
             Choice(name='Role selection Button', value=ButtonType.ROLE_SELECTION.value),
+            Choice(name='Role display Button', value=ButtonType.ROLE_DISPLAY.value),
             Choice(name='Party leader Post Button (must end with party numeber or "s")', value=ButtonType.PL_POST.value),
             Choice(name='Missed run Button', value=ButtonType.MISSEDRUN.value),
         ], current)
