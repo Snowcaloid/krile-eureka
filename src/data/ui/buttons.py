@@ -59,9 +59,11 @@ class RoleDisplayButton(Button):
             roles: List[Role] = interaction.user.roles
 
             embed = Embed(title='Below, you will see your current roles')
+            description = ''
             for role in roles:
-                embed.description += f'{role.mention}\n'
+                description += f'{role.mention}\n'
 
+            embed.description = description
             await interaction.followup.send('', wait=True, embed=embed)
 
 
