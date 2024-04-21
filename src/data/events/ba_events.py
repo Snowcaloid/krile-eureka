@@ -73,11 +73,11 @@ class BA_Normal(Event):
             'The passcode(s) will be posted automatically at the appropriate time for that run.'
         )
     @classmethod
-    def pl_passcode_delay(cl) -> timedelta: return timedelta(minutes=60)
+    def pl_passcode_delay(cl) -> timedelta: return timedelta(minutes=30)
     @classmethod
-    def support_passcode_delay(cl) -> timedelta: return timedelta(minutes=35)
+    def support_passcode_delay(cl) -> timedelta: return timedelta(minutes=20)
     @classmethod
-    def main_passcode_delay(cl) -> timedelta: return timedelta(minutes=30)
+    def main_passcode_delay(cl) -> timedelta: return timedelta(minutes=15)
     @classmethod
     def pl_button_texts(cl) -> Tuple[str, str, str, str, str, str, str]:
         return '1', '2', '3', '4', '5', '6', 'Support'
