@@ -5,6 +5,7 @@ from data.ui.ui_pl_post import UIPLPost
 from data.ui.ui_schedule import UISchedule
 from data.ui.ui_view import UIView
 from data.ui.ui_weather_info import UIWeatherPost
+from data.ui.ui_help import UIHelp
 
 
 class UI:
@@ -14,6 +15,7 @@ class UI:
     pl_post: UIPLPost = UIPLPost()
     view: UIView = UIView()
     weather_post: UIWeatherPost = UIWeatherPost()
+    help: UIHelp = UIHelp()
 
     def load(self) -> None:
         db = bot.instance.data.db

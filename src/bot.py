@@ -1,6 +1,7 @@
 import os
 from discord import Intents, Member, Object, HTTPException, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, has_role, Context, Greedy
+from commands.ba import BACommands
 from commands.config import ConfigCommands
 from commands.copy import CopyCommands
 from commands.eureka import EurekaCommands
@@ -56,6 +57,7 @@ class Krile(Bot):
         await self.add_cog(ConfigCommands())
         await self.add_cog(CopyCommands())
         await self.add_cog(EurekaCommands())
+        await self.add_cog(BACommands())
         if not task_loop.is_running():
             task_loop.start()
 
