@@ -44,7 +44,7 @@ class UISchedule:
             embed.set_thumbnail(url=bot.instance.user.avatar.url)
             embed.description = (
                 'Please note times are quoted both in Server Time (ST) and in brackets your Local Time (LT).\n'
-                'The runs are free-for-all, no signups. Passcodes are posted 30 minutes prior to the run.\n'
+                'The runs are free-for-all, no signups. Passcodes are posted 15 minutes prior to the run.\n'
                 'Just join via the private party finder in Adventuring Forays tab whenever the passcodes are posted.'
             )
             embed.clear_fields()
