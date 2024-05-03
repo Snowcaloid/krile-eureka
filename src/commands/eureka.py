@@ -1,15 +1,15 @@
 import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
-from discord import Embed, Interaction
+from discord import Interaction
 from utils import default_defer, default_response
 from logger import guild_log_message
 
 
 class EurekaCommands(GroupCog, group_name='eureka', group_description='Eureka commands.'):
     @command(name = "weather", description = "Get weather information.")
-    async def weather(self, interaction: Interaction):
-        await default_defer(interaction)
+    async def weather(self, interaction: Interaction, share_with_others: bool = False):
+        await default_defer(interaction, not share_with_others)
         message = await default_response(interaction, '_ _')
         await bot.instance.data.ui.weather_post.rebuild(interaction.guild_id, message)
 
