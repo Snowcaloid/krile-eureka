@@ -155,7 +155,7 @@ class EventCategoryCollection:
 class ScheduledEventUserData:
     event_id: int
     _raid_leader: int
-    _party_leaders: List[int] = []
+    _party_leaders: List[int]
 
     def load(self, event_id: int) -> None:
         db = bot.instance.data.db
@@ -165,7 +165,7 @@ class ScheduledEventUserData:
             record = db.query(f'select raid_leader, pl1, pl2, pl3, pl4, pl5, pl6, pls from events where id={event_id}')
             if record:
                 self._raid_leader = record[0][0]
-                self._party_leaders.clear()
+                self._party_leaders = []
                 for i in range(1, 8):
                     self._party_leaders.append(record[0][i])
         finally:
