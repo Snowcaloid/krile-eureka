@@ -11,6 +11,7 @@ class GuildPingType(Enum):
     MAIN_PASSCODE = 1
     SUPPORT_PASSCODE = 2
     PL_POST = 3
+    RUN_NOTIFICATION = 4
 
 class GuildPing:
     id: int

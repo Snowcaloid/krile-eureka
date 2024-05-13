@@ -99,7 +99,8 @@ class AutoCompleteGenerator:
         return cl.filter_by_current([
             Choice(name='Main passcodes',  value=GuildPingType.MAIN_PASSCODE.value),
             Choice(name='Support passcodes', value=GuildPingType.SUPPORT_PASSCODE.value),
-            Choice(name='Party leader posts', value=GuildPingType.PL_POST.value)
+            Choice(name='Party leader posts', value=GuildPingType.PL_POST.value),
+            Choice(name='Run Notification', value=GuildPingType.RUN_NOTIFICATION.value)
         ], current)
 
     @classmethod

@@ -80,6 +80,11 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def party_leader_channel(self, interaction: Interaction, event_type: str, channel: TextChannel):
         await self.config_channel(interaction, event_type, channel, GuildChannelFunction.PL_CHANNEL, 'party leader recruitment')
 
+    @command(name = "notification_channel", description = "Set the channel for run schedule notifications.")
+    @check(PermissionValidator.is_admin)
+    async def party_leader_channel(self, interaction: Interaction, event_type: str, channel: TextChannel):
+        await self.config_channel(interaction, event_type, channel, GuildChannelFunction.RUN_NOTIFICATION, 'run notification')
+
     @command(name = "missed_run_channel", description = "Create a missed run list.")
     @check(PermissionValidator.is_admin)
     async def missed_run_channel(self, interaction: Interaction, event_category: str, channel: TextChannel):
