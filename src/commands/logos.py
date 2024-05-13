@@ -61,6 +61,12 @@ class LogosCommands(GroupCog, group_name='logos', group_description='Logos actio
         message = await default_response(interaction, '_ _')
         await bot.instance.data.ui.help.logos_utility(message)
 
+    @command(name = "website", description = "https://ffxiv-eureka.com/logograms")
+    async def website(self, interaction: Interaction):
+        await default_defer(interaction, False)
+        message = await default_response(interaction, '_ _')
+        await bot.instance.data.ui.help.logos_website(message)
+
     #region error-handling
     @crafting.error
     @wisdoms.error
@@ -71,6 +77,7 @@ class LogosCommands(GroupCog, group_name='logos', group_description='Logos actio
     @ranged.error
     @mage.error
     @utility.error
+    @website.error
     async def handle_error(self, interaction: Interaction, error):
         print(error)
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')

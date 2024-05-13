@@ -102,6 +102,11 @@ class UIHelpPost_LogosUtility(UIHelpPost):
         embed.title = 'Utility logos actions - click to zoom in'
         embed.set_image(url='https://i.ibb.co/TcPNfh9/image-1.png')
 
+class UIHelpPost_LogosWebsite(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'Website for crafting combinations of Logos actions'
+        embed.url ='https://ffxiv-eureka.com/logograms'
+
 
 class UIHelp:
     """Various help posts"""
@@ -146,3 +151,6 @@ class UIHelp:
 
     async def logos_utility(self, message: Message) -> Message:
         return await UIHelpPost_LogosUtility().post(message)
+
+    async def logos_website(self, message: Message) -> Message:
+        return await UIHelpPost_LogosWebsite().post(message)
