@@ -62,6 +62,46 @@ class UIHelpPost_BAOzma(UIHelpPost):
             '/p -----------------------------------------------------'
         )
 
+class UIHelpPost_LogosCrafting(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'Crafting explanations - click to zoom in'
+        embed.set_image(url='https://i.ibb.co/Sw2hsWX/image.png')
+
+class UIHelpPost_LogosWisdoms(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'Spirit + Wisdoms - click to zoom in'
+        embed.set_image(url='https://i.ibb.co/G2QJv55/logoswisdoms.png')
+
+class UIHelpPost_LogosActions(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'Logos actions - click to zoom in'
+        embed.set_image(url='https://i.ibb.co/xgkCr7S/logosexplanations.png')
+
+class UIHelpPost_LogosTank(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'Tank logos actions - click to zoom in'
+        embed.set_image(url='https://i.ibb.co/Pj8gdfC/logostanks.png')
+
+class UIHelpPost_LogosHealer(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'Healer logos actions - click to zoom in'
+        embed.set_image(url='https://i.ibb.co/Nr3q0Nf/logoshealers.png')
+
+class UIHelpPost_LogosMelee(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'Melee DPS logos actions - click to zoom in'
+        embed.set_image(url='https://i.ibb.co/fdGW2xT/logosmelee.png')
+
+class UIHelpPost_LogosRanged(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'Ranged Physical DPS / Mage logos actions - click to zoom in'
+        embed.set_image(url='https://i.ibb.co/zZs0pS4/logosranged.png')
+
+class UIHelpPost_LogosUtility(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'Utility logos actions - click to zoom in'
+        embed.set_image(url='https://i.ibb.co/TcPNfh9/image-1.png')
+
 
 class UIHelp:
     """Various help posts"""
@@ -82,3 +122,27 @@ class UIHelp:
             Embed(title='Acceleration Bomb').set_image(url='https://i.ibb.co/yBN7ZBd/Acceleration-Bomb.gif')
         ])
         return msg
+
+    async def logos_crafting(self, message: Message) -> Message:
+        return await UIHelpPost_LogosCrafting().post(message)
+
+    async def logos_wisdoms(self, message: Message) -> Message:
+        return await UIHelpPost_LogosWisdoms().post(message)
+
+    async def logos_actions(self, message: Message) -> Message:
+        return await UIHelpPost_LogosActions().post(message)
+
+    async def logos_tank(self, message: Message) -> Message:
+        return await UIHelpPost_LogosTank().post(message)
+
+    async def logos_healer(self, message: Message) -> Message:
+        return await UIHelpPost_LogosHealer().post(message)
+
+    async def logos_melee(self, message: Message) -> Message:
+        return await UIHelpPost_LogosMelee().post(message)
+
+    async def logos_ranged(self, message: Message) -> Message:
+        return await UIHelpPost_LogosRanged().post(message)
+
+    async def logos_utility(self, message: Message) -> Message:
+        return await UIHelpPost_LogosUtility().post(message)
