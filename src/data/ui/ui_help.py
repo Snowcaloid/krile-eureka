@@ -80,27 +80,27 @@ class UIHelpPost_LogosActions(UIHelpPost):
 class UIHelpPost_LogosTank(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Tank logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/Pj8gdfC/logostanks.png')
+        embed.set_image(url='https://i.ibb.co/M2KKFWR/logostanks.png')
 
 class UIHelpPost_LogosHealer(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Healer logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/Nr3q0Nf/logoshealers.png')
+        embed.set_image(url='https://i.ibb.co/4SQLRVZ/logoshealers.png')
 
 class UIHelpPost_LogosMelee(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Melee DPS logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/fdGW2xT/logosmelee.png')
+        embed.set_image(url='https://i.ibb.co/8z1G0L9/logosmelee.png')
 
 class UIHelpPost_LogosRanged(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Ranged Physical DPS / Mage logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/zZs0pS4/logosranged.png')
+        embed.set_image(url='https://i.ibb.co/hs8mx84/logosranged.png')
 
 class UIHelpPost_LogosUtility(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Utility logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/TcPNfh9/image-1.png')
+        embed.set_image(url='https://i.ibb.co/txjhdNN/logosutility.png')
 
 class UIHelpPost_LogosWebsite(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
