@@ -19,7 +19,7 @@ class BA_Normal(Event):
     def main_passcode_text(cl, rl: str, passcode: int) -> str:
         return (
             f'Raid Leader: {rl}.\n\n'
-            f'**The passcode for all Parties 1-6 is {str(passcode)}.**\n'
+            f'**The passcode for all Parties 1-6 is {str(passcode).zfill(4)}.**\n'
             'This will not work for the Support Party.\n\n'
             'Notes:\n'
             '1: Please bring proper logograms. If you do not bring and use Spirit of the Remembered we will not revive you.\n'
@@ -30,7 +30,7 @@ class BA_Normal(Event):
     def support_passcode_text(cl, rl: str, passcode: int) -> str:
         return (
             f'Raid Leader: {rl}.\n\n'
-            f'**The Support Party passcode is {str(passcode)}.**\n\n'
+            f'**The Support Party passcode is {str(passcode).zfill(4)}.**\n\n'
             'Notes:\n'
             '1: Please bring proper logograms. If you do not bring and use Spirit of the Remembered we will not revive you.\n'
             '2: We can not revive players normally in BA, so please bear this in mind and do mechanics properly.\n'
@@ -55,20 +55,20 @@ class BA_Normal(Event):
         return (
             f'You\'re leading **party {party}.**\n'
             f'[SoB] BA run party {party}\n'
-            f'Passcode is {str(passcode)}.'
+            f'Passcode is {str(passcode).zfill(4)}.'
         )
     @classmethod
     def support_party_leader_dm_text(cl, passcode: int) -> str:
         return (
             'You\'re leading **the support party.**\n'
             f'[SoB] BA support party\n'
-            f'Passcode is {str(passcode)}.'
+            f'Passcode is {str(passcode).zfill(4)}.'
         )
     @classmethod
     def raid_leader_dm_text(cl, passcode_main: int, passcode_supp: int) -> str:
         return (
-            f'Passcode for the Alliance will be: {passcode_main}\n'
-            f'Passcode for the Support Party will be: {passcode_supp}\n'
+            f'Passcode for the Alliance will be: {str(passcode_main).zfill(4)}\n'
+            f'Passcode for the Support Party will be: {str(passcode_supp).zfill(4)}\n'
             'These passcode(s) have been sent to the relevant party leaders.\n'
             'The passcode(s) will be posted automatically at the appropriate time for that run.'
         )
