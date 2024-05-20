@@ -42,7 +42,7 @@ class UISchedule:
             embed = post.embeds[0]
             embed.title = 'Upcoming Runs'
             embed.set_thumbnail(url=bot.instance.user.avatar.url)
-            embed.description = (
+            description = (
                 'Please note times are quoted both in Server Time (ST) and in brackets your Local Time (LT).\n'
                 'The runs are free-for-all, no signups. Passcodes are posted 15 minutes prior to the run.\n'
                 'Just join via the private party finder in Adventuring Forays tab whenever the passcodes are posted.'
@@ -55,8 +55,9 @@ class UISchedule:
                 for event in data._list:
                     desc = event.schedule_entry_text
                     schedule_on_day = "\n".join([schedule_on_day, desc])
-                embed.add_field(name=data._date.strftime("%A, %d %B %Y"), value=schedule_on_day.lstrip("\n"))
+                description = f'{description}\n{data._date.strftime("### %A, %d %B %Y")}{schedule_on_day}'
 
+            embed.description = description
             await post.edit(embed=embed)
             await set_default_footer(post)
         else:
