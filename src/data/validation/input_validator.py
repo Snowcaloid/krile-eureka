@@ -1,3 +1,4 @@
+import re
 from typing import Type
 import bot
 import data.cache.message_cache as cache
@@ -13,6 +14,12 @@ from data.validation.permission_validator import PermissionValidator
 class InputValidator:
     NORMAL: 'InputValidator'
     RAISING: 'InputValidator'
+
+    async def check_for_sql_identifiers(self, interaction: Interaction, text: str) -> bool:
+        result = not re.search('\\s(drop|alter|update|set|create|grant)\\s', text, re.IGNORECASE)
+        if self == InputValidator.RAISING and not result:
+            await default_response(interaction, f'Text `{text}` contains a prohibited SQL word.')
+        return result
 
     async def check_valid_event_type(self, interaction: Interaction, event_type: str) -> bool:
         result = event_type in Event.all_types()

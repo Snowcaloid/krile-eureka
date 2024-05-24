@@ -5,6 +5,7 @@ from typing import List
 from discord import Interaction
 from discord.app_commands import Choice
 
+from data.db.definition import TableDefinitions
 from data.events.event import EventCategoryCollection, EventCategory
 
 from data.guilds.guild_pings import GuildPingType
@@ -111,3 +112,7 @@ class AutoCompleteGenerator:
             Choice(name='Party leader Post Button (must end with party numeber or "s")', value=ButtonType.PL_POST.value),
             Choice(name='Missed run Button', value=ButtonType.MISSEDRUN.value),
         ], current)
+
+    @classmethod
+    def table(cl, current: str) -> List[Choice]:
+        return cl.filter_by_current([Choice(name=definition._name, value=definition._name) for definition in TableDefinitions.DEFINITIONS], current)
