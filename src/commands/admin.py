@@ -32,7 +32,8 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
             result = bot.instance.data.db.query(f'select {fields} from {table}{where}{order_by} limit 25')
         finally:
             bot.instance.data.db.disconnect()
-        pandas.set_option('display.max_colwidth', 100)
+        pandas.set_option('display.expand_frame_repr', False)
+        #pandas.set_option('display.max_colwidth', 100)
         pandas.set_option('display.width', 240)
         response = pandas.DataFrame(result, columns=column_names)
         response = f'```\n{response}\n```'
