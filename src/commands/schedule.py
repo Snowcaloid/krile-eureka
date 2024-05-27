@@ -55,7 +55,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         bot.instance.data.guilds.get(interaction.guild_id).schedule.cancel(event_id)
         await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
-        await default_response(interaction, f'Run #{event_id} has been cenceled.')
+        await default_response(interaction, f'Run #{event_id} has been canceled.')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has canceled the run #{event_id}.')
 
     @command(name = "edit", description = "Edit an entry from the schedule.")
