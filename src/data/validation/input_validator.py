@@ -21,6 +21,12 @@ class InputValidator:
             await default_response(interaction, f'Text `{text}` contains a prohibited SQL word.')
         return result
 
+    def event_type_name_to_type(self, event_type: str) -> str:
+        for event in Event._registered_events:
+            if event.description() == event_type:
+                return event.type()
+        return event_type
+
     async def check_valid_event_type(self, interaction: Interaction, event_type: str) -> bool:
         result = event_type in Event.all_types()
         if self == InputValidator.RAISING and not result:

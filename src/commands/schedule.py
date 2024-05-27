@@ -24,6 +24,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                   description: Optional[str] = '',
                   auto_passcode: Optional[bool] = True):
         await default_defer(interaction, False)
+        event_type = InputValidator.NORMAL.event_type_name_to_type(event_type)
         if not await InputValidator.RAISING.check_valid_event_type(interaction, event_type): return
         if not await InputValidator.RAISING.check_valid_raid_leader(interaction, interaction.user, event_type): return
         if not await InputValidator.RAISING.check_custom_run_has_description(interaction, event_type, description): return
@@ -68,6 +69,9 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         schedule = bot.instance.data.guilds.get(interaction.guild_id).schedule
         event = schedule.get(event_id)
         check_type = event.type if event_type is None else event_type
+        if event_type:
+            event_type = InputValidator.NORMAL.event_type_name_to_type(event_type)
+            check_type = event_type
         if not await InputValidator.RAISING.check_valid_event_type(interaction, check_type): return
         if not await InputValidator.RAISING.check_valid_raid_leader(interaction, interaction.user, check_type): return
         event_datetime = await InputValidator.RAISING.check_and_combine_date_and_time_change_for_event(interaction, event_id, event_date, event_time)
