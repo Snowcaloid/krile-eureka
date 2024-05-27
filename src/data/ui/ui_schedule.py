@@ -50,12 +50,15 @@ class UISchedule:
             embed.clear_fields()
             guild_data.schedule.all.sort(key=lambda e: e.time)
             per_date = self.events_per_date(guild_data.schedule.all)
-            for data in per_date:
-                schedule_on_day = ''
-                for event in data._list:
-                    desc = event.schedule_entry_text
-                    schedule_on_day = "\n".join([schedule_on_day, desc])
-                description = f'{description}\n{data._date.strftime("### %A, %d %B %Y")}{schedule_on_day}'
+            if not per_date:
+                description = f'{description}\n### There are currently no runs scheduled.'
+            else:
+                for data in per_date:
+                    schedule_on_day = ''
+                    for event in data._list:
+                        desc = event.schedule_entry_text
+                        schedule_on_day = "\n".join([schedule_on_day, desc])
+                    description = f'{description}\n{data._date.strftime("### %A, %d %B %Y")}{schedule_on_day}'
 
             embed.description = description
             await post.edit(embed=embed)
