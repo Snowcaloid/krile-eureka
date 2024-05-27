@@ -16,7 +16,7 @@ class InputValidator:
     RAISING: 'InputValidator'
 
     async def check_for_sql_identifiers(self, interaction: Interaction, text: str) -> bool:
-        result = not re.search('\\s(drop|alter|update|set|create|grant)\\s', text, re.IGNORECASE)
+        result = not re.search('(\\s|^)(drop|alter|update|set|create|grant|;)\\s', text, re.IGNORECASE)
         if self == InputValidator.RAISING and not result:
             await default_response(interaction, f'Text `{text}` contains a prohibited SQL word.')
         return result

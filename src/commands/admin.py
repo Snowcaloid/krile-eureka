@@ -18,9 +18,9 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
     @check(PermissionValidator.is_admin)
     async def query(self, interaction: Interaction, table: str, fields: Optional[str] = '*', filter: Optional[str] = '', order: Optional[str] = ''):
         await default_defer(interaction)
-        await InputValidator.RAISING.check_for_sql_identifiers(interaction, filter)
-        await InputValidator.RAISING.check_for_sql_identifiers(interaction, order)
-        await InputValidator.RAISING.check_for_sql_identifiers(interaction, fields)
+        if not await InputValidator.RAISING.check_for_sql_identifiers(interaction, filter): return
+        if not await InputValidator.RAISING.check_for_sql_identifiers(interaction, order): return
+        if not await InputValidator.RAISING.check_for_sql_identifiers(interaction, fields): return
         bot.instance.data.db.connect()
         try:
             where = f' where {filter}' if filter else ''
