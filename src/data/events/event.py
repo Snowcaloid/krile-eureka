@@ -459,9 +459,7 @@ class ScheduledEvent:
         bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
         bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
         bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
-        channel_data = bot.instance.data.guilds.get(self.guild_id).channels.get(GuildChannelFunction.PL_CHANNEL, self.type)
-        if channel_data:
-            bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "channel": channel_data.id})
+        bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
 
     def recreate_tasks(self) -> None:
         self.delete_tasks()
