@@ -81,13 +81,14 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         is_type_change = event_type and event_type != event.type
         is_passcode_change = not auto_passcode is None and event.auto_passcode != auto_passcode
         is_time_change = event.time != event_datetime
+        is_support_change = not use_support is None and event.use_support != use_support
         if is_type_change:
             await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
         event = schedule.edit(event_id, raid_leader, event_type, event_datetime,
                               InputValidator.NORMAL.escape_event_description(description), auto_passcode, use_support)
         if is_type_change:
             await bot.instance.data.ui.pl_post.create(interaction.guild_id, event_id)
-        if is_time_change or is_passcode_change:
+        if is_time_change or is_passcode_change or is_support_change:
             event.recreate_tasks()
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event_id, True)
