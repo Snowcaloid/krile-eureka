@@ -18,6 +18,7 @@ class EventsTable(TableDefinition):
         self.define_column('pl5', ColumnType.BIGINT)
         self.define_column('pl6', ColumnType.BIGINT)
         self.define_column('pls', ColumnType.BIGINT)
+        self.define_column('use_support', ColumnType.BOOLEAN)
         self.define_column('pass_main', ColumnType.INTEGER)
         self.define_column('pass_supp', ColumnType.INTEGER)
         self.define_column('pl_post_id', ColumnType.BIGINT)

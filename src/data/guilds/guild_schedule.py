@@ -32,7 +32,8 @@ class GuildSchedule:
         return None
 
     def add(self, leader: int, event_type: str, time: datetime,
-            description: str = '', auto_passcode: bool = True) -> ScheduledEvent:
+            description: str = '', auto_passcode: bool = True,
+            use_support: bool = True) -> ScheduledEvent:
         db = bot.instance.data.db
         db.connect()
         try:
@@ -40,9 +41,9 @@ class GuildSchedule:
             pass_main = EventPasscodeGenerator.generate() if auto_passcode else 0
             pass_supp = EventPasscodeGenerator.generate() if auto_passcode else 0
             id = db.query((
-                'insert into events (guild_id, raid_leader, event_type, timestamp, description, pass_main, pass_supp) '
+                'insert into events (guild_id, raid_leader, event_type, timestamp, description, pass_main, pass_supp, use_support) '
                 f'values ({self.guild_id}, {leader}, \'{event_type}\', {pg_timestamp(time)}, '
-                f'\'{description}\', {str(pass_main)}, {str(pass_supp)}) returning id'
+                f'\'{description}\', {str(pass_main)}, {str(pass_supp)}, {use_support}) returning id'
             ))
             self.load(self.guild_id)
             result = self.get(id)
@@ -51,7 +52,7 @@ class GuildSchedule:
             db.disconnect()
 
     def edit(self, id: int, leader: int, event_type: str, datetime: datetime, description: str,
-             auto_passcode: bool) -> ScheduledEvent:
+             auto_passcode: bool, use_support: bool) -> ScheduledEvent:
         event = self.get(id)
         if event.time != datetime:
             event.time = datetime
@@ -63,6 +64,8 @@ class GuildSchedule:
             event.type = event_type
         if description:
             event.description = description
+        if event.base.use_support() and (use_support != event.use_support):
+            event.use_support = use_support
         return event
 
     def finish(self, event_id: int):

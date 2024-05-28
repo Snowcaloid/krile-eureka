@@ -32,9 +32,9 @@ class BozjaBase(Event):
             f'Passcode is {str(passcode)}.'
         )
     @classmethod
-    def raid_leader_dm_text(cl, passcode_main: int, passcode_supp: int) -> str:
+    def raid_leader_dm_text(cl, passcode_main: int, passcode_supp: int, use_support: bool) -> str:
         return (
-            f'Passcode for all parties will be: {passcode_main}\n'
+            f'Passcode for all parties will be: **{str(passcode_main).zfill(4)}**\n'
             'These passcode(s) have been sent to the relevant party leaders.\n'
             'The passcode(s) will be posted automatically at the appropriate time for that run.'
         )

@@ -82,7 +82,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
 
     @command(name = "notification_channel", description = "Set the channel for run schedule notifications.")
     @check(PermissionValidator.is_admin)
-    async def party_leader_channel(self, interaction: Interaction, event_type: str, channel: TextChannel):
+    async def notification_channel(self, interaction: Interaction, event_type: str, channel: TextChannel):
         await self.config_channel(interaction, event_type, channel, GuildChannelFunction.RUN_NOTIFICATION, 'run notification')
 
     @command(name = "missed_run_channel", description = "Create a missed run list.")
@@ -119,6 +119,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
 
     @passcode_channel.autocomplete('event_type')
     @party_leader_channel.autocomplete('event_type')
+    @notification_channel.autocomplete('event_type')
     @support_passcode_channel.autocomplete('event_type')
     async def autocomplete_event_type_with_all(self, interaction: Interaction, current: str):
         return AutoCompleteGenerator.event_type_with_categories(current)
@@ -135,6 +136,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @passcode_channel.error
     @support_passcode_channel.error
     @party_leader_channel.error
+    @notification_channel.error
     @missed_run_channel.error
     async def handle_error(self, interaction: Interaction, error):
         print(error)

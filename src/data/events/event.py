@@ -98,7 +98,7 @@ class Event:
     @abstractclassmethod
     def support_party_leader_dm_text(cl, passcode: int) -> str: pass
     @abstractclassmethod
-    def raid_leader_dm_text(cl, passcode_main: int, passcode_supp: int) -> str: pass
+    def raid_leader_dm_text(cl, passcode_main: int, passcode_supp: int, use_support: bool) -> str: pass
     @abstractclassmethod
     def pl_passcode_delay(cl) -> timedelta: pass
     @abstractclassmethod
@@ -111,10 +111,11 @@ class Event:
     def pl_button_texts(cl) -> Tuple[str, str, str, str, str, str, str]: pass
 
     @classmethod
-    def schedule_entry_text(cl, rl: str, time: datetime, custom: str) -> str:
+    def schedule_entry_text(cl, rl: str, time: datetime, custom: str, use_support: bool) -> str:
         if custom: custom = f' [{custom}]'
+        support_text = ' (__No support__)' if cl.use_support() and not use_support else ''
         server_time = time.strftime('%H:%M')
-        return f'**{server_time} ST ({get_discord_timestamp(time)} LT)**: {cl.short_description()} ({rl}){custom}'
+        return f'**{server_time} ST ({get_discord_timestamp(time)} LT)**: {cl.short_description()} ({rl}){support_text}{custom}'
 
     @classmethod
     def passcode_post_title(cl, time: datetime) -> str:
@@ -210,6 +211,7 @@ class ScheduledEvent:
     passcode_main: int
     passcode_supp: int
     _description: str
+    _use_support: bool
 
     def __init__(self):
         self.users = ScheduledEventUserData()
@@ -218,7 +220,7 @@ class ScheduledEvent:
         db = bot.instance.data.db
         db.connect()
         try:
-            record = db.query(f'select event_type, pl_post_id, timestamp, description, pass_main, pass_supp, guild_id from events where id={id}')
+            record = db.query(f'select event_type, pl_post_id, timestamp, description, pass_main, pass_supp, guild_id, use_support from events where id={id}')
             if record:
                 for type in Event._registered_events:
                     if type.type() == record[0][0]:
@@ -231,6 +233,7 @@ class ScheduledEvent:
                 self.passcode_main = record[0][4]
                 self.passcode_supp = record[0][5]
                 self.guild_id = record[0][6]
+                self._use_support = type.use_support() and record[0][7]
                 self.users.load(id)
         finally:
             db.disconnect()
@@ -302,11 +305,23 @@ class ScheduledEvent:
     def raid_leader_dm_text(self) -> str:
         return self.base.raid_leader_dm_text(
             passcode_main=self.passcode_main,
-            passcode_supp=self.passcode_supp)
+            passcode_supp=self.passcode_supp,
+            use_support=self.use_support)
 
     @property
-    def use_support(self) -> str:
-        return self.base.use_support()
+    def use_support(self) -> bool:
+        return self._use_support
+
+    @use_support.setter
+    def use_support(self, value: bool) -> None:
+        if (value == self._use_support) or not self.base.use_support(): return
+        db = bot.instance.data.db
+        db.connect()
+        try:
+            db.query(f'update events set use_support={value} where id={self.id}')
+            self.load(self.id)
+        finally:
+            db.disconnect()
 
     @property
     def use_pl_posts(self) -> str:
@@ -323,7 +338,7 @@ class ScheduledEvent:
     @property
     def schedule_entry_text(self) -> str:
         user = bot.instance.get_guild(self.guild_id).get_member(self.users.raid_leader)
-        return self.base.schedule_entry_text(user.mention, self.time, self.real_description)
+        return self.base.schedule_entry_text(user.mention, self.time, self.real_description, self._use_support)
 
     @property
     def category(self) -> EventCategory:
@@ -368,7 +383,12 @@ class ScheduledEvent:
 
     @property
     def pl_button_texts(self) -> Tuple[str, str, str, str, str, str, str]:
-        return self.base.pl_button_texts()
+        result = self.base.pl_button_texts()
+        if not self.use_support:
+            result_list = list(result)
+            result_list[6] = ''
+            result = tuple(result_list)
+        return result
 
     @property
     def pl_post_title(self) -> str:
@@ -399,7 +419,8 @@ class ScheduledEvent:
         pl4 = self._pl_placeholder(guild.get_member(self.users.party_leaders[3]))
         pl5 = self._pl_placeholder(guild.get_member(self.users.party_leaders[4]))
         pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5]))
-        pls = self._pl_placeholder(guild.get_member(self.users.party_leaders[6]))
+        pls = self._pl_placeholder(guild.get_member(self.users.party_leaders[6])) if self.use_support else None
+
         return self.base.pl_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls)
 
     def party_leader_dm_text(self, index: int) -> str:

@@ -39,6 +39,7 @@ class BA_Normal(Event):
     @classmethod
     def pl_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
                      pl4: str, pl5: str, pl6: str, pls: str) -> str:
+        support = f'Support: {pls}\n\n' if pls else 'Support party has been excluded manually by the raid leader.\n\n'
         return (
             f'Raid Leader: {rl}\n'
             f'1: {pl1}\n'
@@ -47,7 +48,7 @@ class BA_Normal(Event):
             f'4: {pl4}\n'
             f'5: {pl5}\n'
             f'6: {pl6}\n'
-            f'Support: {pls}\n\n'
+            f'{support}'
             'Please note, your assignment may be removed at the Raid Leader\'s discretion.'
         )
     @classmethod
@@ -65,10 +66,13 @@ class BA_Normal(Event):
             f'Passcode is {str(passcode).zfill(4)}.'
         )
     @classmethod
-    def raid_leader_dm_text(cl, passcode_main: int, passcode_supp: int) -> str:
+    def raid_leader_dm_text(cl, passcode_main: int, passcode_supp: int, use_support: bool) -> str:
+        if use_support:
+            support = f'Passcode for the Support Party will be: **{str(passcode_supp).zfill(4)}**\n'
+        else:
+            support = f'Support party has been excluded manually by the raid leader. The support passcode will not be posted. In case this is changed, the passcode is **{str(passcode_supp).zfill(4)}**.\n'
         return (
-            f'Passcode for the Alliance will be: {str(passcode_main).zfill(4)}\n'
-            f'Passcode for the Support Party will be: {str(passcode_supp).zfill(4)}\n'
+            f'Passcode for the Alliance will be: **{str(passcode_main).zfill(4)}**\n{support}'
             'These passcode(s) have been sent to the relevant party leaders.\n'
             'The passcode(s) will be posted automatically at the appropriate time for that run.'
         )
