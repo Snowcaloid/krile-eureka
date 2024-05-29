@@ -39,12 +39,23 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
         response = f'```\n{response}\n```'
         await default_response(interaction, response)
 
+
+    @command(name = "reload", description = "Loads all bot data from the database again.")
+    @check(PermissionValidator.is_admin)
+    async def reload(self, interaction: Interaction):
+        await default_defer(interaction)
+        bot.instance.data.reset()
+        await default_response(interaction, 'Successfully reloaded.')
+
+
     @query.autocomplete('table')
     async def autocomplete_table(self, interaction: Interaction, current: str):
         return AutoCompleteGenerator.table(current)
 
+
     #region error-handling
     @query.error
+    @reload.error
     async def handle_error(self, interaction: Interaction, error):
         print(error)
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')
