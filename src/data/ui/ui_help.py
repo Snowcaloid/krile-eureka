@@ -62,6 +62,27 @@ class UIHelpPost_BAOzma(UIHelpPost):
             '/p -----------------------------------------------------'
         )
 
+class UIHelpPost_BAFairy(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'BA Fairy Guide'
+        embed.set_image(url='https://i.ibb.co/FHMKfSL/Untitled.png')
+        embed.description = (
+            '* Don''t shout out fairy locations.\n'
+            '* Place down waymarks on them and post them in #ba-chat.\n'
+            '* **There can be up to 3 fairies at the same time and they have limited charges.**\n'
+            '* **We get the fairy buff at 5 minutes remaining on our Ovni buff (after killing Ovni).**'
+        )
+
+class UIHelpPost_BATrapping(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'BA Trapping Guide'
+        embed.set_image(url='https://i.ibb.co/C0c5Jv4/ba-trapping.png')
+
+class UIHelpPost_BAEntrance(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'BA Entrance Guide'
+        embed.set_image(url='https://i.ibb.co/hRYvBP0/ba-entrance.png')
+
 class UIHelpPost_LogosCrafting(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Crafting explanations - click to zoom in'
@@ -119,6 +140,15 @@ class UIHelp:
 
     async def ba_raiden(self, message: Message) -> Message:
         return await UIHelpPost_BARaiden().post(message)
+
+    async def ba_fairy(self, message: Message) -> Message:
+        return await UIHelpPost_BAFairy().post(message)
+
+    async def ba_trapping(self, message: Message) -> Message:
+        return await UIHelpPost_BATrapping().post(message)
+
+    async def ba_entrance(self, message: Message) -> Message:
+        return await UIHelpPost_BAEntrance().post(message)
 
     async def ba_ozma(self, message: Message) -> Message:
         msg = await UIHelpPost_BAOzma().post(message)

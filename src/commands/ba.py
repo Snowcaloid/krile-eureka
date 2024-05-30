@@ -31,6 +31,24 @@ class BACommands(GroupCog, group_name='ba', group_description='Baldesion Arsenal
         message = await default_response(interaction, '_ _')
         await bot.instance.data.ui.help.ba_ozma(message)
 
+    @command(name = "fairy", description = "Hydatos Fairy guide")
+    async def fairy(self, interaction: Interaction):
+        await default_defer(interaction, False)
+        message = await default_response(interaction, '_ _')
+        await bot.instance.data.ui.help.ba_fairy(message)
+
+    @command(name = "trapping", description = "BA trapping guide")
+    async def trapping(self, interaction: Interaction):
+        await default_defer(interaction, False)
+        message = await default_response(interaction, '_ _')
+        await bot.instance.data.ui.help.ba_trapping(message)
+
+    @command(name = "entrance", description = "BA entrance guide")
+    async def entrance(self, interaction: Interaction):
+        await default_defer(interaction, False)
+        message = await default_response(interaction, '_ _')
+        await bot.instance.data.ui.help.ba_entrance(message)
+
     #region error-handling
     @portals.error
     @rooms.error
