@@ -1,10 +1,11 @@
+from uuid import uuid4
 import bot
 from typing import List
 from re import search
 
 from discord import Embed, Message
 from discord.ui import Button
-from data.ui.buttons import ButtonType, MissedRunButton, PartyLeaderButton, RoleDisplayButton, RoleSelectionButton, button_custom_id
+from data.ui.buttons import ButtonType, MissedRunButton, PartyLeaderButton, RoleDisplayButton, RoleSelectionButton, load_button
 
 from data.ui.views import PersistentView
 
@@ -144,9 +145,11 @@ class EmbedEntry:
             if debug:
                 view.add_item(Button(label=button.label, disabled=True))
             elif message:
-                button.id = button_custom_id(button.label, message, button.type)
+                button.id = str(uuid4())
                 if button.type == ButtonType.ROLE_SELECTION:
-                    view.add_item(RoleSelectionButton(label=button.label, custom_id=button.id))
+                    role = next(role for role in message.guild.roles if role.name.lower().startswith(button.label.lower()))
+                    view.add_item(RoleSelectionButton(label=button.label, custom_id=button.id,
+                            role=role))
                 elif button.type == ButtonType.ROLE_DISPLAY:
                     view.add_item(RoleDisplayButton(label=button.label, custom_id=button.id))
                 elif button.type == ButtonType.MISSEDRUN:
@@ -185,7 +188,7 @@ class EmbedController:
             if entry.user == user:
                 self._list.remove(entry)
 
-    def load_from_message(self, user: int, message: Message):
+    async def load_from_message(self, user: int, message: Message):
         """Creates runtime embed data with informations from the embed."""
         embed = message.embeds[0]
         self.clear(user)
@@ -201,10 +204,5 @@ class EmbedController:
         if view:
             for button in view.children:
                 if isinstance(button, Button):
-                    type_match = search(r'(@[^@]+@)', button.custom_id)
-                    if type_match:
-                        button_type = ButtonType(type_match.group(1))
-                    else:
-                        button_type = ButtonType.ROLE_SELECTION
-
-                    entry.add_button(button.label, button_type)
+                    btn = await load_button(button.custom_id)
+                    entry.add_button(button.label, btn.button_type())

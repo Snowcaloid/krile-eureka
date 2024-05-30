@@ -1,6 +1,7 @@
+from uuid import uuid4
 from discord import Embed, Message
 import bot
-from data.ui.buttons import ButtonType, MissedRunButton, button_custom_id
+from data.ui.buttons import ButtonType, MissedRunButton
 from data.ui.views import PersistentView
 
 
@@ -11,7 +12,7 @@ class UIMissedRunPost:
         if guild_data is None: return
         disclaimer = f'\n**Please note that this function is exclusive to members with certain roles.**'
         view = PersistentView()
-        button = MissedRunButton(label='the button', custom_id=button_custom_id('missed', message, ButtonType.MISSEDRUN))
+        button = MissedRunButton(label='The Button', custom_id=str(uuid4()))
         button.event_category = event_category
         view.add_item(button)
         await message.edit(

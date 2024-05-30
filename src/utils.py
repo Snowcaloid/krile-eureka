@@ -75,3 +75,6 @@ def delta_to_string(delta: timedelta) -> str:
     if delta.days:
         result = f'{str(delta.days)} days, {result}'
     return result
+
+def sql_int(value: int) -> str:
+    return 'null' if value is None else str(value)

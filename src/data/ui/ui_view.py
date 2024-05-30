@@ -1,8 +1,7 @@
 from typing import List
 
 import bot
-from data.ui.buttons import ButtonType, PartyLeaderButton, RoleDisplayButton, RoleSelectionButton
-from data.db.buttons import ButtonData
+from data.ui.buttons import load_button
 from data.ui.views import PersistentView
 
 
@@ -10,28 +9,19 @@ class UIView:
     """Loading and deleting Buttons from DB."""
     view_list: List[PersistentView] = []
 
-    def load(self) -> None:
+    async def load(self) -> None:
         db = bot.instance.data.db
         db.connect()
         try:
             self.view_list.clear()
-            button_list: List[ButtonData] = []
-            for record in db.query('select button_id, label from buttons'):
-                button_list.append(ButtonData(record[0], record[1]))
             i = 0
-            view = PersistentView()
-            self.view_list.append(view)
-            for buttondata in button_list:
+            for record in db.query('select button_id from buttons'):
                 i += 1
-                if i % 20 == 0:
+                if i == 1 or i % 20 == 0:
                     view = PersistentView()
                     self.view_list.append(view)
-                if ButtonType.ROLE_SELECTION.value in buttondata.button_id:
-                    view.add_item(RoleSelectionButton(label=buttondata.label, custom_id=buttondata.button_id))
-                elif ButtonType.ROLE_DISPLAY.value in buttondata.button_id:
-                    view.add_item(RoleDisplayButton(label=buttondata.label, custom_id=buttondata.button_id))
-                elif ButtonType.PL_POST.value in buttondata.button_id:
-                    view.add_item(PartyLeaderButton(label=buttondata.label, custom_id=buttondata.button_id))
+                button = await load_button(record[0])
+                view.add_item(button)
             for view in self.view_list:
                 bot.instance.add_view(view)
         finally:
@@ -41,6 +31,6 @@ class UIView:
         db = bot.instance.data.db
         db.connect()
         try:
-            db.query(f'delete from buttons where button_id ~ \'{message_id}\'')
+            db.query(f'delete from buttons where message_id = {str(message_id)}')
         finally:
             db.disconnect()

@@ -13,7 +13,7 @@ class Task_RemoveButtons(TaskBase):
             db.connect()
             try:
                 message_id = obj["message_id"]
-                db.query(f'delete from buttons where message_id=\'{message_id}\'')
+                db.query(f'delete from buttons where message_id={message_id}')
             finally:
                 db.disconnect()
 

@@ -1,5 +1,6 @@
 from datetime import datetime
-from discord import Embed, Message, TextChannel
+from uuid import uuid4
+from discord import ButtonStyle, Embed, Message, TextChannel
 from data.guilds.guild_channel import GuildChannel
 from data.guilds.guild_message_functions import GuildMessageFunction
 from data.guilds.guild_pings import GuildPingType
@@ -7,7 +8,7 @@ import data.cache.message_cache as cache
 import bot
 from data.events.event import EventCategory
 from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.ui.buttons import ButtonType, PartyLeaderButton, button_custom_id, save_buttons
+from data.ui.buttons import ButtonType, PartyLeaderButton, save_buttons
 from data.ui.views import PersistentView
 from utils import set_default_footer
 
@@ -48,14 +49,19 @@ class UIPLPost:
             finally:
                 db.disconnect()
             view = PersistentView()
+            bot.instance.data.ui.view.view_list.append(view)
             for i in range(1, 8):
                 label = event.pl_button_texts[i-1]
                 if label:
                     view.add_item(PartyLeaderButton(
                         label=label,
-                        custom_id=button_custom_id(f'pl{i}', message, ButtonType.PL_POST), row=1 if i < 4 else 2))
+                        custom_id=str(uuid4()),
+                        row=1 if i < 4 else 2,
+                        index=i - 1 if i < 4 else i - 4,
+                        style=ButtonStyle.primary if i < 4 else ButtonStyle.success if i != 7 else ButtonStyle.danger,
+                        pl=i-1))
             message = await message.edit(embed=embed, view=view)
-            save_buttons(message)
+            save_buttons(message, view)
         else:
             message = await message.edit(embed=embed)
         await set_default_footer(message)

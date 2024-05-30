@@ -1,4 +1,3 @@
-from datetime import datetime
 import bot
 import data.cache.message_cache as cache
 from typing import Optional
@@ -62,7 +61,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         if not await InputValidator.RAISING.check_message_exists(interaction, channel, message_id): return
         if not await InputValidator.RAISING.check_message_contains_an_embed(interaction, channel, message_id): return
         message = await cache.messages.get(int(message_id), channel)
-        bot.instance.data.embed_controller.load_from_message(interaction.user.id, message)
+        await bot.instance.data.embed_controller.load_from_message(interaction.user.id, message)
         bot.instance.data.processes.start(interaction.user.id, RunTimeProcessType.EMBED_CREATION)
         await self.debug_followup(interaction)
 
@@ -74,8 +73,9 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         embed_data = bot.instance.data.embed_controller.get(interaction.user.id)
         channel = interaction.channel if channel is None else channel
         message = await channel.send(embed=embed_data.create_embed(False))
-        await message.edit(view=embed_data.create_view(False, message))
-        save_buttons(message)
+        view = embed_data.create_view(False, message)
+        await message.edit(view=view)
+        save_buttons(message, view)
         await set_default_footer(message)
         await default_response(interaction, f'A message has been sent: {message.jump_url}.')
         bot.instance.data.processes.stop(interaction.user.id, RunTimeProcessType.EMBED_CREATION)
@@ -90,9 +90,10 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         embed_data = bot.instance.data.embed_controller.get(interaction.user.id)
         message = await cache.messages.get(message_id, channel)
         bot.instance.data.ui.view.delete(message_id)
+        view = embed_data.create_view(False, message)
         message = await message.edit(embed=embed_data.create_embed(False),
-                                     view=embed_data.create_view(False, message))
-        save_buttons(message)
+                                     view=view)
+        save_buttons(message, view)
         await set_default_footer(message)
         await default_response(interaction, f'The message embed has been replaced: {message.jump_url}.')
         bot.instance.data.processes.stop(interaction.user.id, RunTimeProcessType.EMBED_CREATION)
@@ -180,7 +181,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
     #region button
     @command(name = "button_add", description = "Add role button to the embed.")
     @check(PermissionValidator.is_admin)
-    async def button_add(self, interaction: Interaction, label: str, button_type: str):
+    async def button_add(self, interaction: Interaction, label: str, button_type: int):
         await default_defer(interaction)
         if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.EMBED_CREATION): return
         if not await InputValidator.RAISING.check_valid_button_type(interaction, button_type): return
@@ -191,7 +192,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
     @command(name = "button_edit", description = "Edits a role button in the embed.")
     @check(PermissionValidator.is_admin)
     async def button_edit(self, interaction: Interaction, label: str, new_label: Optional[str] = None,
-                          button_type: Optional[str] = None):
+                          button_type: Optional[int] = None):
         await default_defer(interaction)
         if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.EMBED_CREATION): return
         if not await InputValidator.RAISING.check_embed_contains_button(interaction, label): return
@@ -202,7 +203,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
 
     @command(name = "button_insert", description = "Insert button at position of the embed.")
     @check(PermissionValidator.is_admin)
-    async def button_insert(self, interaction: Interaction, position: int, label: str, button_type: str):
+    async def button_insert(self, interaction: Interaction, position: int, label: str, button_type: int):
         await default_defer(interaction)
         if not await ProcessValidator.RAISING.check_process_is_running(interaction, RunTimeProcessType.EMBED_CREATION): return
         if not await InputValidator.RAISING.check_valid_button_type(interaction, button_type): return

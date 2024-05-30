@@ -107,7 +107,7 @@ class InputValidator:
             await default_response(interaction, f'Button #{label} doesn\'t exist yet.')
         return result
 
-    async def check_valid_button_type(self, interaction: Interaction, button_type: str) -> bool:
+    async def check_valid_button_type(self, interaction: Interaction, button_type: int) -> bool:
         result = button_type is None or button_type in ButtonType._value2member_map_
         if self == InputValidator.RAISING and not result:
             await default_response(interaction, f'Button type {button_type} doesn\'t exist. Use autocomplete.')

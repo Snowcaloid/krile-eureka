@@ -46,7 +46,7 @@ class RuntimeData(ProcessListener):
         """Load general data from the db."""
         if self.ready:
             self.__init__()
-        self.ui.load()
+        await self.ui.load()
         self.guilds.load()
         self.tasks.load()
         self.ready = True

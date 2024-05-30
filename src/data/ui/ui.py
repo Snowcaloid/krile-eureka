@@ -17,10 +17,10 @@ class UI:
     weather_post: UIWeatherPost = UIWeatherPost()
     help: UIHelp = UIHelp()
 
-    def load(self) -> None:
+    async def load(self) -> None:
         db = bot.instance.data.db
         db.connect()
         try:
-            self.view.load()
+            await self.view.load()
         finally:
             db.disconnect()
