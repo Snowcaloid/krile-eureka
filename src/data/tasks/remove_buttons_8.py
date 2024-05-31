@@ -1,5 +1,5 @@
-import bot
 from data.tasks.tasks import TaskExecutionType, TaskBase
+from data.ui.buttons import delete_buttons
 
 
 class Task_RemoveButtons(TaskBase):
@@ -9,12 +9,7 @@ class Task_RemoveButtons(TaskBase):
     @classmethod
     async def execute(cl, obj: object) -> None:
         if obj and obj["message_id"]:
-            db = bot.instance.data.db
-            db.connect()
-            try:
-                message_id = obj["message_id"]
-                db.query(f'delete from buttons where message_id={message_id}')
-            finally:
-                db.disconnect()
+            message_id = obj["message_id"]
+            delete_buttons(message_id)
 
 

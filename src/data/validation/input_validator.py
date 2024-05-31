@@ -6,7 +6,7 @@ from datetime import datetime
 from discord import Interaction, Member, TextChannel
 
 from data.events.event import Event, EventCategory
-from data.ui.buttons import ButtonType
+from data.ui.constants import ButtonType
 from utils import default_response
 from data.validation.permission_validator import PermissionValidator
 

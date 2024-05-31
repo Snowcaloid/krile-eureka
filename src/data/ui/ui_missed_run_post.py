@@ -1,7 +1,7 @@
 from uuid import uuid4
 from discord import Embed, Message
 import bot
-from data.ui.buttons import ButtonType, MissedRunButton
+from data.ui.buttons import MissedRunButton
 from data.ui.views import PersistentView
 
 

@@ -8,7 +8,7 @@ import data.cache.message_cache as cache
 import bot
 from data.events.event import EventCategory
 from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.ui.buttons import ButtonType, PartyLeaderButton, save_buttons
+from data.ui.buttons import PartyLeaderButton, delete_buttons, save_buttons
 from data.ui.views import PersistentView
 from utils import set_default_footer
 
@@ -42,12 +42,7 @@ class UIPLPost:
         if message is None: return
         embed = Embed(title=event.pl_post_title, description=event.pl_post_text)
         if recreate_view:
-            db = bot.instance.data.db
-            db.connect()
-            try:
-                db.query(f'delete from buttons where message_id = {str(event.pl_post_id)}')
-            finally:
-                db.disconnect()
+            delete_buttons(event.pl_post_id)
             view = PersistentView()
             bot.instance.data.ui.view.view_list.append(view)
             for i in range(1, 8):

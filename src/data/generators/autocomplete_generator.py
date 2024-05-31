@@ -10,7 +10,7 @@ from data.events.event import EventCategoryCollection, EventCategory
 
 from data.guilds.guild_pings import GuildPingType
 from data.guilds.guild_role_functions import GuildRoleFunction
-from data.ui.buttons import ButtonType
+from data.ui.constants import ButtonType
 from data.validation.permission_validator import PermissionValidator
 
 
@@ -110,6 +110,7 @@ class AutoCompleteGenerator:
             Choice(name='Role selection Button', value=ButtonType.ROLE_SELECTION.value),
             Choice(name='Role display Button', value=ButtonType.ROLE_DISPLAY.value)
         ]
+
 
     @classmethod
     def table(cl, current: str) -> List[Choice]:

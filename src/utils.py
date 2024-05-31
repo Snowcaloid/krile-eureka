@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import time
-from discord import Interaction, Message, Member
+from typing import List
+from discord import Guild, Interaction, Message, Member, Role
 from dateutil.tz import tzlocal, tzutc
 from enum import Enum
 # DO NOT IMPORT OTHER UNITS FROM /src/!
@@ -78,3 +79,6 @@ def delta_to_string(delta: timedelta) -> str:
 
 def sql_int(value: int) -> str:
     return 'null' if value is None else str(value)
+
+def find_nearest_role(guild: Guild, role_name: str) -> Role:
+    return next(role for role in guild.roles if role.name.lower().startswith(role_name.lower()))

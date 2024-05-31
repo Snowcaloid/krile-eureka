@@ -6,6 +6,7 @@ class ButtonsTable(TableDefinition):
         self.define_column('button_type', ColumnType.INTEGER)
         self.define_column('channel_id', ColumnType.BIGINT)
         self.define_column('message_id', ColumnType.BIGINT)
+        self.define_column('emoji', ColumnType.VARCHAR, 2)
         self.define_column('label', ColumnType.VARCHAR, 50)
         self.define_column('style', ColumnType.INTEGER)
         self.define_column('row', ColumnType.INTEGER)

@@ -1,4 +1,3 @@
-from datetime import datetime
 import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
@@ -7,7 +6,6 @@ from typing import Optional
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
-from data.tasks.tasks import TaskExecutionType
 from data.validation.input_validator import InputValidator
 from utils import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator

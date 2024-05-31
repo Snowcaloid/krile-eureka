@@ -1,4 +1,5 @@
 import bot
+from data.ui.ui_embed_builder import UI_Embed_Builder
 from data.ui.ui_missed_run_post import UIMissedRunPost
 from data.ui.ui_missed_runs_list import UIMissedRunsList
 from data.ui.ui_pl_post import UIPLPost
@@ -16,6 +17,7 @@ class UI:
     view: UIView = UIView()
     weather_post: UIWeatherPost = UIWeatherPost()
     help: UIHelp = UIHelp()
+    embed: UI_Embed_Builder = UI_Embed_Builder()
 
     async def load(self) -> None:
         db = bot.instance.data.db
