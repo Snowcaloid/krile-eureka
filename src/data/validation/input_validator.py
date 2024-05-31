@@ -81,42 +81,11 @@ class InputValidator:
             await default_response(interaction, f'Message with id <{str(message_id)}> does not exist in {channel.mention}.')
         return result
 
-    async def check_message_author_is_self(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
-        message = await cache.messages.get(int(message_id), channel)
-        result = message.author.id == bot.instance.user.id
-        if self == InputValidator.RAISING and not result:
-            await default_response(interaction, f'Message with id <{str(message_id)}> in {channel.mention} is not sent by {bot.instance.user.mention}.')
-        return result
-
     async def check_message_contains_an_embed(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
         message = await cache.messages.get(int(message_id), channel)
         result = len(message.embeds) > 0
         if self == InputValidator.RAISING and not result:
             await default_response(interaction, f'Message with id <{str(message_id)} does not contain any embeds.')
-        return result
-
-    async def check_embed_contains_field(self, interaction: Interaction, field_id: int) -> bool:
-        result = bot.instance.data.embed_controller.get(interaction.user.id).field_exists(field_id)
-        if self == InputValidator.RAISING and not result:
-            await default_response(interaction, f'Field #{str(field_id)} doesn\'t exist yet.')
-        return result
-
-    async def check_embed_contains_button(self, interaction: Interaction, label: str) -> bool:
-        result = bot.instance.data.embed_controller.get(interaction.user.id).button_exists(label)
-        if self == InputValidator.RAISING and not result:
-            await default_response(interaction, f'Button #{label} doesn\'t exist yet.')
-        return result
-
-    async def check_valid_button_type(self, interaction: Interaction, button_type: int) -> bool:
-        result = button_type is None or button_type in ButtonType._value2member_map_
-        if self == InputValidator.RAISING and not result:
-            await default_response(interaction, f'Button type {button_type} doesn\'t exist. Use autocomplete.')
-        return result
-
-    async def check_button_position_in_range(self, interaction: Interaction, position: int) -> bool:
-        result = position < len(bot.instance.data.embed_controller.get(interaction.user.id).buttons)
-        if self == InputValidator.RAISING and not result:
-            await default_response(interaction, f'Position {str(position)} is out of bounds.')
         return result
 
     def escape_event_description(self, description: str) -> str:
