@@ -153,6 +153,7 @@ class UIHelp:
     async def ba_ozma(self, message: Message) -> Message:
         msg = await UIHelpPost_BAOzma().post(message)
         await message.channel.send('_ _', embeds=[
+            Embed(title='Example markers for platform A').set_image(url='https://i.ibb.co/P4RPfjN/ozma-markers.webp'),
             Embed(title='Meteors').set_image(url='https://i.ibb.co/SJJk9SP/Meteor-Impact.gif'),
             Embed(title='Acceleration Bomb').set_image(url='https://i.ibb.co/yBN7ZBd/Acceleration-Bomb.gif')
         ])
