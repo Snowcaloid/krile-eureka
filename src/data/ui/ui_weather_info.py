@@ -10,7 +10,6 @@ class UIWeatherPost:
     """Eureka Weather Info post."""
 
     async def rebuild(self, guild_id: int, message: Message = None) -> Message:
-        disclaimer = ''
         if message is None:
             guild_data = bot.instance.data.guilds.get(guild_id)
             message_data = guild_data.messages.get(GuildMessageFunction.WEATHER_POST)
@@ -18,7 +17,6 @@ class UIWeatherPost:
             channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
             if channel is None: return
             message = await cache.messages.get(message_data.message_id, channel)
-            disclaimer = 'Note: ET is not 100% accurate due to discord restrictions.\n'
 
         if message is None: return
         current_time = to_eorzea_time(datetime.utcnow())
@@ -33,7 +31,6 @@ class UIWeatherPost:
             next_day_or_night_time = next_night()
 
         embed = Embed(title='Eureka Weather info', description=(
-            f'{disclaimer}'
             f'Current Eorzea time: {emoji_current} {current_time.strftime("%H:%M")}\n'
             f'{next_day_or_night} {get_discord_timestamp(next_day_or_night_time, DiscordTimestampType.RELATIVE)}\n\n'
             f'**Anemos {current_weather(EurekaZones.ANEMOS)}**\n'

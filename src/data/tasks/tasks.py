@@ -19,7 +19,7 @@ class TaskExecutionType(Enum):
     POST_SUPPORT_PASSCODE = 6
     UPDATE_MISSED_RUNS_LIST = 7
     REMOVE_BUTTONS = 8
-    UPDATE_WEATHER_POSTS = 9
+    UPDATE_EUREKA_INFO_POSTS = 9
 
 class TaskBase:
     _registered_tasks: List[Type['TaskBase']] = []

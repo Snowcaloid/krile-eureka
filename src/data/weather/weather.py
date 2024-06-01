@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Optional
 from utils import DiscordTimestampType, get_discord_timestamp
 from data.weather.zone_info import data as ZoneInfo
@@ -116,10 +116,23 @@ def find_next_weather_multiple(
 
     return None
 
-def current_weather(zone: int) -> str:
-    weather = get_weather(get_time_ms(datetime.utcnow()), zone)
+def weather_as_text(time: int, zone: int, only_emoji: bool = False) -> str:
+    weather = get_weather(get_time_ms(time), zone)
     emoji = weather_emoji[weather]
+    if only_emoji:
+        return emoji
     return f'{emoji} {weather}'
+
+def current_weather(zone: int, only_emoji: bool = False) -> str:
+    return weather_as_text(datetime.utcnow(), zone, only_emoji)
+
+def next_4_weathers(zone: int) -> str:
+    return (
+        f'{weather_as_text(datetime.utcnow(), zone, True)} → '
+        f'{weather_as_text(datetime.utcnow() + timedelta(minutes=23), zone, True)} → '
+        f'{weather_as_text(datetime.utcnow() + timedelta(minutes=46), zone, True)} → '
+        f'{weather_as_text(datetime.utcnow() + timedelta(minutes=69), zone, True)}'
+    )
 
 def next_weather(zone: int, weather: str, count: int = 0) -> str:
     if count:

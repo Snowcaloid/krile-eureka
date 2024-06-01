@@ -51,6 +51,21 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         await default_response(interaction, f'Static Weather Post has been created in #{channel.name}')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has created a static weather post in #{channel.name}.')
 
+    @command(name = "create_eureka_info_post", description = "Create an updated eureka post for a guild.")
+    @check(PermissionValidator.is_admin)
+    async def create_eureka_info_post(self, interaction: Interaction, channel: TextChannel):
+        await default_defer(interaction)
+        guild_data = bot.instance.data.guilds.get(interaction.guild_id)
+        message_data = guild_data.messages.get(GuildMessageFunction.EUREKA_INFO)
+        if message_data:
+            await bot.instance.data.ui.eureka_info.remove(interaction.guild_id)
+            guild_data.messages.remove(message_data.message_id)
+        message = await channel.send(embed=Embed(description='_ _'))
+        guild_data.messages.add(message.id, channel.id, GuildMessageFunction.EUREKA_INFO)
+        await bot.instance.data.ui.eureka_info.create(interaction.guild_id)
+        await default_response(interaction, f'Eureka Info Post has been created in #{channel.name}')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has created a eureka info post in #{channel.name}.')
+
     async def config_channel(self, interaction: Interaction, event_type: str, channel: TextChannel,
                              function: GuildChannelFunction, function_desc: str):
         await default_defer(interaction)

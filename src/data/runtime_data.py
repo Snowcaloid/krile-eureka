@@ -1,4 +1,5 @@
 import bot
+from data.eureka_info import EurekaInfo
 from data.guilds.guild import Guilds
 from data.db.register import RegisterTables
 from data.db.database import Database
@@ -14,6 +15,7 @@ class RuntimeData:
     guilds: Guilds = Guilds()
     ui: UI = UI()
     tasks: Tasks = Tasks()
+    eureka_info: EurekaInfo = EurekaInfo()
     ready: bool
 
     def __init__(self):
@@ -39,6 +41,7 @@ class RuntimeData:
         await self.ui.load()
         self.guilds.load()
         self.tasks.load()
+        self.eureka_info.load()
         self.ready = True
         for guild in bot.instance.guilds:
             guild.fetch_members()

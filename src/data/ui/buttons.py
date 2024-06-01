@@ -4,6 +4,8 @@ from discord.ui import Button, View
 from discord import ButtonStyle, Embed, Emoji, Interaction, Message, PartialEmoji, Role, Member, TextChannel
 from typing import Dict, List, Optional, Tuple, Type, Union
 from data.ui.constants import BUTTON_STYLE_DESCRIPTIONS, BUTTON_TYPE_DESCRIPTIONS, ButtonType
+from data.ui.selects import EurekaTrackerZoneSelect
+from data.ui.views import TemporaryView
 from data.validation.permission_validator import PermissionValidator
 from logger import guild_log_message
 from utils import default_defer, default_response, sql_int
@@ -163,11 +165,37 @@ class MissedRunButton(ButtonBase):
             ))
 
 
+class AssignTrackerButton(ButtonBase):
+    """Buttons which show a modal for url of a tracker"""
+
+    def button_type(self) -> ButtonType: return ButtonType.ASSIGN_TRACKER
+
+    async def callback(self, interaction: Interaction):
+        if interaction.message == self.message:
+            view = TemporaryView()
+            view.add_item(EurekaTrackerZoneSelect(generate=False))
+            await interaction.response.send_message('Select a Eureka region, then paste the tracker ID.', view=view, ephemeral=True)
+
+
+class GenerateTrackerButton(ButtonBase):
+    """Buttons which generates a new url for a tracker"""
+
+    def button_type(self) -> ButtonType: return ButtonType.GENERATE_TRACKER
+
+    async def callback(self, interaction: Interaction):
+        if interaction.message == self.message:
+            view = TemporaryView()
+            view.add_item(EurekaTrackerZoneSelect(generate=True))
+            await interaction.response.send_message('Select a Eureka region.', view=view, ephemeral=True)
+
+
 BUTTON_CLASSES: Dict[ButtonType, Type[ButtonBase]] = {
     ButtonType.ROLE_SELECTION: RoleSelectionButton,
     ButtonType.ROLE_DISPLAY: RoleDisplayButton,
     ButtonType.PL_POST: PartyLeaderButton,
-    ButtonType.MISSEDRUN: MissedRunButton
+    ButtonType.MISSEDRUN: MissedRunButton,
+    ButtonType.ASSIGN_TRACKER: AssignTrackerButton,
+    ButtonType.GENERATE_TRACKER: GenerateTrackerButton,
 }
 
 

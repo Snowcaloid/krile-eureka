@@ -9,6 +9,8 @@ class ButtonType(Enum):
     ROLE_DISPLAY = 2
     PL_POST = 3
     MISSEDRUN = 4
+    ASSIGN_TRACKER = 5
+    GENERATE_TRACKER = 6
 
 
 BUTTON_STYLE_DESCRIPTIONS: Dict[ButtonStyle, str] = {
