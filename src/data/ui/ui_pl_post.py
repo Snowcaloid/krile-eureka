@@ -10,7 +10,6 @@ from data.events.event import EventCategory
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.ui.buttons import PartyLeaderButton, delete_buttons, save_buttons
 from data.ui.views import PersistentView
-from utils import set_default_footer
 
 class UIPLPost:
     """Party leader post."""
@@ -59,7 +58,6 @@ class UIPLPost:
             save_buttons(message, view)
         else:
             message = await message.edit(embed=embed)
-        await set_default_footer(message)
         return message
 
 

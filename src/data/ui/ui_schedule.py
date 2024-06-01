@@ -5,7 +5,6 @@ from data.events.event import ScheduledEvent
 import data.cache.message_cache as cache
 import bot
 from data.guilds.guild_message_functions import GuildMessageFunction
-from utils import set_default_footer
 
 class DateSeparatedScheduleData:
     """Helper class for separating Schedule entries by date."""
@@ -62,6 +61,5 @@ class UISchedule:
 
             embed.description = description
             await post.edit(embed=embed)
-            await set_default_footer(post)
         else:
             raise Exception(f'UISchedule.rebuild failed: Could not find message with ID {message_data.id}')

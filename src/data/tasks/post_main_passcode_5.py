@@ -3,7 +3,6 @@ import bot
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.tasks.tasks import TaskExecutionType, TaskBase
-from utils import set_default_footer
 
 
 class Task_PostMainPasscode(TaskBase):
@@ -27,6 +26,5 @@ class Task_PostMainPasscode(TaskBase):
             message = await channel.send(pings, embed=Embed(
                 title=event.passcode_post_title,
                 description=event.main_passcode_text))
-            await set_default_footer(message)
 
 

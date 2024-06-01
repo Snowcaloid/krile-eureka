@@ -11,7 +11,7 @@ from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_message_functions import GuildMessageFunction
 from data.guilds.guild_role_functions import GuildRoleFunction
 from data.validation.input_validator import InputValidator
-from utils import default_defer, default_response, set_default_footer
+from utils import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
 from logger import guild_log_message
 
@@ -31,7 +31,6 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                     await old_message.delete()
             guild_data.messages.remove(message_data.message_id) # TODO: This routine is used multiple times. It could be moved somewhere else
         message = await channel.send(embed=Embed(description='...'))
-        await set_default_footer(message)
         guild_data.messages.add(message.id, channel.id, GuildMessageFunction.SCHEDULE_POST)
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         await default_response(interaction, f'Schedule has been created in #{channel.name}')

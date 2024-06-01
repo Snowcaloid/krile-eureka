@@ -4,7 +4,7 @@ from data.guilds.guild_message_functions import GuildMessageFunction
 import data.cache.message_cache as cache
 import bot
 from data.weather.weather import EurekaWeathers, EurekaZones, current_weather, next_day, next_night, next_weather, to_eorzea_time, weather_emoji
-from utils import DiscordTimestampType, get_discord_timestamp, set_default_footer
+from utils import DiscordTimestampType, get_discord_timestamp
 
 class UIWeatherPost:
     """Eureka Weather Info post."""
@@ -46,7 +46,6 @@ class UIWeatherPost:
             f'{weather_emoji[EurekaWeathers.SNOW]} Next 2x Snow: {next_weather(EurekaZones.HYDATOS, EurekaWeathers.SNOW, 2)}\n'
         ))
         message = await message.edit(embed=embed)
-        return await set_default_footer(message)
 
 
     async def remove(self, guild_id: int) -> None:

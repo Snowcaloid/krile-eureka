@@ -5,7 +5,7 @@ from discord.app_commands import check, command
 from discord import Interaction, Thread
 from discord.channel import TextChannel
 from data.validation.input_validator import InputValidator
-from utils import default_defer, default_response, set_default_footer
+from utils import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
 from logger import guild_log_message
 
