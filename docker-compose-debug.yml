@@ -9,7 +9,7 @@ services:
     ports:
       - '5433:5432'
     volumes:
-      - /volume1/docker/docker-volumes/brozma-db-develop-container:/var/lib/postgresql/data
+      - D:/docker/krile-db:/var/lib/postgresql/data
     env_file:
       - .env
     healthcheck:
@@ -18,7 +18,7 @@ services:
       timeout: 1s
       retries: 5
     networks:
-      - krile_network
+          - krile_network
   pgadmin-dev:
     container_name: pgadmin-dev-container
     image: dpage/pgadmin4
@@ -31,11 +31,11 @@ services:
     depends_on:
       - db_dev
     volumes:
-      - /volume1/docker/docker-volumes/brozma-pgadmin-container:/var/lib/pgadmin
+      - D:/docker/krile-pgadmin:/var/lib/pgadmin
     env_file:
       - .env
     networks:
-      - krile_network
+          - krile_network
   krile_develop:
     container_name: krile-develop-container
     restart: unless-stopped
@@ -52,7 +52,7 @@ services:
       context: .
       dockerfile: Dockerfile
     networks:
-      - krile_network
+          - krile_network
     links:
       - db_dev
 networks:
