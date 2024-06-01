@@ -5,6 +5,7 @@ import data.cache.message_cache as cache
 from datetime import datetime
 from discord import Interaction, Member, TextChannel
 
+from data.eureka_info import EurekaTrackerZone
 from data.events.event import Event, EventCategory
 from data.ui.constants import ButtonType
 from utils import default_response
@@ -91,6 +92,12 @@ class InputValidator:
     def escape_event_description(self, description: str) -> str:
         if description is None: return None
         return description.replace("'", "''")
+
+    async def check_valid_eureka_instance(self, interaction: Interaction, instance: str) -> bool:
+        result = int(instance) in EurekaTrackerZone._value2member_map_
+        if self == InputValidator.RAISING and not result:
+            await default_response(interaction, f'Type {instance} does not correlate to a supported eureka instance.')
+        return result
 
     async def check_and_combine_date_and_time(self, interaction: Interaction, date: str, time: str) -> datetime:
         try:

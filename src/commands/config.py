@@ -4,6 +4,7 @@ from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
+from data.eureka_info import EurekaTrackerZone
 from data.events.event import Event, EventCategory
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
@@ -100,6 +101,16 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def notification_channel(self, interaction: Interaction, event_type: str, channel: TextChannel):
         await self.config_channel(interaction, event_type, channel, GuildChannelFunction.RUN_NOTIFICATION, 'run notification')
 
+    @command(name = "eureka_notification_channel", description = "Set the channel for eureka tracker notifications.")
+    @check(PermissionValidator.is_admin)
+    async def eureka_notification_channel(self, interaction: Interaction, instance: str, channel: TextChannel):
+        await default_defer(interaction)
+        if not await InputValidator.RAISING.check_valid_eureka_instance(interaction, instance): return
+        channels_data = bot.instance.data.guilds.get(interaction.guild_id).channels
+        channels_data.set(channel.id, GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION, instance)
+        await default_response(interaction, f'You have set #{channel.name} as the eureka tracker notification channel for "{EurekaTrackerZone(int(instance)).name}".')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set #{channel.name} as the eureka tracker notification channel for type "{EurekaTrackerZone(int(instance)).name}".')
+
     @command(name = "missed_run_channel", description = "Create a missed run list.")
     @check(PermissionValidator.is_admin)
     async def missed_run_channel(self, interaction: Interaction, event_category: str, channel: TextChannel):
@@ -131,13 +142,16 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         await default_response(interaction, f'You have added #{role.mention} as forbidden role for missed run posts for category "{EventCategory(event_category).value}".')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has added #{role.name} as forbidden role for missed run posts for category "{EventCategory(event_category).value}".')
 
-
     @passcode_channel.autocomplete('event_type')
     @party_leader_channel.autocomplete('event_type')
     @notification_channel.autocomplete('event_type')
     @support_passcode_channel.autocomplete('event_type')
     async def autocomplete_event_type_with_all(self, interaction: Interaction, current: str):
         return AutoCompleteGenerator.event_type_with_categories(current)
+
+    @eureka_notification_channel.autocomplete('instance')
+    async def autocomplete_instance(self, interaction: Interaction, current: str):
+        return AutoCompleteGenerator.eureka_instance(current)
 
     @missed_run_channel.autocomplete('event_category')
     @missed_runs_allow_role.autocomplete('event_category')
@@ -153,6 +167,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @party_leader_channel.error
     @notification_channel.error
     @missed_run_channel.error
+    @eureka_notification_channel.error
     async def handle_error(self, interaction: Interaction, error):
         print(error)
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')

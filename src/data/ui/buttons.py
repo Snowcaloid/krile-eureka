@@ -173,8 +173,9 @@ class AssignTrackerButton(ButtonBase):
     async def callback(self, interaction: Interaction):
         if interaction.message == self.message:
             view = TemporaryView()
-            view.add_item(EurekaTrackerZoneSelect(generate=False))
-            await interaction.response.send_message('Select a Eureka region, then paste the tracker ID.', view=view, ephemeral=True)
+            select = EurekaTrackerZoneSelect(generate=False)
+            view.add_item(select)
+            select.message = await interaction.response.send_message('Select a Eureka region, then paste the tracker ID.', view=view, ephemeral=True)
 
 
 class GenerateTrackerButton(ButtonBase):
@@ -185,8 +186,9 @@ class GenerateTrackerButton(ButtonBase):
     async def callback(self, interaction: Interaction):
         if interaction.message == self.message:
             view = TemporaryView()
-            view.add_item(EurekaTrackerZoneSelect(generate=True))
-            await interaction.response.send_message('Select a Eureka region.', view=view, ephemeral=True)
+            select = EurekaTrackerZoneSelect(generate=True)
+            view.add_item(select)
+            select.message = await interaction.response.send_message('Select a Eureka region.', view=view, ephemeral=True)
 
 
 BUTTON_CLASSES: Dict[ButtonType, Type[ButtonBase]] = {

@@ -8,3 +8,4 @@ class GuildChannelFunction(Enum):
     MISSED_POST_CHANNEL = 4
     PL_CHANNEL = 5
     RUN_NOTIFICATION = 6
+    EUREKA_TRACKER_NOTIFICATION = 7

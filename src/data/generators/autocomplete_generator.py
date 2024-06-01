@@ -6,6 +6,7 @@ from discord import Interaction
 from discord.app_commands import Choice
 
 from data.db.definition import TableDefinitions
+from data.eureka_info import EurekaTrackerZone
 from data.events.event import EventCategoryCollection, EventCategory
 
 from data.guilds.guild_pings import GuildPingType
@@ -105,12 +106,20 @@ class AutoCompleteGenerator:
         ], current)
 
     @classmethod
+    def eureka_instance(cl, current: str) -> List[Choice]:
+        return cl.filter_by_current([
+            Choice(name='Anemos',  value=str(EurekaTrackerZone.ANEMOS.value)),
+            Choice(name='Pagos', value=str(EurekaTrackerZone.PAGOS.value)),
+            Choice(name='Pyros', value=str(EurekaTrackerZone.PYROS.value)),
+            Choice(name='Hydatos', value=str(EurekaTrackerZone.HYDATOS.value))
+        ], current)
+
+    @classmethod
     def button_type(cl, current: str) -> List[Choice]:
         return [
             Choice(name='Role selection Button', value=ButtonType.ROLE_SELECTION.value),
             Choice(name='Role display Button', value=ButtonType.ROLE_DISPLAY.value)
         ]
-
 
     @classmethod
     def table(cl, current: str) -> List[Choice]:

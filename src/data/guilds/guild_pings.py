@@ -12,6 +12,7 @@ class GuildPingType(Enum):
     SUPPORT_PASSCODE = 2
     PL_POST = 3
     RUN_NOTIFICATION = 4
+    EUREKA_TRACKER_NOTIFICATION = 5
 
 class GuildPing:
     id: int
