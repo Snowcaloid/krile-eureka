@@ -119,15 +119,15 @@ class Event:
 
     @classmethod
     def passcode_post_title(cl, time: datetime) -> str:
-        return f'{time.strftime(f"%A, %d-%b-%y %H:%M ST")} ({get_discord_timestamp(time)} LT) {cl.description()} passcode'
+        return f'{time.strftime(f"%A, %d-%b-%y %H:%M ST")} ({get_discord_timestamp(time)} LT) {cl.description()} Passcode'
 
     @classmethod
     def pl_post_title(cl, time: datetime) -> str:
-        return f'{time.strftime(f"%A, %d-%b-%y %H:%M ST")} ({get_discord_timestamp(time)} LT) {cl.description()} party leader recruitment'
+        return f'{time.strftime(f"%A, %d-%b-%y %H:%M ST")} ({get_discord_timestamp(time)} LT) {cl.description()} Party Leader Recruitment'
 
     @classmethod
     def dm_title(cl, time: datetime) -> str:
-        return f'{time.strftime(f"%A, %d-%b-%y %H:%M ST")} ({get_discord_timestamp(time)} LT) {cl.description()} passcode notification'
+        return f'{time.strftime(f"%A, %d-%b-%y %H:%M ST")} ({get_discord_timestamp(time)} LT) {cl.description()} Passcode Notification'
 
     @classmethod
     def as_choice(cl) -> Choice:
