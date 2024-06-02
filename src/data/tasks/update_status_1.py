@@ -10,7 +10,7 @@ class Task_UpdateStatus(TaskBase):
     @classmethod
     def type(cl) -> TaskExecutionType: return TaskExecutionType.UPDATE_STATUS
     @classmethod
-    def handle_exception(cl, e: Exception, obj: object) -> None:
+    async def handle_exception(cl, e: Exception, obj: object) -> None:
         bot.instance.data.tasks.remove_all(TaskExecutionType.UPDATE_STATUS)
         bot.instance.data.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskExecutionType.UPDATE_STATUS)
 

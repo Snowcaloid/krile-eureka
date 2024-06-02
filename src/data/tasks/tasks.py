@@ -31,9 +31,9 @@ class TaskBase:
     @classmethod
     def type(cl) -> TaskExecutionType: return TaskExecutionType.NONE
     @classmethod
-    def handle_exception(cl, e: Exception, obj: object) -> None:
+    async def handle_exception(cl, e: Exception, obj: object) -> None:
         if obj["guild"]:
-            guild_log_message(obj["guild"], e)
+            await guild_log_message(obj["guild"], e)
         else:
             raise e
 
@@ -87,7 +87,7 @@ class Task:
         try:
             await self.base.execute(self.data)
         except Exception as e:
-            self.base.handle_exception(e, self.data)
+            await self.base.handle_exception(e, self.data)
         finally:
             self.list.executing = False
 
