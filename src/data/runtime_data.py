@@ -1,10 +1,11 @@
+from datetime import datetime
 import bot
 from data.eureka_info import EurekaInfo
 from data.guilds.guild import Guilds
 from data.db.register import RegisterTables
 from data.db.database import Database
 from data.db.definition import TableDefinitions
-from data.tasks.tasks import Tasks
+from data.tasks.tasks import TaskExecutionType, Tasks
 from data.ui.ui import UI
 from data.ui.copied_messages import MessageCopyController
 
@@ -46,3 +47,8 @@ class RuntimeData:
         for guild in bot.instance.guilds:
             guild.fetch_members()
             await self.ui.schedule.rebuild(guild.id)
+
+        if not self.tasks.contains(TaskExecutionType.UPDATE_STATUS):
+            self.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
+        if not self.tasks.contains(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS):
+            self.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)

@@ -46,10 +46,6 @@ class Krile(Bot):
         This method is called after instance.on_ready event.
         """
         await self.data.reset()
-        if not self.data.tasks.contains(TaskExecutionType.UPDATE_STATUS):
-            self.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
-        if not self.data.tasks.contains(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS):
-            self.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
 
         await self.add_cog(EmbedCommands())
         await self.add_cog(MissedCommands())
