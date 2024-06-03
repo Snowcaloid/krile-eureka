@@ -1,5 +1,5 @@
 from typing import Dict
-from discord import Message, TextChannel
+from discord import Message, NotFound, TextChannel
 
 
 class MessageCache:
@@ -12,7 +12,11 @@ class MessageCache:
         for message_id in self.cache:
             if message_id == id:
                 return self.cache[id]
-        message = await channel.fetch_message(id)
+        try:
+            message = await channel.fetch_message(id)
+        except NotFound:
+            message = None
+
         self.cache.update({id: message})
         return message
 
