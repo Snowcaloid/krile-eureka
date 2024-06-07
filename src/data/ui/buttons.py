@@ -45,7 +45,10 @@ class RoleSelectionButton(ButtonBase):
         if interaction.message == self.message:
             await default_defer(interaction)
             if isinstance(interaction.user, Member):
-                if interaction.user.get_role(self.role.id):
+                if self.role is None:
+                    await guild_log_message(interaction.guild_id, f'{interaction.user.mention} tried using button <{self.label}> in message <{self.message.jump_url}> but role is not loaded.')
+                    await default_response(interaction, f'The button you\'re trying to interact with is currently not working. Please contact the server moderators.')
+                elif interaction.user.get_role(self.role.id):
                     await interaction.user.remove_roles(self.role)
                     await guild_log_message(interaction.guild_id, f'{interaction.user.mention} has removed their role **{self.role.name}**.')
                     await default_response(interaction, f'You have removed the role {self.role.name} from yourself')
