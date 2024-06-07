@@ -258,7 +258,12 @@ async def get_guild_button_data(button_id: str, channel_id: int, message_id: int
         message = await cache.messages.get(message_id, channel)
         if message:
             if role_id:
-                return message, channel.guild.get_role(role_id)
+                role = channel.guild.get_role(role_id)
+                if role:
+                    return message, role
+                else:
+                    roles = await channel.guild.fetch_roles()
+                    return message, next((role for role in roles if role.id == role_id), None)
             else:
                 return message, None
         else:
