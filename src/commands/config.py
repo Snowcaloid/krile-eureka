@@ -9,6 +9,7 @@ from data.events.event import Event, EventCategory
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_message_functions import GuildMessageFunction
+from data.guilds.guild_pings import GuildPingType
 from data.guilds.guild_role_functions import GuildRoleFunction
 from data.validation.input_validator import InputValidator
 from utils import default_defer, default_response
@@ -126,10 +127,76 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         await default_response(interaction, f'You have added #{role.mention} as forbidden role for missed run posts for category "{EventCategory(event_category).value}".')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has added #{role.name} as forbidden role for missed run posts for category "{EventCategory(event_category).value}".')
 
+    @command(name='ping_add_role', description='Add a ping.')
+    @check(PermissionValidator.is_admin)
+    async def ping_add_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
+        await default_defer(interaction)
+        if not await InputValidator.RAISING.check_valid_event_type_or_category(interaction, event_type): return
+        pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
+        if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
+            pings_data.add_ping(GuildPingType(ping_type), event_type, role.id)
+            desc = Event.by_type(event_type).short_description()
+        else:
+            pings_data.add_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
+            desc = EventCategory(event_type).value
+        feedback = f'added a ping for role **{role.name}** on event <{GuildPingType(ping_type).name}, {desc}>'
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** {feedback}')
+        await default_response(interaction, 'You ' + feedback)
+
+    @command(name='ping_remove_role', description='Remove a ping.')
+    @check(PermissionValidator.is_admin)
+    async def ping_remove_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
+        await default_defer(interaction)
+        if not await InputValidator.RAISING.check_valid_event_type_or_category(interaction, event_type): return
+        pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
+        if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
+            pings_data.remove_ping(GuildPingType(ping_type), event_type, role.id)
+            desc = Event.by_type(event_type).short_description()
+        else:
+            pings_data.remove_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
+            desc = EventCategory(event_type).value
+        feedback = f'removed a ping for role **{role.name}** on event <{GuildPingType(ping_type).name}, {desc}>'
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** {feedback}')
+        await default_response(interaction, 'You ' + feedback)
+
+    @command(name='ping_add_eureka_role', description='Add a ping for eureka tracker notifications.')
+    @check(PermissionValidator.is_admin)
+    async def ping_add_eureka_role(self, interaction: Interaction, instance: str, role: Role):
+        await default_defer(interaction)
+        if not await InputValidator.RAISING.check_valid_eureka_instance(interaction, instance): return
+        pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
+        pings_data.add_ping(GuildPingType.EUREKA_TRACKER_NOTIFICATION, instance, role.id)
+        feedback = f'added a ping for role **{EurekaTrackerZone(int(instance)).name}**.'
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** {feedback}')
+        await default_response(interaction, 'You ' + feedback)
+
+    @command(name='ping_remove_eureka_role', description='Remove a ping for eureka tracker notifications.')
+    @check(PermissionValidator.is_admin)
+    async def ping_remove_eureka_role(self, interaction: Interaction, instance: str, role: Role):
+        await default_defer(interaction)
+        if not await InputValidator.RAISING.check_valid_eureka_instance(interaction, instance): return
+        pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
+        pings_data.remove_ping(GuildPingType.EUREKA_TRACKER_NOTIFICATION, instance, role.id)
+        feedback = f'removed a ping for role **{EurekaTrackerZone(int(instance)).name}**.'
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** {feedback}')
+        await default_response(interaction, 'You ' + feedback)
+
+    @ping_add_role.autocomplete('ping_type')
+    @ping_remove_role.autocomplete('ping_type')
+    async def autocomplete_ping_type(self, interaction: Interaction, current: str):
+        return AutoCompleteGenerator.ping_type(current)
+
+    @ping_add_eureka_role.autocomplete('instance')
+    @ping_remove_eureka_role.autocomplete('instance')
+    async def autocomplete_eureka_instance(self, interaction: Interaction, current: str):
+        return AutoCompleteGenerator.eureka_instance(current)
+
     @passcode_channel.autocomplete('event_type')
     @party_leader_channel.autocomplete('event_type')
     @notification_channel.autocomplete('event_type')
     @support_passcode_channel.autocomplete('event_type')
+    @ping_add_role.autocomplete('event_type')
+    @ping_remove_role.autocomplete('event_type')
     async def autocomplete_event_type_with_all(self, interaction: Interaction, current: str):
         return AutoCompleteGenerator.event_type_with_categories(current)
 
@@ -151,6 +218,10 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @notification_channel.error
     @missed_run_channel.error
     @eureka_notification_channel.error
+    @ping_add_role.error
+    @ping_remove_role.error
+    @ping_add_eureka_role.error
+    @ping_remove_eureka_role.error
     async def handle_error(self, interaction: Interaction, error):
         print(error)
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')
