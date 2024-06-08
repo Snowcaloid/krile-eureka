@@ -9,3 +9,4 @@ class GuildChannelFunction(Enum):
     PL_CHANNEL = 5
     RUN_NOTIFICATION = 6
     EUREKA_TRACKER_NOTIFICATION = 7
+    NM_PINGS = 8

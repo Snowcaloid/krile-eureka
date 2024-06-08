@@ -11,6 +11,7 @@ from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_message_functions import GuildMessageFunction
 from data.guilds.guild_pings import GuildPingType
 from data.guilds.guild_role_functions import GuildRoleFunction
+from data.notorious_monsters import NOTORIOUS_MONSTERS, NotoriousMonster
 from data.validation.input_validator import InputValidator
 from utils import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
@@ -94,7 +95,18 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         channels_data = bot.instance.data.guilds.get(interaction.guild_id).channels
         channels_data.set(channel.id, GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION, instance)
         await default_response(interaction, f'You have set #{channel.name} as the eureka tracker notification channel for "{EurekaTrackerZone(int(instance)).name}".')
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set #{channel.name} as the eureka tracker notification channel for type "{EurekaTrackerZone(int(instance)).name}".')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set #{channel.name} as the eureka tracker notification channel for "{EurekaTrackerZone(int(instance)).name}".')
+
+    @command(name = "nm_notification_channel", description = "Set the channel for notorious monster notifications.")
+    @check(PermissionValidator.is_admin)
+    async def nm_notification_channel(self, interaction: Interaction, notorious_monster: str, channel: TextChannel):
+        await default_defer(interaction)
+        notorious_monster = InputValidator.NORMAL.notorious_monster_name_to_type(notorious_monster)
+        if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
+        channels_data = bot.instance.data.guilds.get(interaction.guild_id).channels
+        channels_data.set(channel.id, GuildChannelFunction.NM_PINGS, notorious_monster)
+        await default_response(interaction, f'You have set #{channel.name} as the NM notification channel for "{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}".')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set #{channel.name} as the NM notification channel for "{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}".')
 
     @command(name = "missed_run_channel", description = "Create a missed run list.")
     @check(PermissionValidator.is_admin)
@@ -181,6 +193,30 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** {feedback}')
         await default_response(interaction, 'You ' + feedback)
 
+    @command(name='ping_add_nm_role', description='Add a ping for notorious monster notifications.')
+    @check(PermissionValidator.is_admin)
+    async def ping_add_nm_role(self, interaction: Interaction, notorious_monster: str, role: Role):
+        await default_defer(interaction)
+        notorious_monster = InputValidator.NORMAL.notorious_monster_name_to_type(notorious_monster)
+        if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
+        pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
+        pings_data.add_ping(GuildPingType.NM_PING, notorious_monster, role.id)
+        feedback = f'added a role {role.mention} ping for **{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}**.'
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** {feedback}')
+        await default_response(interaction, 'You ' + feedback)
+
+    @command(name='ping_remove_nm_role', description='Remove a ping for notorious monster notifications.')
+    @check(PermissionValidator.is_admin)
+    async def ping_remove_nm_role(self, interaction: Interaction, notorious_monster: str, role: Role):
+        await default_defer(interaction)
+        notorious_monster = InputValidator.NORMAL.notorious_monster_name_to_type(notorious_monster)
+        if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
+        pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
+        pings_data.remove_ping(GuildPingType.NM_PING, notorious_monster, role.id)
+        feedback = f'removeda role {role.mention} ping for **{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}**.'
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** {feedback}')
+        await default_response(interaction, 'You ' + feedback)
+
     @ping_add_role.autocomplete('ping_type')
     @ping_remove_role.autocomplete('ping_type')
     async def autocomplete_ping_type(self, interaction: Interaction, current: str):
@@ -190,6 +226,12 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @ping_remove_eureka_role.autocomplete('instance')
     async def autocomplete_eureka_instance(self, interaction: Interaction, current: str):
         return AutoCompleteGenerator.eureka_instance(current)
+
+    @nm_notification_channel.autocomplete('notorious_monster')
+    @ping_add_nm_role.autocomplete('notorious_monster')
+    @ping_remove_nm_role.autocomplete('notorious_monster')
+    async def autocomplete_eureka_instance(self, interaction: Interaction, current: str):
+        return AutoCompleteGenerator.notorious_monster(current)
 
     @passcode_channel.autocomplete('event_type')
     @party_leader_channel.autocomplete('event_type')

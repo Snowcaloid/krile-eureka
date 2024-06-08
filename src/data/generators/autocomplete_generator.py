@@ -11,6 +11,7 @@ from data.events.event import EventCategoryCollection, EventCategory
 
 from data.guilds.guild_pings import GuildPingType
 from data.guilds.guild_role_functions import GuildRoleFunction
+from data.notorious_monsters import NOTORIOUS_MONSTERS
 from data.ui.constants import ButtonType
 from data.validation.permission_validator import PermissionValidator
 
@@ -40,6 +41,10 @@ class AutoCompleteGenerator:
     @classmethod
     def guild_role_functions(cl, current: str) -> List[Choice]:
         return cl.filter_by_current(GuildRoleFunction.all_function_choices(), current)
+
+    @classmethod
+    def notorious_monster(cl, current: str) -> List[Choice]:
+        return cl.filter_by_current((Choice(name=nm_name, value=nm_enum.value) for nm_enum, nm_name in NOTORIOUS_MONSTERS.items()), current)
 
     @classmethod
     def date(cl, current: str) -> List[Choice]:

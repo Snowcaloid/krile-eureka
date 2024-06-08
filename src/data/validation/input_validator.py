@@ -1,5 +1,4 @@
 import re
-from typing import Type
 import bot
 import data.cache.message_cache as cache
 from datetime import datetime
@@ -7,7 +6,7 @@ from discord import Interaction, Member, TextChannel
 
 from data.eureka_info import EurekaTrackerZone
 from data.events.event import Event, EventCategory
-from data.ui.constants import ButtonType
+from data.notorious_monsters import NOTORIOUS_MONSTERS, NotoriousMonster
 from utils import default_response
 from data.validation.permission_validator import PermissionValidator
 
@@ -27,6 +26,18 @@ class InputValidator:
             if event.description() == event_type:
                 return event.type()
         return event_type
+
+    def notorious_monster_name_to_type(self, notorious_monster: str) -> str:
+        for nm_type, nm_name in NOTORIOUS_MONSTERS.items():
+            if nm_name == notorious_monster:
+                return nm_type.value
+        return notorious_monster
+
+    async def check_allowed_notorious_monster(self, interaction: Interaction, notorious_monster: str) -> bool:
+        result = notorious_monster in NotoriousMonster._value2member_map_
+        if self == InputValidator.RAISING and not result:
+            await default_response(interaction, f'Type {notorious_monster} does not correlate to a supported Notorious Monster.')
+        return result
 
     async def check_valid_event_type(self, interaction: Interaction, event_type: str) -> bool:
         result = event_type in Event.all_types()

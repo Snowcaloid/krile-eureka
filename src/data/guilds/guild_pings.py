@@ -13,6 +13,7 @@ class GuildPingType(Enum):
     PL_POST = 3
     RUN_NOTIFICATION = 4
     EUREKA_TRACKER_NOTIFICATION = 5
+    NM_PING = 6
 
 class GuildPing:
     id: int
