@@ -1,3 +1,4 @@
+from typing import Tuple
 import aiohttp
 from discord import ButtonStyle, Interaction, Message, SelectOption
 from discord.ui import Button, Select
@@ -26,7 +27,7 @@ class EurekaTrackerZoneSelect(Select):
                          options=options)
 
 
-    async def generate_url(self, zone: EurekaTrackerZone) -> str:
+    async def generate_url(self, zone: EurekaTrackerZone) -> Tuple[str, str]:
         async with aiohttp.ClientSession() as session:
             async with session.post('https://ffxiv-eureka.com/api/instances', json=
                 {
@@ -44,8 +45,9 @@ class EurekaTrackerZoneSelect(Select):
                 }) as resp:
                 json = await resp.json()
                 if json and json["data"] and json["data"]["id"]:
-                    return f'https://ffxiv-eureka.com/{json["data"]["id"]}'
-                return ''
+                    if json["data"]["attributes"] and json["data"]["attributes"]["password"]:
+                        return f'https://ffxiv-eureka.com/{json["data"]["id"]}', json["data"]["attributes"]["password"]
+                return '', ''
 
 
     async def callback(self, interaction: Interaction):
@@ -53,7 +55,7 @@ class EurekaTrackerZoneSelect(Select):
         zone = EurekaTrackerZone(int(self.values[0]))
         if self.generate:
             await default_defer(interaction)
-            url = await self.generate_url(zone)
+            url, passcode = await self.generate_url(zone)
             eureka = bot.instance.data.eureka_info
             if next((tracker for tracker in eureka._trackers if tracker.url == url), None) is not None:
                 eureka.remove(url)
@@ -61,7 +63,8 @@ class EurekaTrackerZoneSelect(Select):
             await bot.instance.data.ui.eureka_info.rebuild(interaction.guild_id)
             view = TemporaryView()
             view.add_item(Button(url=url, label='Visit the tracker', style=ButtonStyle.link))
-            await interaction.followup.send(content='Successfully generated tracker.', view=view, ephemeral=True)
+            await interaction.followup.send(content=f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view, ephemeral=True)
+            await interaction.user.send(f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view)
             await guild_log_message(interaction.guild_id, f'{interaction.user.display_name} has added a tracker for {zone.name} - `{url}`.')
             guild = bot.instance.data.guilds.get(interaction.guild_id)
             if guild:
