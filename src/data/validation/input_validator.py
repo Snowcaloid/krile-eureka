@@ -33,6 +33,15 @@ class InputValidator:
                 return nm_type.value
         return notorious_monster
 
+    def rl_name_to_id(self, interaction: Interaction, raid_leader: str) -> int:
+        if raid_leader is None: return None
+        if raid_leader.isnumeric():
+            return int(raid_leader)
+        member = interaction.guild.get_member_named(raid_leader)
+        if member:
+            return member.id
+        raise ValueError(f'Raid leader <{raid_leader}> could not be found.')
+
     async def check_allowed_notorious_monster(self, interaction: Interaction, notorious_monster: str) -> bool:
         result = notorious_monster in NotoriousMonster._value2member_map_
         if self == InputValidator.RAISING and not result:

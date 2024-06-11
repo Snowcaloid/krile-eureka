@@ -1,3 +1,4 @@
+import copy
 import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
@@ -66,22 +67,24 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         await default_defer(interaction, False)
         if not await InputValidator.RAISING.check_run_exists(interaction, event_id): return
         schedule = bot.instance.data.guilds.get(interaction.guild_id).schedule
-        event = schedule.get(event_id)
-        check_type = event.type if event_type is None else event_type
+        old_event = schedule.get(event_id)
+        check_type = old_event.type if event_type is None else event_type
         if event_type:
             event_type = InputValidator.NORMAL.event_type_name_to_type(event_type)
             check_type = event_type
         if not await InputValidator.RAISING.check_valid_event_type(interaction, check_type): return
         if not await InputValidator.RAISING.check_valid_raid_leader(interaction, interaction.user, check_type): return
+        raid_leader = InputValidator.NORMAL.rl_name_to_id(interaction, raid_leader)
         event_datetime = await InputValidator.RAISING.check_and_combine_date_and_time_change_for_event(interaction, event_id, event_date, event_time)
         if not event_datetime: return
-        if use_support is None: use_support = event.use_support
-        is_type_change = event_type and event_type != event.type
-        is_passcode_change = not auto_passcode is None and event.auto_passcode != auto_passcode
-        is_time_change = event.time != event_datetime
-        is_support_change = not use_support is None and event.use_support != use_support
+        if use_support is None: use_support = old_event.use_support
+        is_type_change = event_type and event_type != old_event.type
+        is_passcode_change = not auto_passcode is None and old_event.auto_passcode != auto_passcode
+        is_time_change = old_event.time != event_datetime
+        is_support_change = not use_support is None and old_event.use_support != use_support
         if is_type_change:
             await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
+        old_event = copy.deepcopy(old_event)
         event = schedule.edit(event_id, raid_leader, event_type, event_datetime,
                               InputValidator.NORMAL.escape_event_description(description), auto_passcode, use_support)
         if is_type_change:
@@ -90,8 +93,9 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             event.recreate_tasks()
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event_id, True)
-        await default_response(interaction, f'The run #{str(event_id)} has been adjusted.')
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has adjusted run #{str(event_id)}')
+        changes = event.get_changes(interaction, old_event)
+        await default_response(interaction, f'The run #{str(event_id)} has been adjusted:\n{changes}')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has adjusted run #{str(event_id)}:\n{changes}')
 
     @add.autocomplete('event_type')
     @edit.autocomplete('event_type')

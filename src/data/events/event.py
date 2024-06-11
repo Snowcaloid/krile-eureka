@@ -1,6 +1,6 @@
 from enum import Enum
 
-from discord import Member
+from discord import Interaction, Member
 import bot
 from abc import abstractclassmethod, abstractclassmethod
 from discord.app_commands import Choice
@@ -470,4 +470,21 @@ class ScheduledEvent:
         discord_timestamp = get_discord_timestamp(self.time, DiscordTimestampType.RELATIVE)
         return f'{self.type} by {raid_leader.display_name} at {self.time} ST {discord_timestamp}'
 
+    def get_changes(self, interaction: Interaction, old_event: Type['ScheduledEvent']) -> str:
+        result = []
+        if self.type != old_event.type:
+            result.append(f'* Run Type changed from {old_event.base.short_description()} to {self.base.short_description()}')
+        if self.time != old_event.time:
+            result.append(f'* Run Time changed from {old_event.time} ST to {self.time} ST')
+        if self.users.raid_leader != old_event.users.raid_leader:
+            result.append(f'* Raid Leader changed from {interaction.guild.get_member(old_event.users.raid_leader).mention} to {interaction.guild.get_member(self.users.raid_leader).mention}')
+        if self.auto_passcode != old_event.auto_passcode:
+            result.append(f'* Auto Passcode changed from {str(old_event.auto_passcode)} to {str(self.auto_passcode)}')
+        if self.use_support != old_event.use_support:
+            result.append(f'* Use Support changed from {str(old_event.use_support)} to {str(self.use_support)}')
+        if self.real_description != old_event.real_description:
+            result.append(f'* Use Support changed from "{old_event.real_description}" to "{self.real_description}"')
+        if not result:
+            result.append('No changes.')
+        return "\n".join(result)
 
