@@ -28,6 +28,8 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
                 mentions = await guild_data.pings.get_mention_string(GuildPingType.NM_PING, notorious_monster)
                 message = await channel.send(f'{mentions} Notification for {NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]} by {interaction.user.mention}: {text}')
                 await default_response(interaction, f'Pinged: {message.jump_url}')
+                await message.add_reaction('💀')
+                await message.add_reaction('🔒')
             else:
                 await default_response(interaction, 'This feature is currently not set up. Please contact your administrators')
         else:
