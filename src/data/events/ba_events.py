@@ -54,9 +54,9 @@ class BA_Normal(Event):
     @classmethod
     def party_leader_dm_text(cl, party: str, passcode: int) -> str:
         return (
-            f'You\'re leading **party {party}.**\n'
+            f'You\'re leading party {party}.\n'
             f'[SoB] BA run party {party}\n'
-            f'Passcode is {str(passcode).zfill(4)}.'
+            f'Passcode is **{str(passcode).zfill(4)}**.'
         )
     @classmethod
     def support_party_leader_dm_text(cl, passcode: int) -> str:
