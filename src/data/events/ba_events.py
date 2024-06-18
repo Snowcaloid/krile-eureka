@@ -115,3 +115,25 @@ class BA_Special(BA_Normal):
     def description(cl) -> str: return 'Baldesion Arsenal Special Run'
     @classmethod
     def short_description(cl) -> str: return 'BA Special Run'
+
+class BA_16Man_Provisionary(BA_Normal):
+    @classmethod
+    def type(cl) -> str: return 'BA16_PROV'
+    @classmethod
+    def description(cl) -> str: return 'Baldesion Arsenal 16 Man Run'
+    @classmethod
+    def short_description(cl) -> str: return 'BA 16 Man'
+    @classmethod
+    def pl_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
+                     pl4: str, pl5: str, pl6: str, pls: str) -> str:
+        return (
+            f'Raid Leader: {rl}\n'
+            f'1: {pl1}\n'
+            f'2: {pl2}\n'
+            'Please note, your assignment may be removed at the Raid Leader\'s discretion.'
+        )
+    @classmethod
+    def use_support(cl) -> bool: return False
+    @classmethod
+    def pl_button_texts(cl) -> Tuple[str, str, str, str, str, str, str]:
+        return '1', '2', '', '', '', '', ''

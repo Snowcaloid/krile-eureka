@@ -13,6 +13,7 @@ class EventRegister:
         ba_events.BA_Reclear.register()
         ba_events.BA_Collab.register()
         ba_events.BA_Special.register()
+        ba_events.BA_16Man_Provisionary.register()
         drs_events.DRS_Normal.register()
         drs_events.DRS_Reclear.register()
         bozja_events.DRN_Newbie.register()

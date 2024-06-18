@@ -413,12 +413,12 @@ class ScheduledEvent:
     def pl_post_text(self) -> str:
         guild = bot.instance.get_guild(self.guild_id)
         rl = guild.get_member(self.users.raid_leader)
-        pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0]))
-        pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1]))
-        pl3 = self._pl_placeholder(guild.get_member(self.users.party_leaders[2]))
-        pl4 = self._pl_placeholder(guild.get_member(self.users.party_leaders[3]))
-        pl5 = self._pl_placeholder(guild.get_member(self.users.party_leaders[4]))
-        pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5]))
+        pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.base.pl_button_texts()[0] else None
+        pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1])) if self.base.pl_button_texts()[1] else None
+        pl3 = self._pl_placeholder(guild.get_member(self.users.party_leaders[2])) if self.base.pl_button_texts()[2] else None
+        pl4 = self._pl_placeholder(guild.get_member(self.users.party_leaders[3])) if self.base.pl_button_texts()[3] else None
+        pl5 = self._pl_placeholder(guild.get_member(self.users.party_leaders[4])) if self.base.pl_button_texts()[4] else None
+        pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5])) if self.base.pl_button_texts()[5] else None
         pls = self._pl_placeholder(guild.get_member(self.users.party_leaders[6])) if self.use_support else None
 
         return self.base.pl_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls)
