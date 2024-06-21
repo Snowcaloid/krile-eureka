@@ -137,3 +137,5 @@ class BA_16Man_Provisionary(BA_Normal):
     @classmethod
     def pl_button_texts(cl) -> Tuple[str, str, str, str, str, str, str]:
         return '1', '2', '', '', '', '', ''
+    @classmethod
+    def main_passcode_delay(cl) -> timedelta: return timedelta(minutes=30)
