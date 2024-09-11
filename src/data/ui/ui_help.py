@@ -76,52 +76,52 @@ class UIHelpPost_BAFairy(UIHelpPost):
 class UIHelpPost_BATrapping(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'BA Trapping Guide'
-        embed.set_image(url='https://i.ibb.co/C0c5Jv4/ba-trapping.png')
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283355389525753856/ba-trapping.png')
 
 class UIHelpPost_BAEntrance(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'BA Entrance Guide'
-        embed.set_image(url='https://i.ibb.co/hRYvBP0/ba-entrance.png')
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283355574188113995/ba-entrance.png')
 
 class UIHelpPost_LogosCrafting(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Crafting explanations - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/Sw2hsWX/image.png')
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283355687606554624/image.png')
 
 class UIHelpPost_LogosWisdoms(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Spirit + Wisdoms - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/G2QJv55/logoswisdoms.png')
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283355817323794455/logoswisdoms.png')
 
 class UIHelpPost_LogosActions(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/xgkCr7S/logosexplanations.png')
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283355992398237730/logosexplanations.png')
 
 class UIHelpPost_LogosTank(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Tank logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/M2KKFWR/logostanks.png')
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283356115995852820/logostanks.png')
 
 class UIHelpPost_LogosHealer(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Healer logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/4SQLRVZ/logoshealers.png')
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283356242538004573/logoshealers.png')
 
 class UIHelpPost_LogosMelee(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Melee DPS logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/8z1G0L9/logosmelee.png')
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283356338134716490/logosmelee.png')
 
 class UIHelpPost_LogosRanged(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Ranged Physical DPS / Mage logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/hs8mx84/logosranged.png')
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283356448268484711/logosranged.png')
 
 class UIHelpPost_LogosUtility(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'Utility logos actions - click to zoom in'
-        embed.set_image(url='https://i.ibb.co/txjhdNN/logosutility.png')
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283356569454776360/logosutility.png')
 
 class UIHelpPost_LogosWebsite(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
@@ -153,9 +153,9 @@ class UIHelp:
     async def ba_ozma(self, message: Message) -> Message:
         msg = await UIHelpPost_BAOzma().post(message)
         await message.channel.send('_ _', embeds=[
-            Embed(title='Example markers for platform A').set_image(url='https://i.ibb.co/P4RPfjN/ozma-markers.webp'),
-            Embed(title='Meteors').set_image(url='https://i.ibb.co/SJJk9SP/Meteor-Impact.gif'),
-            Embed(title='Acceleration Bomb').set_image(url='https://i.ibb.co/yBN7ZBd/Acceleration-Bomb.gif')
+            Embed(title='Example markers for platform A').set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283356822333292577/ozma-markers.webp'),
+            Embed(title='Meteors').set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283356983185117244/Meteor-Impact.gif'),
+            Embed(title='Acceleration Bomb').set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1283357159052279931/Acceleration-Bomb.gif')
         ])
         return msg
 
