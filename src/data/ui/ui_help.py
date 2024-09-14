@@ -39,6 +39,11 @@ class UIHelpPost_BARaiden(UIHelpPost):
         embed.title = 'BA Raiden Waymarks'
         embed.set_image(url='https://i.ibb.co/nzV2SFq/ba-raiden.png')
 
+class UIHelpPost_BAAV(UIHelpPost):
+    def rebuild(self, embed: Embed) -> None:
+        embed.title = 'BA AV Waymarks'
+        embed.set_image(url='https://media.discordapp.net/attachments/1283355147292119040/1284561609074937950/01a09e1bf1e64667dbb62fe73f020197.png')
+
 class UIHelpPost_BARooms(UIHelpPost):
     def rebuild(self, embed: Embed) -> None:
         embed.title = 'BA Rooms'
@@ -140,6 +145,9 @@ class UIHelp:
 
     async def ba_raiden(self, message: Message) -> Message:
         return await UIHelpPost_BARaiden().post(message)
+
+    async def ba_av(self, message: Message) -> Message:
+        return await UIHelpPost_BAAV().post(message)
 
     async def ba_fairy(self, message: Message) -> Message:
         return await UIHelpPost_BAFairy().post(message)

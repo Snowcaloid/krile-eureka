@@ -25,6 +25,12 @@ class BACommands(GroupCog, group_name='ba', group_description='Baldesion Arsenal
         message = await default_response(interaction, '_ _')
         await bot.instance.data.ui.help.ba_raiden(message)
 
+    @command(name = "av", description = "BA AV Waymarks")
+    async def av(self, interaction: Interaction):
+        await default_defer(interaction, False)
+        message = await default_response(interaction, '_ _')
+        await bot.instance.data.ui.help.ba_av(message)
+
     @command(name = "ozma", description = "BA Ozma help post")
     async def ozma(self, interaction: Interaction):
         await default_defer(interaction, False)
