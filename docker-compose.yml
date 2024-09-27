@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   db_production:
     container_name: db-production-container
@@ -9,16 +8,12 @@ services:
     ports:
       - '5434:5432'
     volumes:
-      - /volume1/docker/docker-volumes/brozma-db-production-container:/var/lib/postgresql/data
-    env_file:
-      - .env
+      - /media/adata1/docker/volumes/db-production:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 2s
       timeout: 1s
       retries: 5
-    networks:
-      - krile_network
   db_develop:
     container_name: db-develop-container
     image: postgres:15
@@ -28,16 +23,12 @@ services:
     ports:
       - '5433:5432'
     volumes:
-      - /volume1/docker/docker-volumes/brozma-db-develop-container:/var/lib/postgresql/data
-    env_file:
-      - .env
+      - /media/adata1/docker/volumes/db-develop:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 2s
       timeout: 1s
       retries: 5
-    networks:
-      - krile_network
   pgadmin:
     container_name: pgadmin-container
     image: dpage/pgadmin4
@@ -51,11 +42,7 @@ services:
       - db_production
       - db_develop
     volumes:
-      - /volume1/docker/docker-volumes/brozma-pgadmin-container:/var/lib/pgadmin
-    env_file:
-      - .env
-    networks:
-      - krile_network
+      - /media/adata1/docker/volumes/krile-pgadmin:/var/lib/pgadmin
   krile:
     container_name: krile-container
     restart: unless-stopped
@@ -64,10 +51,13 @@ services:
       DB_NAME: production
       DB_HOST: db_production
       DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      ROLE_ADMIN: ${ROLE_ADMIN}
+      ROLE_DEVELOPER: ${ROLE_DEVELOPER}
+      WAIT_DEBUG: ${WAIT_DEBUG}
     depends_on:
-      - db_develop
-    env_file:
-      - .env
+      - db_production
     ports:
       - 5678:5678
     build:
@@ -76,9 +66,3 @@ services:
     links:
       - db_develop
       - db_production
-    networks:
-      - krile_network
-networks:
-  krile_network:
-    name: krile_network
-    external: true
