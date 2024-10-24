@@ -14,21 +14,6 @@ services:
       interval: 2s
       timeout: 1s
       retries: 5
-  db_develop:
-    container_name: db-develop-container
-    image: postgres:15
-    environment:
-      POSTGRES_DB: develop
-      POSTGRES_PASSWORD: ${DB_PASS}
-    ports:
-      - '5433:5432'
-    volumes:
-      - /media/adata1/docker/volumes/db-develop:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 2s
-      timeout: 1s
-      retries: 5
   pgadmin:
     container_name: pgadmin-container
     image: dpage/pgadmin4
@@ -47,7 +32,7 @@ services:
     container_name: krile-container
     restart: unless-stopped
     environment:
-      DISCORD_TOKEN: ${KRILE_TOKEN}
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
       DB_NAME: production
       DB_HOST: db_production
       DB_PORT: 5432
