@@ -42,3 +42,10 @@ Additionally, the `docker-compose.yaml` needs to be adjusted depending on whethe
 
 * Make sure that the paths in `docker-compose.yml` are compatible with the system you're running the bot on.
 * When using github codespaces, you might have to run the program with debugger twice for it to start debugging properly.
+* If `pgadmin` container is not initializing due to lack of permissions, run the following:
+```
+docker exec -u 0 -it pgadmin-container /bin/sh
+mkdir /var/lib/pgadmin
+chmod 777 /var/lib/pgadmin
+chown pgadmin /var/lib/pgadmin
+```
