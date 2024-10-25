@@ -1,26 +1,21 @@
-version: '3.8'
 services:
-  db_dev:
-    container_name: db-dev-container
+  db_production:
+    container_name: db-production-container
     image: postgres:15
     environment:
-      POSTGRES_DB: develop
+      POSTGRES_DB: production
       POSTGRES_PASSWORD: ${DB_PASS}
     ports:
-      - '5433:5432'
+      - '5434:5432'
     volumes:
-      - D:/docker/krile-db:/var/lib/postgresql/data
-    env_file:
-      - .env
+      - /workspaces/docker-volumes/pg:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 2s
       timeout: 1s
       retries: 5
-    networks:
-          - krile_network
-  pgadmin-dev:
-    container_name: pgadmin-dev-container
+  pgadmin:
+    container_name: pgadmin-container
     image: dpage/pgadmin4
     restart: always
     environment:
@@ -29,33 +24,26 @@ services:
     ports:
       - "5050:80"
     depends_on:
-      - db_dev
+      - db_production
     volumes:
-      - D:/docker/krile-pgadmin:/var/lib/pgadmin
-    env_file:
-      - .env
-    networks:
-          - krile_network
-  krile_develop:
-    container_name: krile-develop-container
+      - /workspaces/docker-volumes/pg:/var/lib/pgadmin
+  krile:
+    container_name: krile-container
     restart: unless-stopped
     environment:
-      DISCORD_TOKEN: ${SNOWCALOID_TOKEN}
-      DB_NAME: develop
-      DB_HOST: db_dev
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      DB_NAME: production
+      DB_HOST: db_production
       DB_PORT: 5432
-    env_file:
-      - .env
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      WAIT_DEBUG: ${WAIT_DEBUG}
+    depends_on:
+      - db_production
     ports:
       - 5678:5678
     build:
       context: .
       dockerfile: Dockerfile
-    networks:
-          - krile_network
     links:
-      - db_dev
-networks:
-  krile_network:
-    name: krile_network
-    driver: bridge
+      - db_production

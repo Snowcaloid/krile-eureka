@@ -72,6 +72,7 @@ class InputValidator:
         result = event_base.category() == EventCategory.BA and allow_ba
         result = result or (event_base.category() == EventCategory.DRS and allow_drs)
         result = result or (event_base.category() == EventCategory.BOZJA and allow_bozja)
+        result = result or (event_base.category() == EventCategory.CUSTOM)
         if self == InputValidator.RAISING and not result:
             await default_response(interaction, f'You do not have the required raid leading role to interact with run type "{event_base.short_description()}".')
         return result

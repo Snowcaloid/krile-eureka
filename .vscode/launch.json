@@ -5,24 +5,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Remote Attach SynologyNAS",
-            "type": "python",
-            "request": "attach",
-            "connect": {
-                "host": "synologynas",
-                "port": 5678
-            },
-            "pathMappings": [
-                {
-                    "localRoot": "${workspaceFolder}",
-                    "remoteRoot": "."
-                }
-            ],
-            "justMyCode": true
-        },
-        {
             "name": "Python: Remote Attach",
-            "type": "python",
+            "type": "debugpy",
             "request": "attach",
             "connect": {
                 "host": "localhost",

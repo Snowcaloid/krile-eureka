@@ -139,6 +139,40 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         await default_response(interaction, f'You have added #{role.mention} as forbidden role for missed run posts for category "{EventCategory(event_category).value}".')
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has added #{role.name} as forbidden role for missed run posts for category "{EventCategory(event_category).value}".')
 
+    @command(name = "set_admin", description = "Set the admin role.")
+    @check(PermissionValidator.is_admin)
+    async def set_admin(self, interaction: Interaction, role: Role):
+        await default_defer(interaction)
+        bot.instance.data.guilds.get(interaction.guild_id).role_admin = role.id
+        await default_response(interaction, f'You have set #{role.mention} as admin role for {interaction.guild.name}.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set #{role.mention} as admin role for {interaction.guild.name}.')
+
+    @command(name = "set_developer", description = "Set the developer role.")
+    @check(PermissionValidator.is_admin)
+    async def set_developer(self, interaction: Interaction, role: Role):
+        await default_defer(interaction)
+        bot.instance.data.guilds.get(interaction.guild_id).role_developer = role.id
+        await default_response(interaction, f'You have set #{role.mention} as developer role for {interaction.guild.name}.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has set #{role.mention} as developer role for {interaction.guild.name}.')
+
+    @command(name = "add_raid_leader_role", description = "Add the Raid Leader role.")
+    @check(PermissionValidator.is_admin)
+    async def add_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
+        await default_defer(interaction)
+        if not await InputValidator.RAISING.check_valid_event_category(interaction, event_category): return
+        bot.instance.data.guilds.get(interaction.guild_id).roles.add(role.id, GuildRoleFunction.RAID_LEADER, event_category)
+        await default_response(interaction, f'You have added #{role.mention} as raid leader role for {EventCategory(event_category).value}.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has added #{role.mention} as raid leader role for {EventCategory(event_category).value}.')
+
+    @command(name = "remove_raid_leader_role", description = "Remove the Raid Leader role.")
+    @check(PermissionValidator.is_admin)
+    async def remove_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
+        await default_defer(interaction)
+        if not await InputValidator.RAISING.check_valid_event_category(interaction, event_category): return
+        bot.instance.data.guilds.get(interaction.guild_id).roles.remove(role.id, GuildRoleFunction.RAID_LEADER, event_category)
+        await default_response(interaction, f'You have removed #{role.mention} from raid leader roles for {EventCategory(event_category).value}.')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has removed #{role.mention} from raid leader roles for {EventCategory(event_category).value}.')
+
     @command(name='ping_add_role', description='Add a ping.')
     @check(PermissionValidator.is_admin)
     async def ping_add_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
@@ -249,9 +283,11 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @missed_run_channel.autocomplete('event_category')
     @missed_runs_allow_role.autocomplete('event_category')
     @missed_runs_forbid_role.autocomplete('event_category')
+    @add_raid_leader_role.autocomplete('event_category')
+    @remove_raid_leader_role.autocomplete('event_category')
     async def autocomplete_event_category(self, interaction: Interaction, current: str):
         return AutoCompleteGenerator.event_categories(current)
-
+ # soemthig
     #region error-handling
     @create_schedule_post.error
     @passcode_channel.error

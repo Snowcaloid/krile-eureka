@@ -86,8 +86,8 @@ async def on_raw_message_delete(payload: RawMessageDeleteEvent):
 
 @instance.command()
 @guild_only()
-@has_role(os.getenv('ROLE_DEVELOPER'))
 async def sync(ctx: Context, guilds: Greedy[Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+    if ctx.author.id != int(os.getenv('OWNER_ID')) and not ctx.author.guild_permissions.administrator: return
     if not guilds:
         if spec == "~":
             synced = await ctx.bot.tree.sync(guild=ctx.guild)

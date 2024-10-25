@@ -42,7 +42,7 @@ class GuildRoles:
             db.disconnect()
 
     def get(self, function: GuildRoleFunction = GuildRoleFunction.NONE, event_category: str = '') -> List[GuildRole]:
-        return [role for role in self._list if role.function == function and role.event_category == event_category]
+        return [role for role in self._list if role.function == function and (not event_category or role.event_category == event_category)]
 
     def add(self, role_id: int, function: GuildRoleFunction, event_category: str = '') -> None:
         db = bot.instance.data.db

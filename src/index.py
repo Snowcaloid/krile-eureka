@@ -7,7 +7,8 @@ load_dotenv()
 
 import os
 
-if os.getenv('WAIT_DEBUG') == 'TRUE':
+if os.getenv('WAIT_DEBUG').upper() == 'TRUE':
+    print('Waiting for Debugger to attach.')
     debugpy.wait_for_client()
 
 import bot

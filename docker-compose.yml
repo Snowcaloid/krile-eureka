@@ -25,7 +25,6 @@ services:
       - "5050:80"
     depends_on:
       - db_production
-      - db_develop
     volumes:
       - /media/adata1/docker/volumes/krile-pgadmin:/var/lib/pgadmin
   krile:
@@ -38,8 +37,6 @@ services:
       DB_PORT: 5432
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
-      ROLE_ADMIN: ${ROLE_ADMIN}
-      ROLE_DEVELOPER: ${ROLE_DEVELOPER}
       WAIT_DEBUG: ${WAIT_DEBUG}
     depends_on:
       - db_production
@@ -50,4 +47,3 @@ services:
       dockerfile: Dockerfile
     links:
       - db_develop
-      - db_production

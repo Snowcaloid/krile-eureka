@@ -100,11 +100,11 @@ class Event:
     @abstractclassmethod
     def raid_leader_dm_text(cl, passcode_main: int, passcode_supp: int, use_support: bool) -> str: pass
     @abstractclassmethod
-    def pl_passcode_delay(cl) -> timedelta: pass
+    def pl_passcode_delay(cl) -> timedelta: return timedelta()
     @abstractclassmethod
-    def support_passcode_delay(cl) -> timedelta: pass
+    def support_passcode_delay(cl) -> timedelta: return timedelta()
     @abstractclassmethod
-    def main_passcode_delay(cl) -> timedelta: pass
+    def main_passcode_delay(cl) -> timedelta: return timedelta()
     @abstractclassmethod
     def pl_post_thread_title(cl, time: datetime) -> str: pass
     @abstractclassmethod
@@ -112,10 +112,13 @@ class Event:
 
     @classmethod
     def schedule_entry_text(cl, rl: str, time: datetime, custom: str, use_support: bool) -> str:
-        if custom: custom = f' [{custom}]'
         support_text = ' (__No support__)' if cl.use_support() and not use_support else ''
         server_time = time.strftime('%H:%M')
-        return f'**{server_time} ST ({get_discord_timestamp(time)} LT)**: {cl.short_description()} ({rl}){support_text}{custom}'
+        if cl.short_description() is None:
+            return f'**{server_time} ST ({get_discord_timestamp(time)} LT)**: {custom} ({rl}){support_text}'
+        else:
+            if custom: custom = f' [{custom}]'
+            return f'**{server_time} ST ({get_discord_timestamp(time)} LT)**: {cl.short_description()} ({rl}){support_text}{custom}'
 
     @classmethod
     def passcode_post_title(cl, time: datetime) -> str:
