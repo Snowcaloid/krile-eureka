@@ -8,9 +8,9 @@ from data.generators.autocomplete_generator import AutoCompleteGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.validation.input_validator import InputValidator
-from utils import default_defer, default_response
+from utils import default_defer
 from data.validation.permission_validator import PermissionValidator
-from logger import guild_log_message
+from logger import feedback_and_log, guild_log_message
 
 ###################################################################################
 # schedule
@@ -43,8 +43,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                 mentions = await guild.pings.get_mention_string(GuildPingType.RUN_NOTIFICATION, event.type)
                 await channel.send(f'{mentions} {await event.to_string()} has been scheduled.')
         event.create_tasks()
-        await default_response(interaction, f'The run #{str(event.id)} has been scheduled.')
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has scheduled a {event_type} run #{event.id} for {event_time}.')
+        await feedback_and_log(interaction, f'scheduled a {event_type} run #{event.id} for {event_time} with description: <{event.description}>.')
 
     @command(name = "cancel", description = "Cancel a schedule entry.")
     @check(PermissionValidator.is_raid_leader)
@@ -55,8 +54,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         bot.instance.data.guilds.get(interaction.guild_id).schedule.cancel(event_id)
         await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
-        await default_response(interaction, f'Run #{event_id} has been canceled.')
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has canceled the run #{event_id}.')
+        await feedback_and_log(interaction, f'canceled the run #{event_id}.')
 
     @command(name = "edit", description = "Edit an entry from the schedule.")
     @check(PermissionValidator.is_raid_leader)
@@ -94,8 +92,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event_id, True)
         changes = event.get_changes(interaction, old_event)
-        await default_response(interaction, f'The run #{str(event_id)} has been adjusted:\n{changes}')
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has adjusted run #{str(event_id)}:\n{changes}')
+        await feedback_and_log(interaction, f'adjusted run #{str(event_id)}:\n{changes}')
 
     @add.autocomplete('event_type')
     @edit.autocomplete('event_type')

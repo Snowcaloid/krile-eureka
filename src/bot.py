@@ -12,7 +12,6 @@ from data.runtime_data import RuntimeData
 from data.tasks.tasks import TaskExecutionType
 from commands.embed import EmbedCommands
 from commands.schedule import ScheduleCommands
-from commands.missed import MissedCommands
 from commands.log import LogCommands
 from datetime import datetime
 from typing import Literal, Optional
@@ -48,7 +47,6 @@ class Krile(Bot):
         await self.data.reset()
 
         await self.add_cog(EmbedCommands())
-        await self.add_cog(MissedCommands())
         await self.add_cog(ScheduleCommands())
         await self.add_cog(LogCommands())
         await self.add_cog(PingCommands())

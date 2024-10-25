@@ -6,8 +6,7 @@ from typing import Dict, List, Optional, Tuple, Type, Union
 from data.ui.constants import BUTTON_STYLE_DESCRIPTIONS, BUTTON_TYPE_DESCRIPTIONS, ButtonType
 from data.ui.selects import EurekaTrackerZoneSelect
 from data.ui.views import TemporaryView
-from data.validation.permission_validator import PermissionValidator
-from logger import guild_log_message
+from logger import feedback_and_log, guild_log_message
 from utils import default_defer, default_response, sql_int
 import data.cache.message_cache as cache
 
@@ -46,16 +45,13 @@ class RoleSelectionButton(ButtonBase):
             await default_defer(interaction)
             if isinstance(interaction.user, Member):
                 if self.role is None:
-                    await guild_log_message(interaction.guild_id, f'{interaction.user.mention} tried using button <{self.label}> in message <{self.message.jump_url}> but role is not loaded.')
-                    await default_response(interaction, f'The button you\'re trying to interact with is currently not working. Please contact the server moderators.')
+                    await feedback_and_log(interaction, f'tried using button <{self.label}> in message <{self.message.jump_url}> but role is not loaded. Contact your administrators.')
                 elif interaction.user.get_role(self.role.id):
                     await interaction.user.remove_roles(self.role)
-                    await guild_log_message(interaction.guild_id, f'{interaction.user.mention} has removed their role **{self.role.name}**.')
-                    await default_response(interaction, f'You have removed the role {self.role.name} from yourself')
+                    await feedback_and_log(interaction, f'removed role **{self.role.name}** from {interaction.user.mention}.')
                 else:
                     await interaction.user.add_roles(self.role)
-                    await guild_log_message(interaction.guild_id, f'{interaction.user.mention} has taken the role **{self.role.name}**.')
-                    await default_response(interaction, f'You have been granted the role {self.role.name}')
+                    await feedback_and_log(interaction, f'taken the role **{self.role.name}**.')
             else:
                 await default_response(interaction, f'Role buttons don''t work outside of a server setting.')
 
@@ -98,9 +94,8 @@ class PartyLeaderButton(ButtonBase):
                 if not current_party_leader and not interaction.user.id in event.users._party_leaders:
                     event.users.party_leaders[index] = interaction.user.id
                     await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event.id)
-                    await default_response(interaction, f'You have been set as Party Leader for Party {party_name}')
                     run = await event.to_string()
-                    await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has registered for Party {party_name} on {run}')
+                    await feedback_and_log(interaction, f'applied as Party Leader for Party {party_name} on {run}')
                 elif current_party_leader and (interaction.user.id == current_party_leader or interaction.user.id == event.users.raid_leader):
                     is_party_leader_removing_self = interaction.user.id == current_party_leader
                     event.users.party_leaders[index] = 0
@@ -122,50 +117,6 @@ class PartyLeaderButton(ButtonBase):
                     await default_response(interaction, f'You\'re already assigned to a party.')
             else:
                 await default_response(interaction, 'This run is already over.')
-
-
-class MissedRunButton(ButtonBase):
-    """Buttons, which add missed run data.
-
-    Properties
-    ----------
-    users: :class'`List[int]`
-        List of users who already clicked the button
-    """
-    users: List[int]
-    event_category: str
-
-    def __init__(self, **kw):
-        super().__init__(**kw)
-        self.users = []
-        self.event_category = ''
-
-    async def callback(self, interaction: Interaction):
-        if interaction.message == self.message:
-            await default_defer(interaction)
-            if not PermissionValidator.allowed_to_react_to_missed_post(interaction.user, self.event_category):
-                return await default_response(interaction, 'You are not eligable for this function.')
-            if interaction.user.id in self.users:
-                return await default_response(interaction, 'You have already been noted. This only works once per post.')
-            guild_data = bot.instance.data.guilds.get(interaction.guild_id)
-            if guild_data is None: return await default_response(interaction, 'Something went wrong.')
-            if guild_data.missed_runs.eligable(interaction.user.id, self.event_category):
-                return await default_response(interaction, (
-                    'You already reacted 3 times. You are eligable to contact a raid leader '
-                    'shortly before their next run to gain access to an early passcode '
-                    'at their discretion.'))
-            guild_data.missed_runs.inc(interaction.user.id, self.event_category)
-            self.users.append(interaction.user.id)
-            if guild_data.missed_runs.eligable(interaction.user.id, self.event_category):
-                return await default_response(interaction, (
-                    'You reacted 3 times. You are eligible to contact a raid leader '
-                    'shortly before their next run to gain access to an early passcode '
-                    'at their discretion.'
-                    ))
-            return await default_response(interaction, (
-                'You have been noted. You can notify the raid leader in '
-                f'{3-guild_data.missed_runs.get(interaction.user.id, self.event_category).amount} runs.'
-            ))
 
 
 class AssignTrackerButton(ButtonBase):
@@ -198,7 +149,6 @@ BUTTON_CLASSES: Dict[ButtonType, Type[ButtonBase]] = {
     ButtonType.ROLE_SELECTION: RoleSelectionButton,
     ButtonType.ROLE_DISPLAY: RoleDisplayButton,
     ButtonType.PL_POST: PartyLeaderButton,
-    ButtonType.MISSEDRUN: MissedRunButton,
     ButtonType.ASSIGN_TRACKER: AssignTrackerButton,
     ButtonType.GENERATE_TRACKER: GenerateTrackerButton,
 }

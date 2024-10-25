@@ -4,7 +4,7 @@ from discord.ext.commands import GroupCog
 from discord.channel import TextChannel
 from discord.app_commands import check, command
 from data.guilds.guild_channel_functions import GuildChannelFunction
-from logger import guild_log_message
+from logger import feedback_and_log, guild_log_message
 from utils import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
 
@@ -16,23 +16,16 @@ class LogCommands(GroupCog, group_name='log', group_description='Commands regard
     @check(PermissionValidator.is_admin)
     async def channel(self, interaction: Interaction, target_channel: TextChannel):
         await default_defer(interaction)
-        # Handle the change in the database.
         bot.instance.data.guilds.get(interaction.guild_id).channels.set(target_channel.id, GuildChannelFunction.LOGGING)
-        # Record this change to the log.
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** set the log channel.')
-        # Privately respond to the user with the outcome.
-        await default_response(interaction, f'The log channel has been set to {target_channel.mention}.')
+        await feedback_and_log(interaction, f'set the log channel to {target_channel.jump_url}.')
 
 
     @command(name='disable', description='Stop sending messages to the logging channel.')
     @check(PermissionValidator.is_admin)
     async def disable(self, interaction: Interaction):
         await default_defer(interaction)
-        # Send one final message so the log has a record that it was turned off.
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has disabled logging, good bye!')
-        # Remove the log channel
         bot.instance.data.guilds.get(interaction.guild_id).channels.remove(GuildChannelFunction.LOGGING)
-        # Privately let the user know we have turned logging off.
         await default_response(interaction, 'Messages will no longer be sent to the log channel.')
 
     #region error-handling

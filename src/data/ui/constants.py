@@ -8,7 +8,6 @@ class ButtonType(Enum):
     ROLE_SELECTION = 1
     ROLE_DISPLAY = 2
     PL_POST = 3
-    MISSEDRUN = 4
     ASSIGN_TRACKER = 5
     GENERATE_TRACKER = 6
 

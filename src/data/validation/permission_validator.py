@@ -58,18 +58,3 @@ class PermissionValidator:
             elif [True for guild_role in guild_roles.get(GuildRoleFunction.RAID_LEADER, EventCategory.BOZJA.value) if guild_role.role_id == role.id]:
                 allow_bozja = True
         return allow_ba, allow_drs, allow_bozja
-
-    @classmethod
-    def allowed_to_react_to_missed_post(cl, member: Member, event_category: str) -> bool:
-        guild_roles = bot.instance.data.guilds.get(member.guild.id).roles
-        allowed_roles = guild_roles.get(GuildRoleFunction.ALLOW_MISSED_RUN_APPLICATION, event_category)
-        forbidden_roles = guild_roles.get(GuildRoleFunction.FORBID_MISSED_RUN_APPLICATION, event_category)
-        result = False
-        for role in member.roles:
-            for role_data in forbidden_roles:
-                if role.id == role_data.role_id:
-                    return False
-            for role_data in allowed_roles:
-                if role.id == role_data.role_id:
-                    result = True
-        return result

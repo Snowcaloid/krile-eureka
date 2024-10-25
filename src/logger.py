@@ -1,9 +1,12 @@
 import os
 from datetime import datetime
+from typing import Coroutine
+
+from discord import Interaction
 
 import bot
 from data.guilds.guild_channel_functions import GuildChannelFunction
-from utils import get_discord_timestamp
+from utils import default_response, get_discord_timestamp
 
 
 async def guild_log_message(guild_id: int, message: str):
@@ -24,6 +27,11 @@ async def guild_log_message(guild_id: int, message: str):
     await channel.send(f'{get_discord_timestamp(datetime.utcnow())} {message}')
     # Write this message to a log file
     await output_to_file(guild_id, message)
+
+
+async def feedback_and_log(interaction: Interaction, feedback: str) -> Coroutine[None, None, None]:
+    await default_response(interaction, f'You have {feedback}')
+    await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has {feedback}')
 
 
 async def output_to_file(guild_id: int, message: str):

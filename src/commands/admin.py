@@ -33,7 +33,6 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
         finally:
             bot.instance.data.db.disconnect()
         pandas.set_option('display.expand_frame_repr', False)
-        #pandas.set_option('display.max_colwidth', 100)
         pandas.set_option('display.width', 240)
         response = pandas.DataFrame(result, columns=column_names)
         response = f'```\n{response}\n```'
@@ -41,7 +40,7 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
 
 
     @command(name = "reload", description = "Loads all bot data from the database again.")
-    @check(PermissionValidator.is_admin)
+    @check(PermissionValidator.is_owner)
     async def reload(self, interaction: Interaction):
         await default_defer(interaction)
         bot.instance.data.reset()
