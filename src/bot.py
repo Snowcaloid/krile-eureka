@@ -1,6 +1,6 @@
 import os
 from discord import Intents, Member, Object, HTTPException, RawMessageDeleteEvent
-from discord.ext.commands import Bot, guild_only, has_role, Context, Greedy
+from discord.ext.commands import Bot, guild_only, Context, Greedy
 from commands.admin import AdminCommands
 from commands.ba import BACommands
 from commands.config import ConfigCommands

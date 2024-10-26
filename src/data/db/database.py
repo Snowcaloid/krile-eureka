@@ -9,7 +9,7 @@ def pg_timestamp(timestamp: datetime):
     return timestamp.strftime("\'%Y-%m-%d %H:%M\'")
 
 
-PgColumnValue = Union[Any, str, int, datetime, None]
+PgColumnValue = Union[Any, str, int, bool, datetime, None]
 
 
 class DatabaseOperation(Enum):

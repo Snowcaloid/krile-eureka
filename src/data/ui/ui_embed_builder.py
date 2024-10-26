@@ -1,6 +1,3 @@
-
-
-
 from discord import Embed, Interaction, Message
 
 from data.ui.buttons import buttons_as_text, buttons_from_message

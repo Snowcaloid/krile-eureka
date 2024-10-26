@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import uuid4
 from discord import ButtonStyle, Embed, Message, TextChannel
 from data.guilds.guild_channel import GuildChannel

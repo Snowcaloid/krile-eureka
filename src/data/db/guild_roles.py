@@ -1,5 +1,3 @@
-
-
 from data.db.definition import ColumnFlag, ColumnType, TableDefinition
 
 class GuildRolesTable(TableDefinition):

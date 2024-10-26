@@ -8,7 +8,7 @@ from data.ui.constants import BUTTON_STYLE_DESCRIPTIONS, BUTTON_TYPE_DESCRIPTION
 from data.ui.selects import EurekaTrackerZoneSelect
 from data.ui.views import TemporaryView
 from logger import feedback_and_log, guild_log_message
-from utils import default_defer, default_response, sql_int
+from utils import default_defer, default_response
 import data.cache.message_cache as cache
 
 

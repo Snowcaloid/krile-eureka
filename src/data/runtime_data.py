@@ -1,9 +1,9 @@
 from datetime import datetime
 import bot
+from data.db.sql import Record
 from data.eureka_info import EurekaInfo
 from data.guilds.guild import Guilds
 from data.db.register import RegisterTables
-from data.db.database import Database
 from data.db.definition import TableDefinitions
 from data.tasks.tasks import TaskExecutionType, Tasks
 from data.ui.ui import UI
@@ -11,7 +11,6 @@ from data.ui.copied_messages import MessageCopyController
 
 class RuntimeData:
     """General Runtime Data Class"""
-    db: Database = Database()
     message_copy_controller: MessageCopyController
     guilds: Guilds = Guilds()
     ui: UI = UI()
@@ -27,13 +26,10 @@ class RuntimeData:
 
     def ensure_database_tables(self):
         """Create the database and update the tables."""
-        self.db.connect()
-        try:
-            for table in TableDefinitions.DEFINITIONS:
-                self.db.query(table.to_sql_create())
-                self.db.query(table.to_sql_alter())
-        finally:
-            self.db.disconnect()
+        record = Record()
+        for table in TableDefinitions.DEFINITIONS:
+            record.DATABASE.query(table.to_sql_create())
+            record.DATABASE.query(table.to_sql_alter())
 
     async def reset(self):
         """Load general data from the db."""

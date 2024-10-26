@@ -71,8 +71,5 @@ def delta_to_string(delta: timedelta) -> str:
         result = f'{str(delta.days)} days, {result}'
     return result
 
-def sql_int(value: int) -> str:
-    return 'null' if value is None else str(value)
-
 def find_nearest_role(guild: Guild, role_name: str) -> Role:
     return next(role for role in guild.roles if role.name.lower().startswith(role_name.lower()))
