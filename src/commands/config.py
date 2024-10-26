@@ -145,7 +145,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         else:
             pings_data.add_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
             desc = EventCategory(event_type).value
-        await feedback_and_log(interaction.guild_id, f'added a ping for role {role.mention} on event <{GuildPingType(ping_type).name}, {desc}>')
+        await feedback_and_log(interaction, f'added a ping for role {role.mention} on event <{GuildPingType(ping_type).name}, {desc}>')
 
     @command(name='ping_remove_role', description='Remove a ping.')
     @check(PermissionValidator.is_admin)
@@ -159,7 +159,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         else:
             pings_data.remove_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
             desc = EventCategory(event_type).value
-        await feedback_and_log(interaction.guild_id, f'removed a ping for role {role.mention} on event <{GuildPingType(ping_type).name}, {desc}>')
+        await feedback_and_log(interaction, f'removed a ping for role {role.mention} on event <{GuildPingType(ping_type).name}, {desc}>')
 
     @command(name='ping_add_eureka_role', description='Add a ping for eureka tracker notifications.')
     @check(PermissionValidator.is_admin)
@@ -168,7 +168,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         if not await InputValidator.RAISING.check_valid_eureka_instance(interaction, instance): return
         pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
         pings_data.add_ping(GuildPingType.EUREKA_TRACKER_NOTIFICATION, instance, role.id)
-        await feedback_and_log(interaction.guild_id, f'added {role.mention} as a ping for tracker notifications in **{EurekaTrackerZone(int(instance)).name}**.')
+        await feedback_and_log(interaction, f'added {role.mention} as a ping for tracker notifications in **{EurekaTrackerZone(int(instance)).name}**.')
 
     @command(name='ping_remove_eureka_role', description='Remove a ping for eureka tracker notifications.')
     @check(PermissionValidator.is_admin)
@@ -177,7 +177,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         if not await InputValidator.RAISING.check_valid_eureka_instance(interaction, instance): return
         pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
         pings_data.remove_ping(GuildPingType.EUREKA_TRACKER_NOTIFICATION, instance, role.id)
-        await feedback_and_log(interaction.guild_id, f'removed {role.mention} from pings for tracker notifications in **{EurekaTrackerZone(int(instance)).name}**.')
+        await feedback_and_log(interaction, f'removed {role.mention} from pings for tracker notifications in **{EurekaTrackerZone(int(instance)).name}**.')
 
     @command(name='ping_add_nm_role', description='Add a ping for notorious monster notifications.')
     @check(PermissionValidator.is_admin)
@@ -187,7 +187,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
         pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
         pings_data.add_ping(GuildPingType.NM_PING, notorious_monster, role.id)
-        await feedback_and_log(interaction.guild_id, f'added a role {role.mention} ping for **{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}**.')
+        await feedback_and_log(interaction, f'added a role {role.mention} ping for **{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}**.')
 
     @command(name='ping_remove_nm_role', description='Remove a ping for notorious monster notifications.')
     @check(PermissionValidator.is_admin)
@@ -197,7 +197,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
         pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
         pings_data.remove_ping(GuildPingType.NM_PING, notorious_monster, role.id)
-        await feedback_and_log(interaction.guild_id,  f'removed role {role.mention} ping for **{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}**.')
+        await feedback_and_log(interaction,  f'removed role {role.mention} ping for **{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}**.')
 
     @ping_add_role.autocomplete('ping_type')
     @ping_remove_role.autocomplete('ping_type')
