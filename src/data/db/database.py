@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Union
+from typing import Any, List, Union
 import psycopg2
 import os
 from datetime import datetime
@@ -7,6 +7,9 @@ from datetime import datetime
 
 def pg_timestamp(timestamp: datetime):
     return timestamp.strftime("\'%Y-%m-%d %H:%M\'")
+
+
+PgColumnValue = Union[Any, str, int, datetime, None]
 
 
 class DatabaseOperation(Enum):
@@ -64,7 +67,7 @@ class Database:
             self._connection.commit()
             self._connection.close()
 
-    def query(self, query: str) -> Union[str, None]:
+    def query(self, query: str) -> List[PgColumnValue]:
         """Execute a query on the current cursor.
 
         Args:
