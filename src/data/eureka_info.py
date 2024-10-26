@@ -1,9 +1,9 @@
 from datetime import datetime
 from enum import Enum
-import bot
 from typing import List
 
 from data.db.database import pg_timestamp
+from data.db.sql import SQL, Record
 
 
 class EurekaTrackerZone(Enum):
@@ -15,61 +15,34 @@ class EurekaTrackerZone(Enum):
 
 class EurekaTracker:
     def load(self, url: str) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            self.url = url
-            for record in db.query(f"select zone, timestamp from trackers where url='{url}'"):
-                self.zone = EurekaTrackerZone(record[0])
-                self.timestamp: datetime = record[1]
-        finally:
-            db.disconnect()
+        self.url = url
+        for record in SQL('trackers').select(fields=['zone', 'timestamp'], where=f'url=\'{url}\'', all=True):
+            self.zone = EurekaTrackerZone(record['zone'])
+            self.timestamp: datetime = record['timestamp']
 
 
 class EurekaInfo:
     _trackers: List[EurekaTracker] = []
 
     def load(self) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            self._trackers.clear()
-            records = db.query(f'select url from trackers')
-            for record in records:
-                tracker = EurekaTracker()
-                tracker.load(record[0])
-                self._trackers.append(tracker)
-        finally:
-            db.disconnect()
+        self._trackers.clear()
+        for record in SQL('trackers').select(fields=['url']):
+            tracker = EurekaTracker()
+            tracker.load(record['url'])
+            self._trackers.append(tracker)
 
     def get(self, zone: EurekaTrackerZone) -> List[EurekaTracker]:
         return [tracker for tracker in self._trackers if tracker.zone == zone]
 
     def add(self, url: str, zone: EurekaTrackerZone) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f"insert into trackers (url, zone, timestamp) values ('{url}', {str(zone.value)}, {pg_timestamp(datetime.utcnow())})")
-            self.load()
-        finally:
-            db.disconnect()
+        SQL('trackers').insert(Record(url=url, zone=zone.value, timestamp=datetime.utcnow()))
+        self.load()
 
     def remove(self, url: str) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            # delete trackers older than 4 hours
-            db.query(f"delete from trackers where url='{url}'")
-            self.load()
-        finally:
-            db.disconnect()
+        SQL('trackers').delete(f"url='{url}'")
+        self.load()
 
     def remove_old(self) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            # delete trackers older than 4 hours
-            db.query(f'delete from trackers where extract(epoch from {pg_timestamp(datetime.utcnow())}-timestamp)/3600 > 4')
-            self.load()
-        finally:
-            db.disconnect()
+        # delete trackers older than 4 hours
+        SQL('trackers').delete(f"extract(epoch from {pg_timestamp(datetime.utcnow())}-timestamp)/3600 > 4")
+        self.load()

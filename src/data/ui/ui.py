@@ -1,4 +1,3 @@
-import bot
 from data.ui.ui_eureka_info import UIEurekaInfoPost
 from data.ui.ui_embed_builder import UI_Embed_Builder
 from data.ui.ui_pl_post import UIPLPost
@@ -18,9 +17,4 @@ class UI:
     eureka_info: UIEurekaInfoPost = UIEurekaInfoPost()
 
     async def load(self) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            await self.view.load()
-        finally:
-            db.disconnect()
+        await self.view.load()

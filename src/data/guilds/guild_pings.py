@@ -2,6 +2,7 @@ import bot
 from enum import Enum
 from typing import List
 
+from data.db.sql import SQL, Record
 from data.events.event import Event, EventCategory
 
 # TODO: technically, this could be united with guild_roles
@@ -22,17 +23,13 @@ class GuildPing:
     tag: int # user or role
 
     def load(self, id: int) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            record = db.query(f'select ping_type, schedule_type, tag from pings where id={id}')
-            if record:
-                self.id = id
-                self.type = GuildPingType(record[0][0])
-                self.event_type = record[0][1]
-                self.tag = record[0][2]
-        finally:
-            db.disconnect()
+        record = SQL('pings').select(fields=['ping_type', 'schedule_type', 'tag'],
+                                     where=f'id={id}')
+        if record:
+            self.id = id
+            self.type = GuildPingType(record['ping_type'])
+            self.event_type = record['schedule_type']
+            self.tag = record['tag']
 
 class GuildPings:
     _list: List[GuildPing] = []
@@ -40,17 +37,13 @@ class GuildPings:
 
     def load(self, guild_id: int) -> None:
         self.guild_id = guild_id
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            self._list.clear()
-            records = db.query(f'select id from pings where guild_id={guild_id}')
-            for record in records:
-                ping = GuildPing()
-                ping.load(record[0])
-                self._list.append(ping)
-        finally:
-            db.disconnect()
+        self._list.clear()
+        for record in SQL('pings').select(fields=['id'],
+                                          where=f'guild_id={guild_id}',
+                                          all=True):
+            ping = GuildPing()
+            ping.load(record['id'])
+            self._list.append(ping)
 
     def get(self, ping_type: GuildPingType, event_type: str) -> List[GuildPing]:
         result = []
@@ -60,40 +53,24 @@ class GuildPings:
         return result
 
     def add_ping_category(self, ping_type: GuildPingType, category: EventCategory, tag: int):
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            for event_base in Event.all_events_for_category(category):
-                self.add_ping(ping_type, event_base.type(), tag)
-        finally:
-            db.disconnect()
+        query = Record() # Prevent multiple connects and disconnects
+        for event_base in Event.all_events_for_category(category):
+            self.add_ping(ping_type, event_base.type(), tag)
+        del query
 
     def add_ping(self, ping_type: GuildPingType, event_type: str, tag: int):
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f'insert into pings (guild_id, ping_type, schedule_type, tag) values ({str(self.guild_id)}, {str(ping_type.value)}, \'{event_type}\', {str(tag)})')
-            self.load(self.guild_id)
-        finally:
-            db.disconnect()
+        SQL('pings').insert(Record(guild_id=self.guild_id, ping_type=ping_type.value, schedule_type=event_type, tag=tag))
+        self.load(self.guild_id)
 
     def remove_ping_category(self, ping_type: GuildPingType, category: EventCategory, tag: int):
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            for event_base in Event.all_events_for_category(category):
-                self.remove_ping(ping_type, event_base.type(), tag)
-        finally:
-            db.disconnect()
+        query = Record() # Prevent multiple connects and disconnects
+        for event_base in Event.all_events_for_category(category):
+            self.remove_ping(ping_type, event_base.type(), tag)
+        del query
 
     def remove_ping(self, ping_type: GuildPingType, event_type: str, tag: int):
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f'delete from pings where guild_id={str(self.guild_id)} and ping_type={str(ping_type.value)} and schedule_type=\'{event_type}\' and tag={str(tag)}')
-            self.load(self.guild_id)
-        finally:
-            db.disconnect()
+        SQL('pings').delete(f'guild_id={self.guild_id} and ping_type={ping_type.value} and schedule_type=\'{event_type}\' and tag={tag}')
+        self.load(self.guild_id)
 
     async def get_mention_string(self, ping_type: GuildPingType, event_type: str) -> str:
         result = ''

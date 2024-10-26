@@ -2,10 +2,9 @@ from abc import abstractclassmethod
 from enum import Enum
 from json import dumps, loads
 from typing import List, Type
-import bot
 from datetime import datetime
-from data.db.database import pg_timestamp
 
+from data.db.sql import SQL, Record
 from logger import guild_log_message
 
 
@@ -58,20 +57,16 @@ class Task:
         self.list = list
 
     def load(self, id: int) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            record = db.query(f'select execution_time, data, task_type from tasks where id={id}')
-            if record:
-                self.id = id
-                self.time = record[0][0]
-                self.data = loads(record[0][1])
-                for task_base in TaskBase._registered_tasks:
-                    if task_base.type().value == record[0][2]:
-                        self.base = task_base
-                        break
-        finally:
-            db.disconnect()
+        record = SQL('tasks').select(fields=['execution_time', 'data', 'task_type'],
+                                     where=f'id={id}')
+        if record:
+            self.id = id
+            self.time = record['execution_time']
+            self.data = loads(record['data'])
+            for task_base in TaskBase._registered_tasks:
+                if task_base.type().value == record['task_type']:
+                    self.base = task_base
+                    break
 
     @property
     def type(self) -> TaskExecutionType:
@@ -96,17 +91,13 @@ class Tasks:
     executing: bool = False
 
     def load(self):
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            self._list.clear()
-            records = db.query('select id from tasks order by execution_time')
-            for record in records:
-                task = Task(self)
-                task.load(record[0])
-                self._list.append(task)
-        finally:
-            db.disconnect()
+        self._list.clear()
+        for record in SQL('tasks').select(fields=['id'],
+                                          all=True,
+                                          sort_fields=['execution_time']):
+            task = Task(self)
+            task.load(record['id'])
+            self._list.append(task)
 
     def sort_runtime_tasks_by_time(self) -> None:
         self._runtime_tasks = sorted(self._runtime_tasks, key=lambda task: task.time)
@@ -123,13 +114,8 @@ class Tasks:
             self._runtime_tasks.append(task)
             self.sort_runtime_tasks_by_time()
         else:
-            db = bot.instance.data.db
-            db.connect()
-            try:
-                db.query(f'insert into tasks (execution_time, task_type, data) values ({pg_timestamp(time)}, {task_type.value}, \'{dumps(data)}\') returning id')
-                self.load()
-            finally:
-                db.disconnect()
+            SQL('tasks').insert(Record(execution_time=time, task_type=task_type.value, data=dumps(data)))
+            self.load()
 
     def contains(self, type: TaskExecutionType) -> bool:
         for task in self._list:
@@ -162,25 +148,15 @@ class Tasks:
             if task in self._runtime_tasks:
                 self._runtime_tasks.remove(task)
         else:
-            db = bot.instance.data.db
-            db.connect()
-            try:
-                db.query(f'delete from tasks where id={task.id}')
-                self.load()
-            finally:
-                db.disconnect()
+            SQL('tasks').delete(f'id={task.id}')
+            self.load()
 
     def remove_all(self, type: TaskExecutionType):
         if TaskBase.by_type(type).runtime_only():
             self._runtime_tasks = list(filter(lambda task: task.type != type, self._runtime_tasks))
         else:
-            db = bot.instance.data.db
-            db.connect()
-            try:
-                db.query(f'delete from tasks where task_type={type.value}')
-                self.load()
-            finally:
-                db.disconnect()
+            SQL('tasks').delete(f'task_type={type.value}')
+            self.load()
 
     def remove_task_by_data(self, type: TaskExecutionType, data: object):
         if data is None:
@@ -189,10 +165,5 @@ class Tasks:
         if TaskBase.by_type(type).runtime_only():
             self._runtime_tasks = list(filter(lambda task: task.type != type and task.data == data, self._runtime_tasks))
         else:
-            db = bot.instance.data.db
-            db.connect()
-            try:
-                db.query(f'delete from tasks where task_type={type.value} and data=\'{dumps(data)}\'')
-                self.load()
-            finally:
-                db.disconnect()
+            SQL('tasks').delete(f'task_type={type.value} and data=\'{dumps(data)}\'')
+            self.load()

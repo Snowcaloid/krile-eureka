@@ -3,6 +3,7 @@ import bot
 from discord.ui import Button, View
 from discord import ButtonStyle, Embed, Emoji, Interaction, Message, PartialEmoji, Role, Member, TextChannel
 from typing import Dict, List, Optional, Tuple, Type, Union
+from data.db.sql import SQL, Record
 from data.ui.constants import BUTTON_STYLE_DESCRIPTIONS, BUTTON_TYPE_DESCRIPTIONS, ButtonType
 from data.ui.selects import EurekaTrackerZoneSelect
 from data.ui.views import TemporaryView
@@ -169,39 +170,32 @@ def buttons_as_text(buttons: List[ButtonBase]) -> str:
 
 def save_buttons(message: Message, view: View):
     if bot.instance.data.ready:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            for button in view.children:
-                btn: ButtonBase = button
-                btn.message = message
-                role = btn.role.id if btn.role else 0
-                emoji = 'null' if btn.emoji is None else "'" + str(btn.emoji) + "'"
-                db.query((
-                    'insert into buttons (button_type, style, emoji, label, button_id, row, index, '
-                    f"role, pl, channel_id, message_id) values ({sql_int(btn.button_type().value)}, {sql_int(btn.style.value)}, {emoji}, '{btn.label}',"
-                    f"'{btn.custom_id}', {sql_int(btn.row)}, {sql_int(btn.index)}, {sql_int(role)}, {sql_int(btn.pl)}, {sql_int(message.channel.id)}, {sql_int(message.id)})"
-                ))
-        finally:
-            db.disconnect()
+        query = Record() # Prevent multiple connects and disconnects
+        for button in view.children:
+            btn: ButtonBase = button
+            btn.message = message
+            role = btn.role.id if btn.role else 0
+            emoji = None if btn.emoji is None else str(btn.emoji)
+            SQL('buttons').insert(Record(button_type=btn.button_type().value,
+                                         style=btn.style.value,
+                                         emoji=emoji,
+                                         label=btn.label,
+                                         button_id=btn.custom_id,
+                                         row=btn.row,
+                                         index=btn.index,
+                                         role=role,
+                                         pl=btn.pl,
+                                         channel_id=message.channel.id,
+                                         message_id=message.id))
+        del query
 
 
 def delete_button(button_id: str) -> None:
-    db = bot.instance.data.db
-    db.connect()
-    try:
-        db.query(f"delete from buttons where button_id = '{button_id}'")
-    finally:
-        db.disconnect()
+    SQL('buttons').delete(f"button_id='{button_id}'")
 
 
 def delete_buttons(message_id: str) -> None:
-    db = bot.instance.data.db
-    db.connect()
-    try:
-        db.query(f'delete from buttons where message_id = {str(message_id)}')
-    finally:
-        db.disconnect()
+    SQL('buttons').delete(f'message_id={message_id}')
 
 
 async def get_guild_button_data(button_id: str, channel_id: int, message_id: int, role_id: int) -> Tuple[Message, Role]:
@@ -228,33 +222,31 @@ async def get_guild_button_data(button_id: str, channel_id: int, message_id: int
 
 
 async def load_button(button_id: str) -> ButtonBase:
-    db = bot.instance.data.db
-    db.connect()
-    try:
-        for record in db.query(f'select button_type, style, label, row, index, role, pl, channel_id, message_id, emoji from buttons where button_id=\'{button_id}\''):
-            message, role = await get_guild_button_data(button_id, record[7], record[8], record[5])
-            return BUTTON_CLASSES[ButtonType(record[0])](
-                style=ButtonStyle(record[1]),
-                label=record[2],
-                custom_id=button_id,
-                row=record[3],
-                index=record[4],
-                role=role,
-                message=message,
-                pl=record[6],
-                emoji=record[9]
-            )
-    finally:
-        db.disconnect()
+    for record in SQL('buttons').select(fields=['button_type', 'style', 'label',
+                                                'row', 'index', 'role', 'pl',
+                                                'channel_id', 'message_id', 'emoji'],
+                                        where=f"button_id='{button_id}'",
+                                        all=True):
+        message, role = await get_guild_button_data(button_id, record['channel_id'], record['message_id'], record['role'])
+        return BUTTON_CLASSES[ButtonType(record['button_type'])](
+            style=ButtonStyle(record['style']),
+            label=record['label'],
+            custom_id=button_id,
+            row=record['row'],
+            index=record['index'],
+            role=role,
+            message=message,
+            pl=record['pl'],
+            emoji=record['emoji']
+        )
     return None
 
 async def buttons_from_message(message: Message) -> List[ButtonBase]:
     result = []
-    db = bot.instance.data.db
-    db.connect()
-    try:
-        for record in db.query(f'select button_id from buttons where message_id={message.id}'):
-            result.append(await load_button(record[0]))
-    finally:
-        db.disconnect()
+    query = Record() # Prevent multiple connects and disconnects
+    for record in SQL('buttons').select(fields=['button_id'],
+                                        where=f'message_id={message.id}',
+                                        all=True):
+        result.append(await load_button(record[0]))
+    del query
     return result

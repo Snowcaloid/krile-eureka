@@ -2,12 +2,12 @@ from enum import Enum
 
 from discord import Interaction, Member
 import bot
-from abc import abstractclassmethod, abstractclassmethod
+from abc import abstractclassmethod
 from discord.app_commands import Choice
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
 from typing import List, Tuple, Type
-from data.db.database import pg_timestamp
+from data.db.sql import SQL, Record
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.tasks.tasks import TaskExecutionType
@@ -162,18 +162,15 @@ class ScheduledEventUserData:
     _party_leaders: List[int]
 
     def load(self, event_id: int) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            self.event_id = event_id
-            record = db.query(f'select raid_leader, pl1, pl2, pl3, pl4, pl5, pl6, pls from events where id={event_id}')
-            if record:
-                self._raid_leader = record[0][0]
-                self._party_leaders = []
-                for i in range(1, 8):
-                    self._party_leaders.append(record[0][i])
-        finally:
-            db.disconnect()
+        self.event_id = event_id
+        record = SQL('events').select(fields=['raid_leader', 'pl1', 'pl2', 'pl3',
+                                              'pl4', 'pl5', 'pl6', 'pls'],
+                                      where=f'id={event_id}')
+        if record:
+            self._raid_leader = record['raid_leader']
+            self._party_leaders = [
+                record['pl1'], record['pl2'], record['pl3'], record['pl4'], record['pl5'], record['pl6'], record['pls']
+            ]
 
     @property
     def raid_leader(self) -> int:
@@ -182,13 +179,8 @@ class ScheduledEventUserData:
     @raid_leader.setter
     def raid_leader(self, value: int) -> None:
         if value == self.raid_leader: return
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f'update events set raid_leader={value} where id={self.event_id}')
-            self.load(self.event_id)
-        finally:
-            db.disconnect()
+        SQL('events').update(Record(raid_leader=value), f'id={self.event_id}')
+        self.load(self.event_id)
 
     @indexedproperty
     def party_leaders(self, index: int) -> int:
@@ -196,13 +188,10 @@ class ScheduledEventUserData:
 
     @party_leaders.setter
     def party_leaders(self, index: int, value: int) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            bot.instance.data.db.query(f'update events set {PL_FIELDS[index]}={value} where id={self.event_id}')
-            self.load(self.event_id)
-        finally:
-            db.disconnect()
+        record = Record()
+        record[PL_FIELDS[index]] = value
+        SQL('events').update(record, f'id={self.event_id}')
+        self.load(self.event_id)
 
 class ScheduledEvent:
     base: Type[Event]
@@ -220,26 +209,24 @@ class ScheduledEvent:
         self.users = ScheduledEventUserData()
 
     def load(self, id: int) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            record = db.query(f'select event_type, pl_post_id, timestamp, description, pass_main, pass_supp, guild_id, use_support from events where id={id}')
-            if record:
-                for type in Event._registered_events:
-                    if type.type() == record[0][0]:
-                        self.base = type
-                        break
-                self.id = id
-                self._pl_post_id = record[0][1]
-                self._time = record[0][2]
-                self._description = record[0][3]
-                self.passcode_main = record[0][4]
-                self.passcode_supp = record[0][5]
-                self.guild_id = record[0][6]
-                self._use_support = type.use_support() and record[0][7]
-                self.users.load(id)
-        finally:
-            db.disconnect()
+        record = SQL('events').select(fields=['event_type', 'pl_post_id', 'timestamp',
+                                              'description', 'pass_main', 'pass_supp',
+                                              'guild_id', 'use_support'],
+                                      where=f'id={id}')
+        if record:
+            for type in Event._registered_events:
+                if type.type() == record['event_type']:
+                    self.base = type
+                    break
+            self.id = id
+            self._pl_post_id = record['pl_post_id']
+            self._time = record['timestamp']
+            self._description = record['description']
+            self.passcode_main = record['pass_main']
+            self.passcode_supp = record['pass_supp']
+            self.guild_id = record['guild_id']
+            self._use_support = type.use_support() and record['use_support']
+            self.users.load(id)
 
     @property
     def real_description(self) -> str:
@@ -255,13 +242,8 @@ class ScheduledEvent:
     @description.setter
     def description(self, value: str) -> None:
         if value == self._description: return
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f'update events set description=\'{value}\' where id={self.id}')
-            self.load(self.id)
-        finally:
-            db.disconnect()
+        SQL('events').update(Record(description=value), f'id={self.id}')
+        self.load(self.id)
 
     @property
     def short_description(self) -> str:
@@ -274,13 +256,8 @@ class ScheduledEvent:
     @time.setter
     def time(self, value: datetime) -> None:
         if value == self.auto_passcode: return
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f'update events set timestamp={pg_timestamp(value)} where id={self.id}')
-            self.load(self.id)
-        finally:
-            db.disconnect()
+        SQL('events').update(Record(timestamp=value), f'id={self.id}')
+        self.load(self.id)
 
     @property
     def auto_passcode(self) -> bool:
@@ -289,16 +266,14 @@ class ScheduledEvent:
     @auto_passcode.setter
     def auto_passcode(self, value: bool) -> None:
         if value == self.auto_passcode: return
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            if value:
-                db.query(f'update events set pass_main={str(EventPasscodeGenerator.generate())}, pass_supp={str(EventPasscodeGenerator.generate())} where id={self.id}')
-            else:
-                db.query(f'update events set pass_main=0, pass_supp=0 where id={self.id}')
-            self.load(self.id)
-        finally:
-            db.disconnect()
+        if value:
+            SQL('events').update(Record(pass_main=EventPasscodeGenerator.generate(),
+                                        pass_supp=EventPasscodeGenerator.generate()),
+                                 f'id={self.id}')
+        else:
+            SQL('events').update(Record(pass_main=0, pass_supp=0),
+                                 f'id={self.id}')
+        self.load(self.id)
 
     @property
     def dm_title(self) -> str:
@@ -318,13 +293,8 @@ class ScheduledEvent:
     @use_support.setter
     def use_support(self, value: bool) -> None:
         if (value == self._use_support) or not self.base.use_support(): return
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f'update events set use_support={value} where id={self.id}')
-            self.load(self.id)
-        finally:
-            db.disconnect()
+        SQL('events').update(Record(use_support=value), f'id={self.id}')
+        self.load(self.id)
 
     @property
     def use_pl_posts(self) -> str:
@@ -354,13 +324,8 @@ class ScheduledEvent:
     @type.setter
     def type(self, value: str):
         if value == self.type: return
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f'update events set event_type=\'{value}\' where id={self.id}')
-            self.load(self.id)
-        finally:
-            db.disconnect()
+        SQL('events').update(Record(event_type=value), f'id={self.id}')
+        self.load(self.id)
 
     @property
     def use_pl_post_thread(self) -> str:
@@ -437,13 +402,8 @@ class ScheduledEvent:
 
     @pl_post_id.setter
     def pl_post_id(self, value: int) -> None:
-        db = bot.instance.data.db
-        db.connect()
-        try:
-            db.query(f'update events set pl_post_id={value} where id={self.id}')
-            self.load(self.id)
-        finally:
-            db.disconnect()
+        SQL('events').update(Record(pl_post_id=value), f'id={self.id}')
+        self.load(self.id)
 
     def create_tasks(self) -> None:
         bot.instance.data.tasks.add_task(self.time, TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})

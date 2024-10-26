@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from discord import Activity, ActivityType, Status
 import bot
+from data.db.sql import SQL
 from data.events.event import ScheduledEvent
 from data.tasks.tasks import TaskExecutionType, TaskBase
 
@@ -20,12 +21,15 @@ class Task_UpdateStatus(TaskBase):
     @classmethod
     async def execute(cl, obj: object) -> None:
         next_exec = datetime.utcnow() + timedelta(minutes=1)
-        bot.instance.data.db.connect()
-        try:
-            records = bot.instance.data.db.query('select id from events where timestamp > (current_timestamp at time zone \'UTC\') and (not canceled or canceled is null) and (not finished or finished is null) order by timestamp limit 1')
-            if records:
+        try: # TODO: Isn't it more efficient to use the runtime data object?
+            record = SQL('events').select(fields=['id'],
+                                          where=('timestamp > (current_timestamp at time zone \'UTC\') '
+                                                 'and (not canceled or canceled is null) and '
+                                                 '(not finished or finished is null)'),
+                                          sort_fields=[('timestamp')])
+            if record:
                 event = ScheduledEvent()
-                event.load(records[0][0])
+                event.load(record['id'])
                 if event.time > datetime.utcnow():
                     delta: timedelta = event.time - datetime.utcnow()
                     if delta.days:
@@ -43,7 +47,6 @@ class Task_UpdateStatus(TaskBase):
                 await bot.instance.change_presence(activity=None, status=None)
         finally:
             bot.instance.data.tasks.remove_all(TaskExecutionType.UPDATE_STATUS)
-            bot.instance.data.db.disconnect()
             bot.instance.data.tasks.add_task(next_exec, TaskExecutionType.UPDATE_STATUS)
 
 
