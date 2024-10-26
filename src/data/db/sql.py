@@ -81,3 +81,7 @@ class SQL:
         set_fields = ', '.join([f'{field} = {self._convert_to_sql(value)}' for field, value in record.items()])
         record.DATABASE.query(f'update {self.table_name} set {set_fields} where {where}')
         return None
+
+    def delete(self, where: str) -> None:
+        Record().DATABASE.query(f'delete from {self.table_name} where {where}')
+        return None
