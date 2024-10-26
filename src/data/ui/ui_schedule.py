@@ -60,6 +60,8 @@ class UISchedule:
                     description = f'{description}\n{data._date.strftime("### %A, %d %B %Y")}{schedule_on_day}'
 
             embed.description = description
-            await post.edit(embed=embed)
+            message = await post.edit(embed=embed)
+            if message.channel.is_news():
+                await message.publish()
         else:
             raise Exception(f'UISchedule.rebuild failed: Could not find message with ID {message_data.id}')
