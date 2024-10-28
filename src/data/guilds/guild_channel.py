@@ -57,3 +57,7 @@ class GuildChannels:
         event_type_part = f'and event_type=\'{event_type}\'' if event_type else ''
         SQL('channels').delete(f'guild_id={self.guild_id} and function={function.value} {event_type_part}')
         self.load(self.guild_id)
+
+    @property
+    def all(self) -> List[GuildChannel]:
+        return self._list

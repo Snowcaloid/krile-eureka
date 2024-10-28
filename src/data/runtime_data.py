@@ -1,5 +1,7 @@
 from datetime import datetime
+from threading import Thread
 import bot
+import api_ws.api_webserver as ws
 from data.db.sql import Record
 from data.eureka_info import EurekaInfo
 from data.guilds.guild import Guilds
@@ -17,12 +19,14 @@ class RuntimeData:
     tasks: Tasks = Tasks()
     eureka_info: EurekaInfo = EurekaInfo()
     ready: bool
+    thread = Thread(target=ws.run)
 
     def __init__(self):
         self.ready = False
         RegisterTables.register()
         self.ensure_database_tables()
         self.message_copy_controller = MessageCopyController()
+        self.thread.start()
 
     def ensure_database_tables(self):
         """Create the database and update the tables."""

@@ -44,3 +44,7 @@ class GuildRoles:
         event_category_part = f'and event_category=\'{event_category}\'' if event_category else ''
         SQL('guild_roles').delete(f'guild_id={self.guild_id} and role_id={role_id} and function={function.value} {event_category_part}')
         self.load(self.guild_id)
+
+    @property
+    def all(self) -> List[GuildRole]:
+        return self._list

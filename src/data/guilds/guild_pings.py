@@ -82,3 +82,7 @@ class GuildPings:
             if role:
                 result += f'{role.mention} '
         return result.strip()
+
+    @property
+    def all(self) -> List[GuildPing]:
+        return self._list
