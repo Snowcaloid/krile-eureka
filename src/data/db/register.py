@@ -8,6 +8,7 @@ from data.db.pings import PingsTable
 from data.db.events import EventsTable
 from data.db.tasks import TaskTable
 from data.db.trackers import TrackersTable
+from data.db.webserver_users import WebserverUsersTable
 
 class RegisterTables:
     @classmethod
@@ -22,3 +23,4 @@ class RegisterTables:
         TableDefinitions.register(GuildRolesTable('guild_roles'))
         TableDefinitions.register(GuildMessagesTable('guild_messages'))
         TableDefinitions.register(TrackersTable('trackers'))
+        TableDefinitions.register(WebserverUsersTable('webserver_users'))

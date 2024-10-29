@@ -5,6 +5,7 @@ from flask import Flask, request
 from waitress import serve # type: ignore
 from nullsafe import _
 from uuid import UUID, uuid4
+from data.db.sql import SQL, Record
 import requests
 import os
 import bot
@@ -26,6 +27,16 @@ class ApiWebserver(Flask):
 
     def get_user_by_token(self, token: str) -> WebserverUserCache:
         return next((cache_item for cache_item in self.users_cache if cache_item.token == token), None)
+
+    def load_users_cache(self) -> None:
+        self.users_cache.clear()
+        for record in SQL('webserver_users').select(fields=['uuid', 'user_id', 'user_name']):
+            self.users_cache[UUID(record['uuid'])] = WebserverUserCache(UUID(record['uuid']), record['user_name'], record['user_id'])
+
+    def add_user_cache(self, uuid: UUID, name: str, user_id: int):
+        SQL('webserver_users').delete(f"user_id = {user_id}")
+        SQL('webserver_users').insert(Record(uuid=str(uuid), user_id=user_id, user_name=name))
+        self.load_users_cache()
 
 webserver = ApiWebserver()
 
@@ -65,7 +76,7 @@ def login():
         user_id, name, error = discord_authenticate(code)
         if not error is None: return {'error': error}, 400
         uuid = uuid4()
-        webserver.users_cache[uuid] = WebserverUserCache(uuid, name, user_id)
+        webserver.add_user_cache(uuid, name, user_id)
         return { 'uuid': str(uuid), 'name': name }
 
 @webserver.get('/api/guilds')
@@ -165,4 +176,5 @@ def roles_get():
     return result
 
 def run():
+    webserver.load_users_cache()
     serve(webserver, port=6066)
