@@ -1,6 +1,8 @@
 
 
+from json import dumps
 from typing import Dict, Tuple, Any
+from discord import ChannelType
 from flask import Flask, request
 from waitress import serve # type: ignore
 from nullsafe import _
@@ -9,6 +11,9 @@ from data.db.sql import SQL, Record
 import requests
 import os
 import bot
+from data.guilds.guild_channel_functions import GuildChannelFunction
+from data.guilds.guild_pings import GuildPingType
+from data.guilds.guild_role_functions import GuildRoleFunction
 
 
 class WebserverUserCache:
@@ -118,6 +123,37 @@ def channels_get():
                 'event_type': channel_data.event_type})
     return result
 
+@webserver.get('/api/post/channels')
+def channels_post():
+    user_uuid = request.args.get('user')
+    if user_uuid is None: return [], 401
+    user_cache = _(webserver.users_cache)[UUID(user_uuid)]
+    if user_cache is None: return [], 401
+    json = request.json
+    for json_guild in _(json):
+        guild_id = _(json_guild)['guild']
+        if guild_id not in (guild["id"] for guild in user_cache.guilds):
+            return f'Guild {_(json_guild)["guild"]} is not found in user cache for {user_cache.name}', 400
+        guild_data = bot.instance.data.guilds.get(guild_id)
+        guild = bot.instance.get_guild(guild_id)
+        if guild is None: return f'Guild {guild_id} not found', 400
+        for json_channel in _(json_guild)['channels']:
+            channel_id = _(json_channel)['id']
+            if channel_id is None: return f'Channel id is required for {dumps(json_channel)}', 400
+            channel = guild.get_channel(channel_id)
+            if channel is None: return f'Channel {channel_id} not found', 400
+            if channel.type != ChannelType.text: return f'Channel {channel_id} is not a text channel', 400
+            function = GuildChannelFunction[_(json_channel)['function']]
+            event_type = _(json_channel)['event_type']
+            channel_data = guild_data.channels.get(function, event_type)
+            if channel_data is None:
+                guild_data.channels.add(channel_id, function, event_type)
+            elif _(json_channel)['delete']:
+                guild_data.channels.remove(function, event_type)
+            else:
+                guild_data.channels.set(channel_id, function, event_type)
+    return channels_get()
+
 @webserver.get('/api/pings')
 def pings_get():
     user_uuid = request.args.get('user')
@@ -144,6 +180,46 @@ def pings_get():
                 'type': ping_data.type.name,
                 'event_type': ping_data.event_type})
     return result
+
+@webserver.get('/api/post/pings')
+def pings_post():
+    user_uuid = request.args.get('user')
+    if user_uuid is None: return [], 401
+    user_cache = _(webserver.users_cache)[UUID(user_uuid)]
+    if user_cache is None: return [], 401
+    json = request.json
+    for json_guild in _(json):
+        guild_id = _(json_guild)['guild']
+        if guild_id not in (guild["id"] for guild in user_cache.guilds):
+            return f'Guild {_(json_guild)["guild"]} is not found in user cache for {user_cache.name}', 400
+        guild_data = bot.instance.data.guilds.get(guild_id)
+        guild = bot.instance.get_guild(guild_id)
+        if guild is None: return f'Guild {guild_id} not found', 400
+        for json_ping in _(json_guild)['pings']:
+            ping_id = _(json_ping)['id']
+            tag_type = _(json_ping)['tag_type']
+            tag = _(json_ping)['tag']
+            ping_type = GuildPingType[_(json_ping)['type']]
+            event_type = _(json_ping)['event_type']
+            if tag_type == 'role':
+                role = guild.get_role(tag)
+                if role is None: return f'Role {tag} not found', 400
+            elif tag_type == 'user':
+                user = guild.get_member(tag)
+                if user is None: return f'User {tag} not found', 400
+            else:
+                return f'Invalid tag type {tag_type}', 400
+            if not ping_id:
+                guild_data.pings.add_ping(ping_type, event_type, tag)
+            else:
+                ping_data = guild_data.pings.get_by_id(id)
+                if ping_data is None:
+                    return f'Ping {ping_id} not found', 400
+                elif _(json_ping)['delete']:
+                    guild_data.pings.remove_by_id(ping_id)
+                else:
+                    guild_data.pings.set_by_id(ping_id, function, event_type, tag)
+    return pings_get()
 
 @webserver.get('/api/roles')
 def roles_get():
@@ -174,6 +250,41 @@ def roles_get():
                 'function': role_data.function.name,
                 'event_category': role_data.event_category})
     return result
+
+@webserver.get('/api/post/roles')
+def roles_post():
+    user_uuid = request.args.get('user')
+    if user_uuid is None: return [], 401
+    user_cache = _(webserver.users_cache)[UUID(user_uuid)]
+    if user_cache is None: return [], 401
+    json = request.json
+    for json_guild in _(json):
+        guild_id = _(json_guild)['guild']
+        if guild_id not in (guild["id"] for guild in user_cache.guilds):
+            return f'Guild {_(json_guild)["guild"]} is not found in user cache for {user_cache.name}', 400
+        guild_data = bot.instance.data.guilds.get(guild_id)
+        guild = bot.instance.get_guild(guild_id)
+        if guild is None: return f'Guild {guild_id} not found', 400
+        admin_role = _(json_guild)['admin']
+        if not admin_role is None:
+            guild_data.role_admin = admin_role
+        developer_role = _(json_guild)['developer']
+        if not developer_role is None:
+            guild_data.role_developer = developer_role
+        for json_role in _(json_guild)['roles']:
+            role_id = _(json_role)['id']
+            function = GuildRoleFunction[_(json_role)['function']]
+            event_category = _(json_role)['event_category']
+            role = guild.get_role(role_id)
+            if role is None: return f'Role {role_id} not found', 400
+            role_data = guild_data.roles.get(function, event_category)
+            if not role_data:
+                guild_data.roles.add(role_id, function, event_category)
+            elif _(json_role)['delete']:
+                guild_data.roles.remove(role_id, function, event_category)
+            else:
+                guild_data.roles.set(role_id, function, event_category)
+    return roles_get()
 
 def run():
     webserver.load_users_cache()

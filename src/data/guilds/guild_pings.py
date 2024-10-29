@@ -52,11 +52,23 @@ class GuildPings:
                 result.append(ping)
         return result
 
+    def get_by_id(self, id: int) -> GuildPing:
+        return next((ping for ping in self._list if ping.id == id), None)
+
+    def set_by_id(self, id: int, ping_type: GuildPingType, event_type: str, tag: int) -> None:
+        SQL('pings').update(Record(ping_type=ping_type.value, schedule_type=event_type, tag=tag),
+                            f'id={id}')
+        self.load(self.guild_id)
+
     def add_ping_category(self, ping_type: GuildPingType, category: EventCategory, tag: int):
         query = Record() # Prevent multiple connects and disconnects
         for event_base in Event.all_events_for_category(category):
             self.add_ping(ping_type, event_base.type(), tag)
         del query
+
+    def remove_by_id(self, id: int):
+        SQL('pings').delete(f'id={id}')
+        self.load(self.guild_id)
 
     def add_ping(self, ping_type: GuildPingType, event_type: str, tag: int):
         SQL('pings').insert(Record(guild_id=self.guild_id, ping_type=ping_type.value, schedule_type=event_type, tag=tag))

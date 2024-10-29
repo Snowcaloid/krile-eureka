@@ -45,6 +45,11 @@ class GuildRoles:
         SQL('guild_roles').delete(f'guild_id={self.guild_id} and role_id={role_id} and function={function.value} {event_category_part}')
         self.load(self.guild_id)
 
+    def set(self, role_id: int, function: GuildRoleFunction, event_category: str = '') -> None:
+        SQL('guild_roles').update(Record(role_id=role_id),
+                                  f'guild_id={self.guild_id} and function={function.value} and event_category=\'{event_category}\'')
+        self.load(self.guild_id)
+
     @property
     def all(self) -> List[GuildRole]:
         return self._list
