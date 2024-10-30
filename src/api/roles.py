@@ -3,14 +3,14 @@
 from typing import override
 from nullsafe import _
 from uuid import UUID
-from api.api_webserver import RequestHandler
+from api.api_webserver import ApiRequest
 import bot
 from data.guilds.guild_role_functions import GuildRoleFunction
 
 
-class RolesHandler(RequestHandler):
-    @override
-    def route(self): return 'roles'
+class RolesRequest(ApiRequest):
+    @classmethod
+    def route(cls): return 'roles'
 
     def get(self):
         user_uuid = self.request.args.get('user')

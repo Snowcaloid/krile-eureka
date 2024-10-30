@@ -2,15 +2,14 @@
 
 from abc import abstractmethod
 from json import dumps
-from typing import Dict, List, Tuple, Any, Type, final
+from typing import Dict, List, Any, Type
 from discord import ChannelType
 from flask import Flask, Request, request
+from flask.views import View
 from waitress import serve # type: ignore
 from nullsafe import _
-from uuid import UUID, uuid4
+from uuid import UUID
 from data.db.sql import SQL, Record
-import requests
-import os
 import bot
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
@@ -45,22 +44,15 @@ class ApiWebserver(Flask):
 
 webserver = ApiWebserver()
 
-class RequestHandler:
-    HANDLERS: List[Type['RequestHandler']] = []
+class ApiRequest(View):
+    @classmethod
+    def route(cls) -> str: pass
 
-    def __init__(self):
-        webserver.add_url_rule(self.url, view_func=self.get, methods=['GET'])
-        webserver.add_url_rule(f'{self.base_url}/post/{self.route()}', view_func=self.post, methods=['GET']) # TODO: replace post when testing is done
+    @classmethod
+    def base_url(cls) -> str: return '/api'
 
-    @final
-    @property
-    def base_url(self) -> str: return '/api'
-
-    @abstractmethod
-    def route(self) -> str: pass
-
-    @property
-    def url(self) -> str: return f'{self.base_url}/{self.route()}'
+    @classmethod
+    def url(cls) -> str: return f'{cls.base_url()}/{cls.route()}'
 
     @property
     def request(self) -> Request: return request
@@ -68,55 +60,34 @@ class RequestHandler:
     @property
     def webserver(self) -> ApiWebserver: return webserver
 
+    def dispatch_request(self):
+        if request.method == 'GET':
+            if request.url_rule.rule.startswith('/api/post'):
+                return self.post()
+            return self.get()
+        elif request.method == 'POST':
+            return self.post()
+
     @abstractmethod
-    def get(self) -> Any:
-        print('failure')
+    def get(self) -> Any: pass
 
     def post(self) -> Any:
         return 'Forbidden', 403
 
+class ApiRequestRegister:
+    HANDLERS: List[Type[ApiRequest]] = []
+
     @classmethod
-    def register(cls) -> None:
-        RequestHandler.HANDLERS.append(cls())
-
-def discord_authenticate(code: str) -> Tuple[int, str, Any]:
-    """Authenticate the user with the Discord API."""
-    req = requests.post('https://discord.com/api/oauth2/token',
-                        headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                        data={
-                            "client_id": os.getenv('WEBSERVER_CLIENT_ID'),
-                            "client_secret": os.getenv('WEBSERVER_CLIENT_SECRET'),
-                            "grant_type": "authorization_code",
-                            "code": code,
-                            "redirect_uri": os.getenv('WEBSERVER_REDIRECT_URI'),
-                            "scope": "identify"
-                        })
-    if req.status_code != 200: return 0, '', {'status-code': req.status_code, 'error': req.text}
-    json = req.json()
-    req = requests.get('https://discord.com/api/users/@me', headers={'Authorization': f'{_(json)["token_type"]} {_(json)["access_token"]}'})
-    if req.status_code == 200:
-        json = req.json()
-        user_id = _(json)['id']
-        if user_id is None: return 0, '', {'status-code': 401, 'error': 'Unable to obtain user id.'}
-        name = _(json)['username']
-        return int(user_id), name, None
-    return 0, '', {'status-code': req.status_code, 'error': req.text}
-
-@webserver.get('/api/login')
-def login():
-    code = request.args.get('code')
-    if code is None:
-        uuid = request.args.get('uuid')
-        if uuid is None:
-            return { 'error': 'code or uuid is required' }, 400
-    if code is None:
-        return { 'uuid': uuid, 'name': webserver.users_cache[UUID(uuid)].name }
-    else:
-        user_id, name, error = discord_authenticate(code)
-        if not error is None: return {'error': error}, 400
-        uuid = uuid4()
-        webserver.add_user_cache(uuid, name, user_id)
-        return { 'uuid': str(uuid), 'name': name }
+    def register(cls, request_type: Type[ApiRequest]) -> None:
+        webserver.add_url_rule(request_type.url(),
+                               view_func=request_type.as_view(
+                                   f'{request_type.url()}_get'),
+                               methods=['GET'])
+        webserver.add_url_rule(f'{request_type.base_url()}/post/{request_type.route()}',
+                               view_func=request_type.as_view(
+                                   f'{request_type.url()}_post'),
+                               methods=['GET']) # TODO: replace post when testing is done
+        cls.HANDLERS.append(request_type)
 
 @webserver.get('/api/guilds')
 def guilds_get():
