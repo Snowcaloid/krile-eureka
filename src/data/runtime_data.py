@@ -1,7 +1,7 @@
 from datetime import datetime
 from threading import Thread
 import bot
-import api_ws.api_webserver as ws
+import api.api_webserver as ws
 from data.db.sql import Record
 from data.eureka_info import EurekaInfo
 from data.guilds.guild import Guilds
