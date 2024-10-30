@@ -59,7 +59,11 @@ class BACommands(GroupCog, group_name='ba', group_description='Baldesion Arsenal
     @portals.error
     @rooms.error
     @ozma.error
+    @av.error
     @raiden.error
+    @fairy.error
+    @trapping.error
+    @entrance.error
     async def handle_error(self, interaction: Interaction, error):
         print(error)
         await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')
