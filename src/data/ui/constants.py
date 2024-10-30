@@ -10,6 +10,7 @@ class ButtonType(Enum):
     PL_POST = 3
     ASSIGN_TRACKER = 5
     GENERATE_TRACKER = 6
+    SEND_PL_GUIDE = 7
 
 
 BUTTON_STYLE_DESCRIPTIONS: Dict[ButtonStyle, str] = {

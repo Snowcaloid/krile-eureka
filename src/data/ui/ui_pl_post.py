@@ -7,7 +7,7 @@ import data.cache.message_cache as cache
 import bot
 from data.events.event import EventCategory
 from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.ui.buttons import PartyLeaderButton, delete_buttons, save_buttons
+from data.ui.buttons import PartyLeaderButton, SendPLGuideButton, delete_buttons, save_buttons
 from data.ui.views import PersistentView
 
 class UIPLPost:
@@ -53,6 +53,13 @@ class UIPLPost:
                         index=i - 1 if i < 4 else i - 4,
                         style=ButtonStyle.primary if i < 4 else ButtonStyle.success if i != 7 else ButtonStyle.danger,
                         pl=i-1))
+            if event.category == EventCategory.BA:
+                view.add_item(SendPLGuideButton(
+                    label='How to party lead?',
+                    custom_id=str(uuid4()),
+                    row=1,
+                    index=4,
+                    style=ButtonStyle.gray))
             message = await message.edit(embed=embed, view=view)
             save_buttons(message, view)
         else:

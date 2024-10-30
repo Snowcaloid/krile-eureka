@@ -145,6 +145,18 @@ class GenerateTrackerButton(ButtonBase):
             view.add_item(select)
             select.message = await interaction.response.send_message('Select a Eureka region.', view=view, ephemeral=True)
 
+class SendPLGuideButton(ButtonBase):
+    """Buttons which sends a party leading guide to the user"""
+
+    def button_type(self) -> ButtonType: return ButtonType.SEND_PL_GUIDE
+
+    async def callback(self, interaction: Interaction):
+        if interaction.message == self.message:
+            await default_defer(interaction)
+            message = await interaction.user.send('_ _')
+            await bot.instance.data.ui.help.ba_party_leader(message, interaction.guild.emojis)
+            await default_response(interaction, 'The guide has been sent to your DMs.')
+
 
 BUTTON_CLASSES: Dict[ButtonType, Type[ButtonBase]] = {
     ButtonType.ROLE_SELECTION: RoleSelectionButton,
@@ -152,6 +164,7 @@ BUTTON_CLASSES: Dict[ButtonType, Type[ButtonBase]] = {
     ButtonType.PL_POST: PartyLeaderButton,
     ButtonType.ASSIGN_TRACKER: AssignTrackerButton,
     ButtonType.GENERATE_TRACKER: GenerateTrackerButton,
+    ButtonType.SEND_PL_GUIDE: SendPLGuideButton
 }
 
 

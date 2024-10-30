@@ -38,6 +38,8 @@ class Krile(Bot):
     def __init__(self):
         intents = Intents.all()
         intents.message_content = True
+        intents.emojis = True
+        intents.emojis_and_stickers = True
         super().__init__(command_prefix='/', intents=intents)
         self.data = RuntimeData()
 
