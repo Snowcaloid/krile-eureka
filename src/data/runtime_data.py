@@ -1,5 +1,6 @@
 from datetime import datetime
 from threading import Thread
+from api.register_handlers import register_api_handlers
 import bot
 import api.api_webserver as ws
 from data.db.sql import Record
@@ -26,6 +27,7 @@ class RuntimeData:
         RegisterTables.register()
         self.ensure_database_tables()
         self.message_copy_controller = MessageCopyController()
+        register_api_handlers()
         self.thread.start()
 
     def ensure_database_tables(self):

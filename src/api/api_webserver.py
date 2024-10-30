@@ -1,9 +1,10 @@
 
 
+from abc import abstractmethod
 from json import dumps
-from typing import Dict, Tuple, Any
+from typing import Dict, List, Tuple, Any, Type, final
 from discord import ChannelType
-from flask import Flask, request
+from flask import Flask, Request, request
 from waitress import serve # type: ignore
 from nullsafe import _
 from uuid import UUID, uuid4
@@ -13,7 +14,6 @@ import os
 import bot
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
-from data.guilds.guild_role_functions import GuildRoleFunction
 
 
 class WebserverUserCache:
@@ -44,6 +44,40 @@ class ApiWebserver(Flask):
         self.load_users_cache()
 
 webserver = ApiWebserver()
+
+class RequestHandler:
+    HANDLERS: List[Type['RequestHandler']] = []
+
+    def __init__(self):
+        webserver.add_url_rule(self.url, view_func=self.get, methods=['GET'])
+        webserver.add_url_rule(f'{self.base_url}/post/{self.route()}', view_func=self.post, methods=['GET']) # TODO: replace post when testing is done
+
+    @final
+    @property
+    def base_url(self) -> str: return '/api'
+
+    @abstractmethod
+    def route(self) -> str: pass
+
+    @property
+    def url(self) -> str: return f'{self.base_url}/{self.route()}'
+
+    @property
+    def request(self) -> Request: return request
+
+    @property
+    def webserver(self) -> ApiWebserver: return webserver
+
+    @abstractmethod
+    def get(self) -> Any:
+        print('failure')
+
+    def post(self) -> Any:
+        return 'Forbidden', 403
+
+    @classmethod
+    def register(cls) -> None:
+        RequestHandler.HANDLERS.append(cls())
 
 def discord_authenticate(code: str) -> Tuple[int, str, Any]:
     """Authenticate the user with the Discord API."""
@@ -220,71 +254,6 @@ def pings_post():
                 else:
                     guild_data.pings.set_by_id(ping_id, function, event_type, tag)
     return pings_get()
-
-@webserver.get('/api/roles')
-def roles_get():
-    user_uuid = request.args.get('user')
-    if user_uuid is None: return [], 401
-    user_cache = _(webserver.users_cache)[UUID(user_uuid)]
-    if user_cache is None: return [], 401
-    result = []
-    for cached_guild in user_cache.guilds:
-        data = {'guild': cached_guild['id'], 'roles': []}
-        result.append(data)
-        guild_data = bot.instance.data.guilds.get(cached_guild['id'])
-        data['admin'] = {
-            'id': guild_data.role_admin,
-            'name': _(bot.instance.get_guild(cached_guild['id']).get_role(guild_data.role_admin)).name
-        }
-        data['developer'] = {
-            'id': guild_data.role_developer,
-            'name': _(bot.instance.get_guild(cached_guild['id']).get_role(guild_data.role_developer)).name
-        }
-        roles_data = bot.instance.data.guilds.get(cached_guild['id']).roles
-        guild = bot.instance.get_guild(cached_guild['id'])
-        for role_data in roles_data.all:
-            role = guild.get_role(role_data.role_id)
-            data['roles'].append({
-                'id': role_data.role_id,
-                'name': _(role).name,
-                'function': role_data.function.name,
-                'event_category': role_data.event_category})
-    return result
-
-@webserver.get('/api/post/roles')
-def roles_post():
-    user_uuid = request.args.get('user')
-    if user_uuid is None: return [], 401
-    user_cache = _(webserver.users_cache)[UUID(user_uuid)]
-    if user_cache is None: return [], 401
-    json = request.json
-    for json_guild in _(json):
-        guild_id = _(json_guild)['guild']
-        if guild_id not in (guild["id"] for guild in user_cache.guilds):
-            return f'Guild {_(json_guild)["guild"]} is not found in user cache for {user_cache.name}', 400
-        guild_data = bot.instance.data.guilds.get(guild_id)
-        guild = bot.instance.get_guild(guild_id)
-        if guild is None: return f'Guild {guild_id} not found', 400
-        admin_role = _(json_guild)['admin']
-        if not admin_role is None:
-            guild_data.role_admin = admin_role
-        developer_role = _(json_guild)['developer']
-        if not developer_role is None:
-            guild_data.role_developer = developer_role
-        for json_role in _(json_guild)['roles']:
-            role_id = _(json_role)['id']
-            function = GuildRoleFunction[_(json_role)['function']]
-            event_category = _(json_role)['event_category']
-            role = guild.get_role(role_id)
-            if role is None: return f'Role {role_id} not found', 400
-            role_data = guild_data.roles.get(function, event_category)
-            if not role_data:
-                guild_data.roles.add(role_id, function, event_category)
-            elif _(json_role)['delete']:
-                guild_data.roles.remove(role_id, function, event_category)
-            else:
-                guild_data.roles.set(role_id, function, event_category)
-    return roles_get()
 
 def run():
     webserver.load_users_cache()
