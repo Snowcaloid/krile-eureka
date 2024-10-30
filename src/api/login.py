@@ -1,6 +1,6 @@
 
 
-from typing import Any, Tuple, override
+from typing import Any, Tuple
 from nullsafe import _
 from uuid import UUID, uuid4
 from api.api_webserver import ApiRequest
