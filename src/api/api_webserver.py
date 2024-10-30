@@ -1,7 +1,8 @@
 
 
 from abc import abstractmethod
-from typing import Dict, List, Any, Type
+from copy import deepcopy
+from typing import Dict, List, Any, Tuple, Type
 from flask import Flask, Request, request
 from flask.views import View
 from waitress import serve # type: ignore
@@ -50,18 +51,26 @@ class ApiRequest(View):
     def url(cls) -> str: return f'{cls.base_url()}/{cls.route()}'
 
     @property
-    def request(self) -> Request: return request
+    def request(self) -> Request: return self._request
 
     @property
     def webserver(self) -> ApiWebserver: return webserver
 
     def dispatch_request(self):
+        self._request = deepcopy(request)
         if request.method == 'GET':
             if request.url_rule.rule.startswith('/api/post'):
                 return self.post()
             return self.get()
         elif request.method == 'POST':
             return self.post()
+
+    def get_user_cache(self) -> Tuple[WebserverUserCache, str]:
+        user_uuid = self.request.args.get('user')
+        if user_uuid is None: return None, 'user parameter not found'
+        user_cache = _(self.webserver.users_cache)[UUID(user_uuid)]
+        if user_cache is None: return None, 'invalid user'
+        return user_cache, ''
 
     @abstractmethod
     def get(self) -> Any: pass

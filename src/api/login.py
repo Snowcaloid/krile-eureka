@@ -29,7 +29,7 @@ class LoginRequest(ApiRequest):
             return { 'uuid': str(uuid), 'name': name }
 
 
-    def discord_authenticate(code: str) -> Tuple[int, str, Any]:
+    def discord_authenticate(self, code: str) -> Tuple[int, str, Any]:
         """Authenticate the user with the Discord API."""
         req = requests.post('https://discord.com/api/oauth2/token',
                             headers={'Content-Type': 'application/x-www-form-urlencoded'},

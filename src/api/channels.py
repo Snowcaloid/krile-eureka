@@ -14,10 +14,8 @@ class ChannelsRequest(ApiRequest):
     def route(cls): return 'channels'
 
     def get(self):
-        user_uuid = self.request.args.get('user')
-        if user_uuid is None: return [], 401
-        user_cache = _(self.webserver.users_cache)[UUID(user_uuid)]
-        if user_cache is None: return [], 401
+        user_cache, error = self.get_user_cache()
+        if error: return error, 401
         result = []
         for cached_guild in user_cache.guilds:
             data = {'guild': cached_guild['id'], 'channels': []}
@@ -34,12 +32,9 @@ class ChannelsRequest(ApiRequest):
         return result
 
     def post(self):
-        req = self.request
-        user_uuid = req.args.get('user')
-        if user_uuid is None: return [], 401
-        user_cache = _(self.webserver.users_cache)[UUID(user_uuid)]
-        if user_cache is None: return [], 401
-        json = req.json
+        user_cache, error = self.get_user_cache()
+        if error: return error, 401
+        json = self.request.json
         for json_guild in _(json):
             guild_id = _(json_guild)['guild']
             if guild_id not in (guild["id"] for guild in user_cache.guilds):
