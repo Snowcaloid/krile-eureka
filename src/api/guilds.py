@@ -1,12 +1,40 @@
 
 
 from nullsafe import _
-from uuid import UUID
 from api.api_webserver import ApiRequest
 import bot
 
 
 class GuildsRequest(ApiRequest):
+    """
+    GuildsRequest API
+
+    Endpoint:
+        GET /api/guilds
+
+    Responses:
+        200 OK:
+        Description: Successfully retrieved the list of guilds where the user is an administrator.
+                     Cache these guilds for future requests.
+        Example:
+            [
+                {
+                    "id": 123456789012345678,
+                    "name": "Example Guild"
+                },
+                {
+                    "id": 876543210987654321,
+                    "name": "Another Guild"
+                }
+            ]
+
+        401 Unauthorized:
+        Description: Error retrieving the user cache.
+        Example:
+            {
+                "error": "Unauthorized access"
+            }
+    """
     @classmethod
     def route(cls): return 'guilds'
 

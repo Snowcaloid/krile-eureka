@@ -9,6 +9,28 @@ import os
 
 
 class LoginRequest(ApiRequest):
+    """
+    LoginRequest API
+
+    Endpoint:
+        GET /api/login
+
+    Responses:
+        200 OK:
+        Description: Successfully authenticated the user.
+        Example:
+            {
+                "uuid": "12345678-1234-1234-1234-123456789012",
+                "name": "Example User"
+            }
+
+        400 Bad Request:
+        Description: Error authenticating the user.
+        Example:
+            {
+                "error": "code or uuid is required"
+            }
+    """
     @classmethod
     def route(cls): return 'login'
 

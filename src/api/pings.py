@@ -1,13 +1,79 @@
 
 
 from nullsafe import _
-from uuid import UUID
 from api.api_webserver import ApiRequest
 import bot
 from data.guilds.guild_pings import GuildPingType
 
 
 class PingsRequest(ApiRequest):
+    """
+    PingsRequest API
+
+    Endpoint:
+        GET /api/pings
+
+    Responses:
+        200 OK:
+        Description: Successfully retrieved the list of pings for each guild.
+        Example:
+            [
+                {
+                    "guild": 123456789012345678,
+                    "pings": [
+                        {
+                            "id": 987654321098765432,
+                            "tag_type": "role",
+                            "tag": 876543210987654321,
+                            "type": "SUPPORT_PASSCODES",
+                            "event_type": "BARC"
+                        },
+                        {
+                            "id": 876543210987654321,
+                            "tag_type": "user",
+                            "tag": 765432109876543210,
+                            "type": "RUN_NOTIFICATION",
+                            "event_type": "DRS"
+                        }
+                    ]
+                }
+            ]
+
+        401 Unauthorized:
+        Description: Error retrieving the user cache.
+        Example:
+            {
+                "error": "Unauthorized access"
+            }
+
+    Endpoint:
+        POST /api/pings
+
+    Request:
+        [
+            {
+                "guild": 123456789012345678,
+                "pings": [
+                    {
+                        "id": 2,
+                        "tag_type": "role",
+                        "tag": 876543210987654321,
+                        "type": "NM_PING",
+                        "event_type": "BA",
+                        "delete": false
+                    },
+                    {
+                        "id": 4,
+                        "tag_type": "user",
+                        "tag": 765432109876543210,
+                        "type": "MAIN_PASSCODE",
+                        "event_type": "DRS",
+                        "delete": true
+                    }
+                ]
+            }
+        ]
+    """
     @classmethod
     def route(cls): return 'pings'
 

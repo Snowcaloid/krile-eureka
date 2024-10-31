@@ -3,13 +3,71 @@
 from json import dumps
 from discord import ChannelType
 from nullsafe import _
-from uuid import UUID
 from api.api_webserver import ApiRequest
 import bot
 from data.guilds.guild_channel_functions import GuildChannelFunction
 
 
 class ChannelsRequest(ApiRequest):
+    """
+    ChannelsRequest API
+
+    Endpoint:
+        GET /api/channels
+
+    Responses:
+        200 OK:
+        Description: Successfully retrieved the list of channels for each guild.
+        Example:
+            [
+                {
+                    "guild": 123456789012345678,
+                    "channels": [
+                        {
+                            "id": 987654321098765432,
+                            "name": "general",
+                            "function": "log",
+                            "event_type": "BA"
+                        },
+                        {
+                            "id": 876543210987654321,
+                            "name": "random",
+                            "function": "log",
+                            "event_type": "DRS"
+                        }
+                    ]
+                }
+            ]
+
+        400 Bad Request:
+        Description: Error updating the list of channels for each guild.
+        Example:
+            {
+                "error": "Guild 123456789012345678 is not found in user cache for Example User"
+            }
+
+    Endpoint:
+        POST /api/channels
+
+    Request:
+        {
+            "guild": 123456789012345678,
+            "channels": [
+                {
+                    "id": 987654321098765432,
+                    "function": "log",
+                    "event_type": "BASPEC",
+                    "delete": false
+                },
+                {
+                    "id": 876543210987654321,
+                    "function": "log",
+                    "event_type": "BOZJAALL",
+                    "delete": true
+                }
+            ]
+        }
+    """
     @classmethod
     def route(cls): return 'channels'
 

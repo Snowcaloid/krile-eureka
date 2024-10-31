@@ -1,14 +1,84 @@
 
 
-from typing import override
 from nullsafe import _
-from uuid import UUID
 from api.api_webserver import ApiRequest
 import bot
 from data.guilds.guild_role_functions import GuildRoleFunction
 
 
 class RolesRequest(ApiRequest):
+    """
+    RolesRequest API
+
+    Endpoint:
+        GET /api/roles
+
+    Responses:
+        200 OK:
+        Description: Successfully retrieved the list of roles for each guild.
+        Example:
+            [
+                {
+                    "guild": 123456789012345678,
+                    "admin": {
+                        "id": 987654321098765432,
+                        "name": "Admin"
+                    },
+                    "developer": {
+                        "id": 876543210987654321,
+                        "name": "Developer"
+                    },
+                    "roles": [
+                        {
+                            "id": 987654321098765432,
+                            "name": "BA Raid Leader",
+                            "function": "RAID_LEADER",
+                            "event_category": "BA_CATEGORY"
+                        },
+                        {
+                            "id": 876543210987654321,
+                            "name": "DRS Raid Leader",
+                            "function": "RAID_LEADER",
+                            "event_category": "DRS_CATEGORY"
+                        }
+                    ]
+                }
+            ]
+
+        401 Unauthorized:
+        Description: Error retrieving the user cache.
+        Example:
+            {
+                "error": "Unauthorized access"
+            }
+
+    Endpoint:
+        POST /api/roles
+
+    Request:
+        [
+            {
+                "guild": 123456789012345678,
+                "admin": 987654321098765432,
+                "developer": 876543210987654321,
+                "roles": [
+                    {
+                        "id": 987654321098765432,
+                        "function": "RAID_LEADER",
+                        "event_category": "BA_CATEGORY",
+                        "delete": true
+                    },
+                    {
+                        "id": 876543210987654321,
+                        "function": "RAID_LEADER",
+                        "event_category": "DRS_CATEGORY",
+                        "delete": false
+                    }
+                ]
+            }
+        ]
+    """
+
     @classmethod
     def route(cls): return 'roles'
 
