@@ -1,7 +1,6 @@
 
 
 from abc import abstractmethod
-from copy import deepcopy
 from typing import Dict, List, Any, Tuple, Type
 from flask import Flask, Request, request
 from flask.views import View
@@ -57,7 +56,7 @@ class ApiRequest(View):
     def webserver(self) -> ApiWebserver: return webserver
 
     def dispatch_request(self):
-        self._request = deepcopy(request)
+        self._request = request
         if request.method == 'GET':
             if request.url_rule.rule.startswith('/api/post'):
                 return self.post()

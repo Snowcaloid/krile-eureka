@@ -8,6 +8,7 @@ from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
 from typing import List, Tuple, Type
 from data.db.sql import SQL, Record
+from data.events.signup import Signup
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.tasks.tasks import TaskExecutionType
@@ -95,6 +96,15 @@ class Event:
                      pl4: str, pl5: str, pl6: str, pls: str) -> str: pass
     @abstractclassmethod
     def party_leader_dm_text(cl, party: str, passcode: int) -> str: pass
+    @classmethod
+    def dm_text(cl, party: str, passcode: int) -> str: return (
+        'Please open Adventuring Forays Tab in the Private Party Finder section and join the party with the passcode provided.\n\n'
+        f'Your party is **party {party}**.\n'
+        f'The passcode is **{str(passcode).zfill(4)}**.\n\n'
+        'Please make sure to be prepared for the run.\n'
+        'If you have any questions, please ask the raid leader or party leader.\n'
+        '**Make sure that you enter the party before the run starts.**'
+    )
     @abstractclassmethod
     def support_party_leader_dm_text(cl, passcode: int) -> str: pass
     @abstractclassmethod
@@ -204,14 +214,16 @@ class ScheduledEvent:
     passcode_supp: int
     _description: str
     _use_support: bool
+    signup: Signup
 
     def __init__(self):
         self.users = ScheduledEventUserData()
+        self.signup = Signup()
 
     def load(self, id: int) -> None:
         record = SQL('events').select(fields=['event_type', 'pl_post_id', 'timestamp',
                                               'description', 'pass_main', 'pass_supp',
-                                              'guild_id', 'use_support'],
+                                              'guild_id', 'use_support', 'signup_id'],
                                       where=f'id={id}')
         if record:
             for type in Event._registered_events:
@@ -226,6 +238,7 @@ class ScheduledEvent:
             self.passcode_supp = record['pass_supp']
             self.guild_id = record['guild_id']
             self._use_support = type.use_support() and record['use_support']
+            self.signup.load(record['signup_id'])
             self.users.load(id)
 
     @property
@@ -234,6 +247,8 @@ class ScheduledEvent:
 
     @property
     def description(self) -> str:
+        if self.is_signup:
+            return self.signup.template.description
         if self.base.category == EventCategory.CUSTOM:
             return self._description
         else:
@@ -247,6 +262,8 @@ class ScheduledEvent:
 
     @property
     def short_description(self) -> str:
+        if self.is_signup:
+            return self.signup.template.short_description
         return self.base.short_description()
 
     @property
@@ -277,10 +294,28 @@ class ScheduledEvent:
 
     @property
     def dm_title(self) -> str:
+        if self.is_signup:
+            return self.signup.template.dm_title.replace(
+                '%servertime', f'{self.time.strftime("%A, %d-%b-%y %H:%M")}').replace(
+                '%localtime', get_discord_timestamp(self.time)).replace(
+                '%description', self.signup.template.description)
         return self.base.dm_title(time=self.time)
 
     @property
     def raid_leader_dm_text(self) -> str:
+        if self.is_signup:
+            template = self.signup.template.raid_leader_dm_text
+            if '%support' in template and self.signup.template.use_support:
+                no_support_text = template[template.find('%!support=') + 10:]
+                support_text = template[template.find('%support=') + 10:template.find('%!support=')]
+                template = template[:template.find('%support=')]
+                if not self.use_support: support_text = no_support_text
+            else:
+                support_text = ''
+            return template.replace(
+                '%passcode', str(self.passcode_main).zfill(4)).replace(
+                '%support', support_text.strip(' \n')).replace(
+                '%passcode_support', str(self.passcode_supp).zfill(4))
         return self.base.raid_leader_dm_text(
             passcode_main=self.passcode_main,
             passcode_supp=self.passcode_supp,
@@ -292,29 +327,54 @@ class ScheduledEvent:
 
     @use_support.setter
     def use_support(self, value: bool) -> None:
-        if (value == self._use_support) or not self.base.use_support(): return
+        if (value == self._use_support) or not self.base.use_support() or (
+            self.is_signup and not self.signup.template.use_support): return
         SQL('events').update(Record(use_support=value), f'id={self.id}')
         self.load(self.id)
 
     @property
     def use_pl_posts(self) -> str:
+        if self.is_signup:
+            return self.signup.template.use_recruitment_posts
         return self.base.use_pl_posts()
 
     @property
     def delete_pl_posts(self) -> str:
+        if self.is_signup:
+            return self.signup.template.delete_recruitment_posts
         return self.base.delete_pl_posts()
 
     @property
     def support_party_leader_dm_text(self) -> str:
+        if self.is_signup:
+            return self.signup.template.support_party_leader_dm_text.replace(
+                '%passcode', str(self.passcode_supp).zfill(4))
         return self.base.support_party_leader_dm_text(passcode=self.passcode_supp)
 
     @property
     def schedule_entry_text(self) -> str:
         user = bot.instance.get_guild(self.guild_id).get_member(self.users.raid_leader)
+        if self.is_signup:
+            template = self.signup.template.schedule_entry_text
+            if '%support' in template and self.signup.template.use_support:
+                no_support_text = template[template.find('%!support=') + 10:]
+                support_text = template[template.find('%support=') + 10:template.find('%!support=')]
+                template = template[:template.find('%support=')]
+                if not self.use_support: support_text = no_support_text
+            else:
+                support_text = ''
+            return template.replace(
+                '%servertime', f'{self.time.strftime("%H:%M")}').replace(
+                "$rl", user.mention).replace(
+                '%localtime', get_discord_timestamp(self.time)).replace(
+                '%description', self.signup.template.description).replace(
+                '%support', support_text.strip(' \n'))
         return self.base.schedule_entry_text(user.mention, self.time, self.real_description, self._use_support)
 
     @property
     def category(self) -> EventCategory:
+        if self.is_signup:
+            return EventCategory(self.signup.template.category)
         return self.base.category()
 
     @property
@@ -324,15 +384,22 @@ class ScheduledEvent:
     @type.setter
     def type(self, value: str):
         if value == self.type: return
+        if self.is_signup: raise Exception('Cannot change type of a signup event.')
         SQL('events').update(Record(event_type=value), f'id={self.id}')
         self.load(self.id)
 
     @property
     def use_pl_post_thread(self) -> str:
+        if self.is_signup:
+            return self.signup.template.use_recruitment_post_thread
         return self.base.use_pl_post_thread()
 
     @property
     def pl_post_thread_title(self) -> str:
+        if self.is_signup:
+            return self.signup.template.recruitment_post_thread_title.replace(
+                '%time', f'{self.time.strftime("%A, %d-%b-%y %H:%M")}').replace(
+                '%description', self.signup.template.description)
         return self.base.pl_post_thread_title(self.time)
 
     @property
@@ -352,6 +419,8 @@ class ScheduledEvent:
     @property
     def pl_button_texts(self) -> Tuple[str, str, str, str, str, str, str]:
         result = self.base.pl_button_texts()
+        if self.is_signup:
+            result = self.signup.template.pl_button_texts
         if not self.use_support:
             result_list = list(result)
             result_list[6] = ''
@@ -360,10 +429,17 @@ class ScheduledEvent:
 
     @property
     def pl_post_title(self) -> str:
+        if self.is_signup:
+            return self.signup.template.recruitment_post_title.replace(
+                '%servertime', f'{self.time.strftime("%A, %d-%b-%y %H:%M")}').replace(
+                "%localtime", get_discord_timestamp(self.time)).replace(
+                '%description', self.signup.template.description)
         return self.base.pl_post_title(self.time)
 
     @property
     def pl_passcode_delay(self) -> timedelta:
+        if self.is_signup:
+            return timedelta(minutes=self.signup.template.passcode_delay)
         return self.base.pl_passcode_delay()
 
     @property
@@ -379,6 +455,9 @@ class ScheduledEvent:
 
     @property
     def pl_post_text(self) -> str:
+        if self.is_signup:
+            return self.signup.template.recruitment_post_text
+
         guild = bot.instance.get_guild(self.guild_id)
         rl = guild.get_member(self.users.raid_leader)
         pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.base.pl_button_texts()[0] else None
@@ -392,6 +471,10 @@ class ScheduledEvent:
         return self.base.pl_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls)
 
     def party_leader_dm_text(self, index: int) -> str:
+        if self.is_signup:
+            return self.signup.template.party_leader_dm_text.replace(
+                '%party', self.pl_button_texts[index]).replace(
+                '%passcode', str(self.passcode_main).zfill(4))
         return self.base.party_leader_dm_text(
             party=self.pl_button_texts[index],
             passcode=self.passcode_main)
@@ -405,6 +488,20 @@ class ScheduledEvent:
         SQL('events').update(Record(pl_post_id=value), f'id={self.id}')
         self.load(self.id)
 
+    @property
+    def is_signup(self) -> bool:
+        return not self.signup.id is None and self.signup.id > 0
+
+    def dm_text(self, index: int) -> str:
+        passcode = self.passcode_main if index < 6 else self.passcode_supp
+        if self.is_signup:
+            return self.signup.template.dm_text.replace(
+                '%party', self.pl_button_texts[index]).replace(
+                '%passcode', str(passcode).zfill(4))
+        return self.base.dm_text(
+            party=self.pl_button_texts[index],
+            passcode=passcode)
+
     def create_tasks(self) -> None:
         bot.instance.data.tasks.add_task(self.time, TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
         if self.use_pl_posts and self.delete_pl_posts:
@@ -412,9 +509,10 @@ class ScheduledEvent:
             if channel_data:
                 bot.instance.data.tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
         if not self.auto_passcode: return
-        bot.instance.data.tasks.add_task(self.time - self.main_passcode_delay, TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
+        if not self.is_signup:
+            bot.instance.data.tasks.add_task(self.time - self.main_passcode_delay, TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
         bot.instance.data.tasks.add_task(self.time - self.pl_passcode_delay, TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
-        if self.use_support:
+        if self.use_support and not self.is_signup:
             bot.instance.data.tasks.add_task(self.time - self.support_passcode_delay, TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
 
     def delete_tasks(self) -> None:

@@ -1,0 +1,30 @@
+from data.db.definition import TableDefinition, ColumnType, ColumnFlag
+
+
+class SignupTemplatesTable(TableDefinition):
+    def init_definitions(self):
+        self.define_column('id', ColumnType.SERIAL, 0, [ColumnFlag.UNIQUE])
+        self.define_column('guild_id', ColumnType.BIGINT)
+        self.define_column('owner', ColumnType.BIGINT)
+        self.define_column('name', ColumnType.VARCHAR, 50)
+        self.define_column('event_category', ColumnType.VARCHAR, 15)
+        self.define_column('party_count', ColumnType.INTEGER)
+        self.define_column('use_support', ColumnType.BOOLEAN)
+        self.define_column('recruitment_channel', ColumnType.BIGINT)
+        self.define_column('description', ColumnType.VARCHAR, 50)
+        self.define_column('short_description', ColumnType.VARCHAR, 50)
+        self.define_column('use_passcodes', ColumnType.BOOLEAN)
+        self.define_column('use_recruitment_posts', ColumnType.BOOLEAN)
+        self.define_column('use_recruitment_post_thread', ColumnType.BOOLEAN)
+        self.define_column('recruitment_post_thread_title', ColumnType.VARCHAR, 50)
+        self.define_column('delete_recruitment_posts', ColumnType.BOOLEAN)
+        self.define_column('recruitment_post_title', ColumnType.VARCHAR, 100)
+        self.define_column('recruitment_post_text', ColumnType.TEXT)
+        self.define_column('party_leader_dm_text', ColumnType.TEXT)
+        self.define_column('support_party_leader_dm_text', ColumnType.TEXT)
+        self.define_column('raid_leader_dm_text', ColumnType.TEXT)
+        self.define_column('dm_title', ColumnType.VARCHAR, 100)
+        self.define_column('dm_text', ColumnType.TEXT)
+        self.define_column('passcode_delay', ColumnType.INTEGER)
+        self.define_column('pl_button_texts', ColumnType.ARRAY)
+        self.define_column('schedule_entry_text', ColumnType.VARCHAR, 100)

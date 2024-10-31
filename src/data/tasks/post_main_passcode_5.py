@@ -16,7 +16,7 @@ class Task_PostMainPasscode(TaskBase):
             guild_data = bot.instance.data.guilds.get(obj["guild"])
             if guild_data is None: return
             event = guild_data.schedule.get(obj["entry_id"])
-            if event is None: return
+            if event is None or event.is_signup: return
             channel_data = guild_data.channels.get(GuildChannelFunction.PASSCODES, event.type)
             if channel_data is None: return
             guild = bot.instance.get_guild(guild_data.id)

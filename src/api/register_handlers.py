@@ -6,6 +6,7 @@ from api.guilds import GuildsRequest
 from api.login import LoginRequest
 from api.pings import PingsRequest
 from api.roles import RolesRequest
+from api.signup_templates import SignupTemplatesRequest
 
 def register_api_handlers() -> None:
     ApiRequestRegister.register(LoginRequest)
@@ -15,3 +16,4 @@ def register_api_handlers() -> None:
     ApiRequestRegister.register(PingsRequest)
     ApiRequestRegister.register(DiscordChannelsRequest)
     ApiRequestRegister.register(DiscordRolesRequest)
+    ApiRequestRegister.register(SignupTemplatesRequest)

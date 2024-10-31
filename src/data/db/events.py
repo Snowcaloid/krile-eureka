@@ -24,3 +24,4 @@ class EventsTable(TableDefinition):
         self.define_column('pl_post_id', ColumnType.BIGINT)
         self.define_column('finished', ColumnType.BOOLEAN)
         self.define_column('canceled', ColumnType.BOOLEAN)
+        self.define_column('signup_id', ColumnType.INTEGER)

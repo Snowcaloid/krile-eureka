@@ -5,6 +5,7 @@ from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
 from data.guilds.guild_roles import GuildRoles
 from data.guilds.guild_schedule import GuildSchedule
+from data.guilds.guild_signup_templates import GuildSignupTemplates
 
 
 class Guild:
@@ -16,6 +17,7 @@ class Guild:
     pings: GuildPings
     roles: GuildRoles
     messages: GuildMessages
+    signup_templates: GuildSignupTemplates
 
     def __init__(self):
         self.schedule = GuildSchedule()
@@ -23,6 +25,7 @@ class Guild:
         self.pings = GuildPings()
         self.roles = GuildRoles()
         self.messages = GuildMessages()
+        self.signup_templates = GuildSignupTemplates()
 
     def load(self, guild_id: int, soft_load: bool = False) -> None:
         query = Record() # Prevent multiple connects and disconnects
@@ -38,6 +41,7 @@ class Guild:
         self.pings.load(guild_id)
         self.roles.load(guild_id)
         self.messages.load(guild_id)
+        self.signup_templates.load(guild_id)
         del query
 
     @property

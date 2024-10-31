@@ -11,6 +11,9 @@ class ButtonType(Enum):
     ASSIGN_TRACKER = 5
     GENERATE_TRACKER = 6
     SEND_PL_GUIDE = 7
+    SIGNUP_AS_PL = 8
+    SIGNUP_AS_MEMBER = 9
+    LEAVE_SIGNUP = 10
 
 
 BUTTON_STYLE_DESCRIPTIONS: Dict[ButtonStyle, str] = {

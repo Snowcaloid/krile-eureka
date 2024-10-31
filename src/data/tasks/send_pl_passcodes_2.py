@@ -33,4 +33,14 @@ class Task_SendPLPasscodes(TaskBase):
                             title=event.dm_title,
                             description=event.support_party_leader_dm_text
                         ))
+                if event.is_signup:
+                    for slot in event.signup.slots.all:
+                        if slot.user_id in event.users._party_leaders or slot.user_id == event.users.raid_leader:
+                            continue
+                        member = guild.get_member(slot.user_id)
+                        if member:
+                            await member.send(embed=Embed(
+                                title=event.dm_title,
+                                description=event.dm_text(slot.template.party)
+                            ))
 

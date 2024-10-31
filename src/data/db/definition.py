@@ -8,6 +8,7 @@ class ColumnType:
     BIGINT = 'BIGINT'
     SERIAL = 'SERIAL'
     TEXT = 'TEXT'
+    ARRAY = 'TEXT[]'
 
 class ColumnFlag:
     NONE = ''

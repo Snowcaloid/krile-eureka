@@ -1,11 +1,13 @@
 from abc import abstractmethod
 import bot
+from nullsafe import _
 from discord.ui import Button, View
 from discord import ButtonStyle, Embed, Emoji, Interaction, Message, PartialEmoji, Role, Member, TextChannel
 from typing import Dict, List, Optional, Tuple, Type, Union
 from data.db.sql import SQL, Record
+from data.events.event import ScheduledEvent
 from data.ui.constants import BUTTON_STYLE_DESCRIPTIONS, BUTTON_TYPE_DESCRIPTIONS, ButtonType
-from data.ui.selects import EurekaTrackerZoneSelect
+from data.ui.selects import EurekaTrackerZoneSelect, PartySelect
 from data.ui.views import TemporaryView
 from logger import feedback_and_log, guild_log_message
 from utils import default_defer, default_response
@@ -145,6 +147,22 @@ class GenerateTrackerButton(ButtonBase):
             view.add_item(select)
             select.message = await interaction.response.send_message('Select a Eureka region.', view=view, ephemeral=True)
 
+def available_parties(event: ScheduledEvent, as_party_leader: bool) -> List[int]:
+    parties = range(0, 7)
+    if as_party_leader:
+        parties = [i for i, val in enumerate(event.users._party_leaders) if not val]
+    else:
+        parties = [i for i, val in enumerate(event.users._party_leaders) if val]
+
+    parties = [index for index in parties if event.signup.template.party_count > index]
+    for i in parties:
+        for slot_template in event.signup.template.slots.for_party(i):
+            if event.signup.slots.get(slot_template):
+                break
+        else:
+            parties.remove(i)
+    return parties
+
 class SendPLGuideButton(ButtonBase):
     """Buttons which sends a party leading guide to the user"""
 
@@ -157,6 +175,89 @@ class SendPLGuideButton(ButtonBase):
             await bot.instance.data.ui.help.ba_party_leader(message, interaction.guild.emojis)
             await default_response(interaction, 'The guide has been sent to your DMs.')
 
+class SignUpAsPLButton(ButtonBase):
+    """Buttons which signs the user up as a party leader"""
+
+    def button_type(self) -> ButtonType: return ButtonType.SIGNUP_AS_PL
+
+    async def callback(self, interaction: Interaction):
+        if interaction.message == self.message:
+            await default_defer(interaction)
+            id = int(interaction.message.content.split('#')[1])
+            event = bot.instance.data.guilds.get(interaction.guild_id).schedule.get(id)
+            if event:
+                if interaction.user.id in event.users.party_leaders:
+                    return await default_response(interaction, f'You\'re already assigned as a party leader.')
+                slot = event.signup.slots.find(interaction.user.id)
+                if slot:
+                    user_id = event.users.party_leaders[slot.template.party]
+                    if user_id:
+                        if user_id == interaction.user.id:
+                            return await default_response(interaction, f'You\'re already assigned as a party leader for your party.')
+                        else:
+                            return await default_response(interaction,
+                                                    f'{_(bot.instance.get_guild(interaction.guild_id).get_member(
+                                                        user_id)).mention} is already assigned as party leader of your party.')
+                    event.users.party_leaders[slot.template.party] = interaction.user.id
+                    await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event.id)
+                    run = await event.to_string()
+                    return await feedback_and_log(interaction, f'applied as Party Leader {slot.template.party + 1} on {run}')
+                parties = available_parties(event, True)
+                if parties:
+                    view = TemporaryView()
+                    view.add_item(PartySelect(event=event, parties=parties, as_party_leader=True))
+                    return await interaction.followup.send('Pick a party to apply to.', view=TemporaryView())
+                return await default_response(interaction, 'There are no parties available for you to apply to as a party leader.')
+            else:
+                return await default_response(interaction, 'This run is already over.')
+
+class SignUpAsMemberButton(ButtonBase):
+    """Buttons which signs the user up as a member"""
+
+    def button_type(self) -> ButtonType: return ButtonType.SIGNUP_AS_MEMBER
+
+    async def callback(self, interaction: Interaction):
+        if interaction.message == self.message:
+            await default_defer(interaction)
+            id = int(interaction.message.content.split('#')[1])
+            event = bot.instance.data.guilds.get(interaction.guild_id).schedule.get(id)
+            if event:
+                slot = event.signup.slots.find(interaction.user.id)
+                if slot:
+                    return await default_response(interaction, f'You\'re already assigned to a party. Your slot is {slot.template.position + 1}. {slot.template.name}.')
+                parties = available_parties(event, False)
+                if parties:
+                    view = TemporaryView()
+                    view.add_item(PartySelect(event=event, parties=parties, as_party_leader=False))
+                    return await interaction.followup.send('Pick a party to apply to.', view=TemporaryView())
+                return await default_response(interaction, 'The run is either full or missing party leaders.')
+            else:
+                return await default_response(interaction, 'This run is already over.')
+
+class LeaveSignupButton(ButtonBase):
+    """Buttons which remove the user from the signup"""
+
+    def button_type(self) -> ButtonType: return ButtonType.LEAVE_SIGNUP
+
+    async def callback(self, interaction: Interaction):
+        if interaction.message == self.message:
+            await default_defer(interaction)
+            id = int(interaction.message.content.split('#')[1])
+            guild_data = bot.instance.data.guilds.get(interaction.guild_id)
+            event = guild_data.schedule.get(id)
+            if event:
+                slot = event.signup.slots.find(interaction.user.id)
+                if slot:
+                    event.signup.slots.remove(slot.id)
+                    if interaction.user.id in event.users._party_leaders:
+                        event.users.party_leaders[slot.template.party] = 0
+                    await bot.instance.data.ui.signup_recruitment.rebuild(interaction.guild_id, event.id)
+                    run = await event.to_string()
+                    return await feedback_and_log(interaction, f'left the signup of {run}')
+                return await default_response(interaction, f'You\'re not signed up for this run.')
+            else:
+                return await default_response(interaction, 'This run is already over.')
+
 
 BUTTON_CLASSES: Dict[ButtonType, Type[ButtonBase]] = {
     ButtonType.ROLE_SELECTION: RoleSelectionButton,
@@ -164,7 +265,10 @@ BUTTON_CLASSES: Dict[ButtonType, Type[ButtonBase]] = {
     ButtonType.PL_POST: PartyLeaderButton,
     ButtonType.ASSIGN_TRACKER: AssignTrackerButton,
     ButtonType.GENERATE_TRACKER: GenerateTrackerButton,
-    ButtonType.SEND_PL_GUIDE: SendPLGuideButton
+    ButtonType.SEND_PL_GUIDE: SendPLGuideButton,
+    ButtonType.SIGNUP_AS_PL: SignUpAsPLButton,
+    ButtonType.SIGNUP_AS_MEMBER: SignUpAsMemberButton,
+    ButtonType.LEAVE_SIGNUP: LeaveSignupButton
 }
 
 

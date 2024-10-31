@@ -1,16 +1,18 @@
-from typing import Tuple
+from typing import List, Tuple
 import aiohttp
-from discord import ButtonStyle, Interaction, Message, SelectOption
+from nullsafe import _
+from discord import ButtonStyle, Interaction, Message, ScheduledEvent, SelectOption
 from discord.ui import Button, Select
 
 import bot
 from data.eureka_info import EurekaTrackerZone
+from data.events.event import ScheduledEvent
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.ui.modals import EurekaTrackerModal
 from data.ui.views import TemporaryView
-from logger import guild_log_message
-from utils import default_defer
+from logger import feedback_and_log, guild_log_message
+from utils import default_defer, default_response
 
 
 class EurekaTrackerZoneSelect(Select):
@@ -77,3 +79,50 @@ class EurekaTrackerZoneSelect(Select):
             await interaction.response.send_modal(EurekaTrackerModal(zone=zone))
         if self.message:
             await self.message.delete()
+
+class PartyPositionSelect(Select):
+    def __init__(self, *, event: ScheduledEvent, party: int, as_party_leader: bool = False):
+        options = []
+        self.event = event
+        self.as_party_leader = as_party_leader
+        self.party = party
+        for slot in event.signup.template.slots.for_party(party):
+            if not event.signup.slots.get(slot):
+                options.append(SelectOption(label=f'{slot.position + 1}. {slot.name}', value=slot.position))
+        super().__init__(placeholder="Select Position",
+                         options=options)
+
+    async def callback(self, interaction: Interaction):
+        await default_defer(interaction)
+        position = int(self.values[0])
+        slot_template = self.event.signup.template.slots.for_party(self.party)[position]
+        slot = self.event.signup.slots.get(slot_template)
+        if slot:
+            return await default_response(interaction, f'This slot is already taken by {_(bot.instance.get_guild(
+                interaction.guild_id).get_member(slot.user_id)).mention}.')
+        self.event.signup.slots.add(slot_template, interaction.user.id)
+        if self.as_party_leader:
+            self.event.users.party_leaders[self.party] = interaction.user.id
+        await bot.instance.data.ui.signup_recruitment.rebuild(interaction.guild_id, self.event.id)
+        pl = ' (Party leader)' if self.as_party_leader else ''
+        await feedback_and_log(interaction, f'signed up for {await self.event.to_string()} as {slot_template.name}{pl}.')
+        await interaction.delete_original_response()
+
+class PartySelect(Select):
+    def __init__(self, *, event: ScheduledEvent, parties: List[int], as_party_leader: bool = False):
+        options = []
+        self.event = event
+        self.as_party_leader = as_party_leader
+        for i in parties:
+            options.append(SelectOption(label=f'Party {event.pl_button_texts(i)}', value=str(i)))
+        super().__init__(placeholder="Select Party",
+                         options=options)
+
+    async def callback(self, interaction: Interaction):
+        await default_defer(interaction)
+        party = int(self.values[0])
+        view = TemporaryView()
+        view.add_item(PartyPositionSelect(event=self.event, party=party, as_party_leader=self.as_party_leader))
+        await interaction.followup.send(f'Select a position in party {self.event.pl_button_texts(party)}.',
+                                        view=view)
+        await interaction.delete_original_response()
