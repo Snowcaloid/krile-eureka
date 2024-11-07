@@ -1,5 +1,6 @@
 from datetime import datetime
 import bot
+import data.cache.message_cache as cache
 from data.db.sql import Record
 from data.eureka_info import EurekaInfo
 from data.guilds.guild import Guilds
@@ -40,8 +41,9 @@ class RuntimeData:
         self.tasks.load()
         self.eureka_info.load()
         self.ready = True
+        cache.messages.cache.clear()
         for guild in bot.instance.guilds:
-            guild.fetch_members()
+            await guild.fetch_members()
             await self.ui.schedule.rebuild(guild.id)
 
         if not self.tasks.contains(TaskExecutionType.UPDATE_STATUS):

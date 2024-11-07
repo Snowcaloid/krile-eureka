@@ -118,3 +118,5 @@ bot-env/
 
 # secret files
 *.secret
+
+*.history*
