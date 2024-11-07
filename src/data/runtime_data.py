@@ -2,6 +2,7 @@ from datetime import datetime
 from threading import Thread
 from api.register_handlers import register_api_handlers
 import bot
+import data.cache.message_cache as cache
 import api.api_webserver as ws
 from data.db.sql import Record
 from data.eureka_info import EurekaInfo
@@ -46,8 +47,9 @@ class RuntimeData:
         self.tasks.load()
         self.eureka_info.load()
         self.ready = True
+        cache.messages.cache.clear()
         for guild in bot.instance.guilds:
-            guild.fetch_members()
+            await guild.fetch_members()
             await self.ui.schedule.rebuild(guild.id)
 
         if not self.tasks.contains(TaskExecutionType.UPDATE_STATUS):
