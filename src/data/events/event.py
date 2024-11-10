@@ -446,7 +446,7 @@ class ScheduledEvent:
         if self.use_support != old_event.use_support:
             result.append(f'* Use Support changed from {str(old_event.use_support)} to {str(self.use_support)}')
         if self.real_description != old_event.real_description:
-            result.append(f'* Use Support changed from "{old_event.real_description}" to "{self.real_description}"')
+            result.append(f'* Description changed from "{old_event.real_description}" to "{self.real_description}"')
         if not result:
             result.append('No changes.')
         return "\n".join(result)

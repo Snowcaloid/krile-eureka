@@ -67,15 +67,13 @@ class SQL:
                 records.append(record)
             else:
                 return record
-
-        return records
+        return records if all else None
 
     def insert(self, record: Record, returning_field: str = None) -> PgColumnValue:
         fields = ', '.join(record.keys())
         values = ', '.join([self._convert_to_sql(value) for value in record.values()])
         returning = f' returning {returning_field}' if returning_field else ''
         return record.DATABASE.query(f'insert into {self.table_name} ({fields}) values ({values}){returning}')
-
 
     def update(self, record: Record, where: str) -> None:
         set_fields = ', '.join([f'{field} = {self._convert_to_sql(value)}' for field, value in record.items()])
