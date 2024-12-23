@@ -9,9 +9,8 @@ class MessageCache:
         self.cache = {}
 
     async def get(self, id: int, channel: TextChannel) -> Message:
-        for message_id in self.cache:
-            if message_id == id:
-                return self.cache[id]
+        message = self.cache.get(id, None)
+        if message: return message
         try:
             message = await channel.fetch_message(id)
         except NotFound:
