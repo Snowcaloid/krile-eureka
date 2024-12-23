@@ -67,11 +67,12 @@ class InputValidator:
         return result
 
     async def check_valid_raid_leader(self, interaction: Interaction, member: Member, event_type: str) -> bool:
-        allow_ba, allow_drs, allow_bozja = PermissionValidator.get_raid_leader_permissions(member)
+        allow_ba, allow_drs, allow_bozja, allow_chaotic = PermissionValidator.get_raid_leader_permissions(member)
         event_base = Event.by_type(event_type)
         result = event_base.category() == EventCategory.BA and allow_ba
         result = result or (event_base.category() == EventCategory.DRS and allow_drs)
         result = result or (event_base.category() == EventCategory.BOZJA and allow_bozja)
+        result = result or (event_base.category() == EventCategory.CHAOTIC and allow_chaotic)
         result = result or (event_base.category() == EventCategory.CUSTOM)
         if self == InputValidator.RAISING and not result:
             await feedback_and_log(interaction, f'no roles allowing raid leading for "{event_base.short_description()}".')
