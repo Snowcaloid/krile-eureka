@@ -38,6 +38,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       WAIT_DEBUG: ${WAIT_DEBUG}
+      OWNER_ID: ${OWNER_ID}
     depends_on:
       - db_production
     ports:
