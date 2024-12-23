@@ -46,4 +46,4 @@ services:
       context: .
       dockerfile: Dockerfile
     links:
-      - db_develop
+      - db_production
