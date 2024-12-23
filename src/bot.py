@@ -17,6 +17,7 @@ from datetime import datetime
 from typing import Literal, Optional
 from logger import guild_log_message
 from discord.ext import tasks
+import data.cache.message_cache as cache
 
 
 class Krile(Bot):
@@ -81,6 +82,7 @@ async def on_member_join(member: Member):
 @instance.event
 async def on_raw_message_delete(payload: RawMessageDeleteEvent):
     instance.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
+    cache.messages.cache.pop(payload.message_id)
 
 @instance.command()
 @guild_only()

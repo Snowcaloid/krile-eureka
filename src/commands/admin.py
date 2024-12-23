@@ -40,7 +40,7 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
     @check(PermissionValidator.is_owner)
     async def reload(self, interaction: Interaction):
         await default_defer(interaction)
-        bot.instance.data.reset()
+        await bot.instance.data.reset()
         await default_response(interaction, 'Successfully reloaded.')
 
 
