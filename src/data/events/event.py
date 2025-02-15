@@ -14,10 +14,6 @@ from utils import DiscordTimestampType, get_discord_member, get_discord_timestam
 
 PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 
-#TODO: Refactor
-# class EventCategoryCollection:
-#     ALL_WITH_CUSTOM: List[Event]
-
 #     @classmethod
 #     def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_chaotic: bool, use_custom: bool) -> List[Choice]:
 #         result: List[Event] = []

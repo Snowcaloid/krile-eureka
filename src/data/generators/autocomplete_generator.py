@@ -1,4 +1,4 @@
-
+import bot
 from calendar import month_abbr, monthrange
 from datetime import date
 from typing import List
@@ -28,8 +28,9 @@ class AutoCompleteGenerator:
             allow_ba, allow_drs, allow_bozja, allow_chaotic, True), current)
 
     @classmethod
-    def event_type_with_categories(cl, current: str) -> List[Choice]:
-        return cl.filter_by_current(EventCategory.all_category_choices() + [event_base.as_choice() for event_base in EventCategoryCollection.ALL_WITH_CUSTOM], current)
+    def event_type_with_categories(cl, current: str, guild_id: int) -> List[Choice]:
+        return cl.filter_by_current(EventCategory.all_category_choices() + [
+            event_template.as_choice() for event_template in bot.instance.data.guilds.get(guild_id).event_templates.all], current)
 
     @classmethod
     def event_categories(cl, current: str) -> List[Choice]:

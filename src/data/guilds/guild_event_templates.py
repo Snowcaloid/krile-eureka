@@ -23,6 +23,10 @@ class GuildEventTemplates:
             template = EventTemplate(loads(data))
             self._list.append(template)
 
+    @property
+    def all(self) -> List[EventTemplate]:
+        return self._list
+
     def get(self, event_type: str) -> EventTemplate:
         return next((template for template in self._list if template.type() == event_type), None)
 

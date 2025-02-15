@@ -222,7 +222,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @ping_add_role.autocomplete('event_type')
     @ping_remove_role.autocomplete('event_type')
     async def autocomplete_event_type_with_all(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.event_type_with_categories(current)
+        return AutoCompleteGenerator.event_type_with_categories(current, interaction.guild_id)
 
     @eureka_notification_channel.autocomplete('instance')
     async def autocomplete_instance(self, interaction: Interaction, current: str):
