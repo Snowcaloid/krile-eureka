@@ -48,11 +48,6 @@ class EventTemplate:
         return dumps(self._source)
 
     #TODO: Refactor
-    # def all_events_for_category(self, category: EventCategory) -> List[Type['Event']]:
-    #     return [event_base for event_base in Event._registered_events if event_base.category() == category]
-
-    # def all_choices_for_category(self, category: EventCategory) -> List[Choice]:
-    #     return [event_base.as_choice() for event_base in Event.all_events_for_category(category)]
 
     # def all_types(self) -> List[str]:
     #     return [event_base.type() for event_base in Event._registered_events]

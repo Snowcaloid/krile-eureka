@@ -53,20 +53,20 @@ class GuildPings:
                 result.append(ping)
         return result
 
-    def add_ping_category(self, ping_type: GuildPingType, category: EventCategory, tag: int):
+    def add_ping_category(self, ping_type: GuildPingType, event_category: EventCategory, tag: int):
         query = Record() # Prevent multiple connects and disconnects
-        for event_base in Event.all_events_for_category(category):
-            self.add_ping(ping_type, event_base.type(), tag)
+        for event_template in bot.instance.data.guilds.get(self.guild_id).event_templates.get_by_categories([event_category]):
+            self.add_ping(ping_type, event_template.type(), tag)
         del query
 
     def add_ping(self, ping_type: GuildPingType, event_type: str, tag: int):
         SQL('pings').insert(Record(guild_id=self.guild_id, ping_type=ping_type.value, schedule_type=event_type, tag=tag))
         self.load(self.guild_id)
 
-    def remove_ping_category(self, ping_type: GuildPingType, category: EventCategory, tag: int):
+    def remove_ping_category(self, ping_type: GuildPingType, event_category: EventCategory, tag: int):
         query = Record() # Prevent multiple connects and disconnects
-        for event_base in Event.all_events_for_category(category):
-            self.remove_ping(ping_type, event_base.type(), tag)
+        for event_template in bot.instance.data.guilds.get(self.guild_id).event_templates.get_by_categories([event_category]):
+            self.remove_ping(ping_type, event_template.type(), tag)
         del query
 
     def remove_ping(self, ping_type: GuildPingType, event_type: str, tag: int):

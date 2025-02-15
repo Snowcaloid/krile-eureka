@@ -1,5 +1,6 @@
 from typing import List
 
+import bot
 from data.db.sql import SQL, Record
 from data.events.event import Event
 from data.events.event_template import EventCategory
@@ -49,8 +50,8 @@ class GuildChannels:
 
     def set_category(self, id: int, function: GuildChannelFunction, event_category: EventCategory):
         query = Record() # Prevent multiple connects and disconnects
-        for event_base in Event.all_events_for_category(event_category):
-            self.set(id, function, event_base.type())
+        for event_template in bot.instance.data.guilds.get(self.guild_id).event_templates.get_by_categories([event_category]):
+            self.set(id, function, event_template.type())
         self.load(self.guild_id)
         del query
 
