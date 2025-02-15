@@ -1,12 +1,12 @@
 from datetime import datetime
 from typing import List
 from data.db.sql import SQL, Record
-from data.events.event import ScheduledEvent
+from data.events.event import Event
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 
 
 class GuildSchedule:
-    _list: List[ScheduledEvent] = []
+    _list: List[Event] = []
 
     guild_id: int
 
@@ -16,11 +16,11 @@ class GuildSchedule:
         for record in SQL('events').select(fields=['id'],
                                            where=f'guild_id={guild_id} and (not finished or finished is null) and (not canceled or canceled is null)',
                                            all=True):
-            event = ScheduledEvent()
+            event = Event()
             event.load(record['id'])
             self._list.append(event)
 
-    def get(self, event_id: int) -> ScheduledEvent:
+    def get(self, event_id: int) -> Event:
         for event in self._list:
             if event.id == event_id:
                 return event
@@ -28,7 +28,7 @@ class GuildSchedule:
 
     def add(self, leader: int, event_type: str, time: datetime,
             description: str = '', auto_passcode: bool = True,
-            use_support: bool = True) -> ScheduledEvent:
+            use_support: bool = True) -> Event:
         description = description.replace('\'', '\'\'')
         pass_main = EventPasscodeGenerator.generate() if auto_passcode else 0
         pass_supp = EventPasscodeGenerator.generate() if auto_passcode else 0
@@ -46,7 +46,7 @@ class GuildSchedule:
         return result
 
     def edit(self, id: int, leader: int, event_type: str, datetime: datetime, description: str,
-             auto_passcode: bool, use_support: bool) -> ScheduledEvent:
+             auto_passcode: bool, use_support: bool) -> Event:
         event = self.get(id)
         if event.time != datetime:
             event.time = datetime
@@ -74,5 +74,5 @@ class GuildSchedule:
         return not self.get(event_id) is None
 
     @property
-    def all(self) -> List[ScheduledEvent]:
+    def all(self) -> List[Event]:
         return self._list

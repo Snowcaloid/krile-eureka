@@ -1,14 +1,14 @@
 from datetime import date
 from typing import List
 from discord import TextChannel
-from data.events.event import ScheduledEvent
+from data.events.event import Event
 import data.cache.message_cache as cache
 import bot
 from data.guilds.guild_message_functions import GuildMessageFunction
 
 class DateSeparatedScheduleData:
     """Helper class for separating Schedule entries by date."""
-    _list: List[ScheduledEvent]
+    _list: List[Event]
     _date: date
 
     def __init__(self, date: date) -> None:
@@ -17,7 +17,7 @@ class DateSeparatedScheduleData:
 
 class UISchedule:
     """Schedule post."""
-    def events_per_date(self, event_list: List[ScheduledEvent]) -> List[DateSeparatedScheduleData]:
+    def events_per_date(self, event_list: List[Event]) -> List[DateSeparatedScheduleData]:
         """Splits the event list by date."""
         result = []
         entry: DateSeparatedScheduleData = None

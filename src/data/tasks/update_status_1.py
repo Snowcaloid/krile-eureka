@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from discord import Activity, ActivityType, Status
 import bot
 from data.db.sql import SQL
-from data.events.event import ScheduledEvent
+from data.events.event import Event
 from data.tasks.tasks import TaskExecutionType, TaskBase
 
 
@@ -28,7 +28,7 @@ class Task_UpdateStatus(TaskBase):
                                                  '(not finished or finished is null)'),
                                           sort_fields=[('timestamp')])
             if record:
-                event = ScheduledEvent()
+                event = Event()
                 event.load(record['id'])
                 if event.time > datetime.utcnow():
                     delta: timedelta = event.time - datetime.utcnow()

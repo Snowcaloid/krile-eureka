@@ -14,7 +14,7 @@ from utils import DiscordTimestampType, get_discord_member, get_discord_timestam
 
 PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 
-class ScheduledEventUserData:
+class EventUserData:
     event_id: int
     _raid_leader: int
     _party_leaders: List[int]
@@ -51,20 +51,20 @@ class ScheduledEventUserData:
         SQL('events').update(record, f'id={self.event_id}')
         self.load(self.event_id)
 
-class ScheduledEvent:
+class Event:
     template: EventTemplate
     id: int
     _pl_post_id: int
     _time: datetime
     guild_id: int
-    users: ScheduledEventUserData
+    users: EventUserData
     passcode_main: int
     passcode_supp: int
     _description: str
     _use_support: bool
 
     def __init__(self):
-        self.users = ScheduledEventUserData()
+        self.users = EventUserData()
 
     def load(self, id: int) -> None:
         record = SQL('events').select(fields=['event_type', 'pl_post_id', 'timestamp',
@@ -288,7 +288,7 @@ class ScheduledEvent:
         discord_timestamp = get_discord_timestamp(self.time, DiscordTimestampType.RELATIVE)
         return f'{self.template.short_description()} by {raid_leader.display_name} at {self.time} ST {discord_timestamp}'
 
-    def get_changes(self, interaction: Interaction, old_event: Type['ScheduledEvent']) -> str:
+    def get_changes(self, interaction: Interaction, old_event: Type['Event']) -> str:
         result = []
         if self.type != old_event.type:
             result.append(f'* Run Type changed from {old_event.template.short_description()} to {self.template.short_description()}')
