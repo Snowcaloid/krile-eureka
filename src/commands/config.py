@@ -5,7 +5,8 @@ from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
 from data.eureka_info import EurekaTrackerZone
-from data.events.event import Event, EventCategory
+from data.events.event import Event
+from data.events.event_template import EventCategory
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_message_functions import GuildMessageFunction

@@ -7,8 +7,8 @@ from discord.app_commands import Choice
 
 from data.db.definition import TableDefinitions
 from data.eureka_info import EurekaTrackerZone
-from data.events.event import EventCategoryCollection, EventCategory
 
+from data.events.event_template import EventCategory
 from data.guilds.guild_pings import GuildPingType
 from data.guilds.guild_role_functions import GuildRoleFunction
 from data.notorious_monsters import NOTORIOUS_MONSTERS
@@ -24,7 +24,7 @@ class AutoCompleteGenerator:
     @classmethod
     def event_type(cl, interaction: Interaction, current: str) -> List[Choice]:
         allow_ba, allow_drs, allow_bozja, allow_chaotic = PermissionValidator.get_raid_leader_permissions(interaction.user)
-        return cl.filter_by_current(EventCategoryCollection.calculate_choices(
+        return cl.filter_by_current(.calculate_choices(
             allow_ba, allow_drs, allow_bozja, allow_chaotic, True), current)
 
     @classmethod

@@ -2,7 +2,7 @@ import os
 from typing import Tuple, Union
 from discord import Interaction, InteractionResponse, Member
 import bot
-from data.events.event import EventCategory
+from data.events.event_template import EventCategory
 from data.guilds.guild_role_functions import GuildRoleFunction
 
 
@@ -42,7 +42,7 @@ class PermissionValidator:
         return False
 
     @classmethod
-    def get_raid_leader_permissions(cl, member: Member) -> Tuple[bool, bool, bool, bool]:
+    def get_raid_leader_permissions(cl, member: Member) -> List[EventCategory]:
         guild_roles = bot.instance.data.guilds.get(member.guild.id).roles
         admin_role_id = bot.instance.data.guilds.get(member.guild.id).role_admin
         allow_ba = False

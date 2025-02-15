@@ -11,10 +11,10 @@ from utils import get_discord_timestamp
 
 
 class EventCategory(Enum):
-    CUSTOM = 'CUSTOM_CATEGORY'
-    BA = 'BA_CATEGORY'
-    DRS = 'DRS_CATEGORY'
-    BOZJA = 'BOZJA_CATEGORY'
+    CUSTOM = 'CUSTOM'
+    BA = 'BA'
+    DRS = 'DRS'
+    BOZJA = 'BOZJA'
     CHAOTIC = 'CHAOTIC'
 
     @classmethod
