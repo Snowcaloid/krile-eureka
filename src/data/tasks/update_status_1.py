@@ -4,6 +4,7 @@ from discord import Activity, ActivityType, Status
 import bot
 from data.db.sql import SQL
 from data.events.event import Event
+from data.events.event_template import EventCategory
 from data.tasks.tasks import TaskExecutionType, TaskBase
 
 
@@ -41,7 +42,9 @@ class Task_UpdateStatus(TaskBase):
                         desc = f'{str(delta.seconds // 3600)}h {str((delta.seconds % 3600) // 60)}m'
                     else:
                         desc = f'{str((delta.seconds % 3600) // 60)}m'
-                    desc = f'{event.short_description} in {desc}'
+
+                    event_description = event.description if event.category == EventCategory.CUSTOM else event.short_description
+                    desc = f'{event_description} in {desc} ({bot.instance.get_guild(event.guild_id).name})'
                     await bot.instance.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
             else:
                 await bot.instance.change_presence(activity=None, status=None)

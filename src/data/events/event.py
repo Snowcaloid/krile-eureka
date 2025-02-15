@@ -89,7 +89,7 @@ class Event:
 
     @property
     def description(self) -> str:
-        if self.template.category == EventCategory.CUSTOM:
+        if self.template.category() == EventCategory.CUSTOM:
             return self._description
         else:
             return self.template.description()
