@@ -436,7 +436,7 @@ class ScheduledEvent:
     async def to_string(self) -> str:
         raid_leader = await get_discord_member(self.guild_id, self.users.raid_leader)
         discord_timestamp = get_discord_timestamp(self.time, DiscordTimestampType.RELATIVE)
-        return f'{self.type} by {raid_leader.display_name} at {self.time} ST {discord_timestamp}'
+        return f'{self.base.short_description()} by {raid_leader.display_name} at {self.time} ST {discord_timestamp}'
 
     def get_changes(self, interaction: Interaction, old_event: Type['ScheduledEvent']) -> str:
         result = []
