@@ -1,8 +1,11 @@
 
 from datetime import datetime, timedelta
 from enum import Enum
+from json import dumps
+from os import path, walk
 from typing import List, Tuple
 from discord.app_commands import Choice
+import yaml
 
 from utils import get_discord_timestamp
 
@@ -39,6 +42,11 @@ class EventTemplate:
 
     def __init__(self, source: object):
         self._source = source
+
+    @property
+    def data(self) -> str:
+        return dumps(self._source)
+
     #TODO: Refactor
     # def all_events_for_category(self, category: EventCategory) -> List[Type['Event']]:
     #     return [event_base for event_base in Event._registered_events if event_base.category() == category]
@@ -210,5 +218,33 @@ class EventTemplate:
         return value.replace('%time', time.strftime(f"%A, %d-%b-%y %H:%M ST")).replace('%localtime', get_discord_timestamp(time)).replace(
             '%description', self.description())
 
+    def is_signup(self) -> bool:
+        return self._source.get('is_signup', False)
+
     def as_choice(self) -> Choice:
         return Choice(name=self.description(), value=self.type())
+
+
+class DefaultEventTemplates:
+    _list: List[EventTemplate] = []
+
+    def find_yaml_templates(start_dir="/") -> List[str]:
+        matches = []
+        for root, dirs, files in walk(start_dir):
+            if "assets/event_templates" in root:
+                for file in files:
+                    if file.endswith(".yaml"):
+                        matches.append(path.join(root, file))
+        return matches
+
+    def __init__(self):
+        for yaml_template in self.find_yaml_templates():
+            with open(yaml_template) as file:
+                template = EventTemplate(yaml.safe_load(file.read()))
+                self._list.append(template)
+
+    def get(self, event_type: str) -> EventTemplate:
+        return next((template for template in self._list if template.type() == event_type), None)
+
+    def get_events_for_category(self, category: EventCategory) -> List[EventTemplate]:
+        return [template for template in self._list if template.category() == category]

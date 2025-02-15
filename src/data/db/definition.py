@@ -8,6 +8,7 @@ class ColumnType:
     BIGINT = 'BIGINT'
     SERIAL = 'SERIAL'
     TEXT = 'TEXT'
+    JSON = 'JSON'
 
 class ColumnFlag:
     NONE = ''

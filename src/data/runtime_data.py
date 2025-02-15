@@ -3,6 +3,7 @@ import bot
 import data.cache.message_cache as cache
 from data.db.sql import Record
 from data.eureka_info import EurekaInfo
+from data.events.event_template import DefaultEventTemplates
 from data.guilds.guild import Guilds
 from data.db.register import RegisterTables
 from data.db.definition import TableDefinitions
@@ -13,13 +14,20 @@ from data.ui.copied_messages import MessageCopyController
 class RuntimeData:
     """General Runtime Data Class"""
     message_copy_controller: MessageCopyController
-    guilds: Guilds = Guilds()
-    ui: UI = UI()
-    tasks: Tasks = Tasks()
-    eureka_info: EurekaInfo = EurekaInfo()
+    guilds: Guilds
+    ui: UI
+    tasks: Tasks
+    eureka_info: EurekaInfo
+    default_event_templates: DefaultEventTemplates
     ready: bool
 
     def __init__(self):
+        self.default_event_templates = DefaultEventTemplates()
+        self.guilds = Guilds(self.default_event_templates)
+        self.ui = UI()
+        self.tasks = Tasks()
+        self.eureka_info = EurekaInfo()
+
         self.ready = False
         RegisterTables.register()
         self.ensure_database_tables()

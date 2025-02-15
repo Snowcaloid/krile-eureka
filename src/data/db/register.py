@@ -1,6 +1,7 @@
 from data.db.channels import ChannelTable
 from data.db.definition import TableDefinitions
 from data.db.buttons import ButtonsTable
+from data.db.event_templates import EventTemplatesTable
 from data.db.guild_messages import GuildMessagesTable
 from data.db.guild_roles import GuildRolesTable
 from data.db.guilds import GuildTable
@@ -16,6 +17,7 @@ class RegisterTables:
         TableDefinitions.register(ButtonsTable('buttons'))
         TableDefinitions.register(GuildTable('guilds'))
         TableDefinitions.register(ChannelTable('channels'))
+        TableDefinitions.register(EventTemplatesTable('event_templates'))
         TableDefinitions.register(EventsTable('events'))
         TableDefinitions.register(TaskTable('tasks'))
         TableDefinitions.register(PingsTable('pings'))
