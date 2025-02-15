@@ -68,15 +68,12 @@ class InputValidator:
         return result
 
     async def check_valid_raid_leader(self, interaction: Interaction, member: Member, event_type: str) -> bool:
-        allow_ba, allow_drs, allow_bozja, allow_chaotic = PermissionValidator.get_raid_leader_permissions(member)
-        event_base = Event.by_type(event_type)
-        result = event_base.category() == EventCategory.BA and allow_ba
-        result = result or (event_base.category() == EventCategory.DRS and allow_drs)
-        result = result or (event_base.category() == EventCategory.BOZJA and allow_bozja)
-        result = result or (event_base.category() == EventCategory.CHAOTIC and allow_chaotic)
-        result = result or (event_base.category() == EventCategory.CUSTOM)
+        allowed_categories = PermissionValidator.get_raid_leader_permissions(member)
+        event_template = bot.instance.data.guilds.get(interaction.guild_id).event_templates.get(event_type)
+        if event_template is None: return False
+        result = event_template.category() in allowed_categories
         if self == InputValidator.RAISING and not result:
-            await feedback_and_log(interaction, f'no roles allowing raid leading for "{event_base.short_description()}".')
+            await feedback_and_log(interaction, f'no roles allowing raid leading for "{event_template.short_description()}".')
         return result
 
     async def check_custom_run_has_description(self, interaction: Interaction, event_type: str, description: str) -> bool:

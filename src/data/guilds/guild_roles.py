@@ -36,6 +36,9 @@ class GuildRoles:
     def get(self, function: GuildRoleFunction = GuildRoleFunction.NONE, event_category: str = '') -> List[GuildRole]:
         return [role for role in self._list if role.function == function and (not event_category or role.event_category == event_category)]
 
+    def get_by_id(self, role_id: int) -> List[GuildRole]:
+        return [role for role in self._list if role.role_id == role_id]
+
     def add(self, role_id: int, function: GuildRoleFunction, event_category: str = '') -> None:
         SQL('guild_roles').insert(Record(guild_id=self.guild_id, role_id=role_id, function=function.value, event_category=event_category))
         self.load(self.guild_id)

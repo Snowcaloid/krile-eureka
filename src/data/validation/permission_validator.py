@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, Union
+from typing import List, Tuple, Union
 from discord import Interaction, InteractionResponse, Member
 import bot
 from data.events.event_template import EventCategory
@@ -45,19 +45,12 @@ class PermissionValidator:
     def get_raid_leader_permissions(cl, member: Member) -> List[EventCategory]:
         guild_roles = bot.instance.data.guilds.get(member.guild.id).roles
         admin_role_id = bot.instance.data.guilds.get(member.guild.id).role_admin
-        allow_ba = False
-        allow_drs = False
-        allow_bozja = False
-        allow_chaotic = False
+        categories: List[EventCategory] = []
         for role in member.roles:
             if role.id == admin_role_id:
-                return True, True, True, True
-            elif [True for guild_role in guild_roles.get(GuildRoleFunction.RAID_LEADER, EventCategory.BA.value) if guild_role.role_id == role.id]:
-                allow_ba = True
-            elif [True for guild_role in guild_roles.get(GuildRoleFunction.RAID_LEADER, EventCategory.DRS.value) if guild_role.role_id == role.id]:
-                allow_drs = True
-            elif [True for guild_role in guild_roles.get(GuildRoleFunction.RAID_LEADER, EventCategory.BOZJA.value) if guild_role.role_id == role.id]:
-                allow_bozja = True
-            elif [True for guild_role in guild_roles.get(GuildRoleFunction.RAID_LEADER, EventCategory.CHAOTIC.value) if guild_role.role_id == role.id]:
-                allow_chaotic = True
-        return allow_ba, allow_drs, allow_bozja, allow_chaotic
+                return list(EventCategory)
+            else:
+                for guild_role in guild_roles.get_by_id(role.id):
+                    if guild_role.function == GuildRoleFunction.RAID_LEADER and not guild_role.event_category in categories:
+                        categories.add(guild_role.event_category)
+        return categories

@@ -23,9 +23,9 @@ class AutoCompleteGenerator:
 
     @classmethod
     def event_type(cl, interaction: Interaction, current: str) -> List[Choice]:
-        allow_ba, allow_drs, allow_bozja, allow_chaotic = PermissionValidator.get_raid_leader_permissions(interaction.user)
-        return cl.filter_by_current(.calculate_choices(
-            allow_ba, allow_drs, allow_bozja, allow_chaotic, True), current)
+        allowed_categories = PermissionValidator.get_raid_leader_permissions(interaction.user)
+        return cl.filter_by_current(bot.instance.data.guilds.get(
+            interaction.guild_id).event_templates.get_by_categories(allowed_categories), current)
 
     @classmethod
     def event_type_with_categories(cl, current: str, guild_id: int) -> List[Choice]:

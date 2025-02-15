@@ -14,16 +14,6 @@ from utils import DiscordTimestampType, get_discord_member, get_discord_timestam
 
 PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 
-#     @classmethod
-#     def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_chaotic: bool, use_custom: bool) -> List[Choice]:
-#         result: List[Event] = []
-#         if use_ba: result = result + Event.all_events_for_category(EventCategory.BA)
-#         if use_drs: result = result + Event.all_events_for_category(EventCategory.DRS)
-#         if use_bozja: result = result + Event.all_events_for_category(EventCategory.BOZJA)
-#         if use_chaotic: result = result + Event.all_events_for_category(EventCategory.CHAOTIC)
-#         if use_custom: result = result + [Event]
-#         return [event_base.as_choice() for event_base in result]
-
 class ScheduledEventUserData:
     event_id: int
     _raid_leader: int

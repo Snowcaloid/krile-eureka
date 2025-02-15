@@ -83,7 +83,7 @@ class EventTemplate:
         return self._source.get('short_description', 'Custom run')
 
     def category(self) -> EventCategory:
-        return EventCategory(self._source.get('category', 'CUSTOM_CATEGORY'))
+        return EventCategory(self._source.get('category', 'CUSTOM'))
 
     def use_recruitment_posts(self) -> bool:
         return self._source.get('use_recruitment_posts', False)

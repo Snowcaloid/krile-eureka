@@ -2,7 +2,7 @@ from json import loads
 from typing import List
 
 from data.db.sql import SQL, Record
-from data.events.event_template import EventTemplate
+from data.events.event_template import EventCategory, EventTemplate
 
 
 class GuildEventTemplates:
@@ -29,6 +29,9 @@ class GuildEventTemplates:
 
     def get(self, event_type: str) -> EventTemplate:
         return next((template for template in self._list if template.type() == event_type), None)
+
+    def get_by_categories(self, categories: List[EventCategory]) -> List[EventTemplate]:
+        return [template for template in self._list if template.category() in categories]
 
     def add(self, event_type: str, template: EventTemplate) -> None:
         SQL('event_templates').insert(Record(guild_id=self.guild_id, event_type=event_type, data=template.data))
