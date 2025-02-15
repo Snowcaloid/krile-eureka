@@ -49,9 +49,6 @@ class EventTemplate:
 
     #TODO: Refactor
 
-    # def all_types(self) -> List[str]:
-    #     return [event_base.type() for event_base in Event._registered_events]
-
     # def by_type(self, type: str) -> Type['Event']:
     #     return next((event_base for event_base in Event._registered_events if event_base.type() == type), Event)
 

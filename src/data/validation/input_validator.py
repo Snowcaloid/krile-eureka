@@ -50,7 +50,8 @@ class InputValidator:
         return result
 
     async def check_valid_event_type(self, interaction: Interaction, event_type: str) -> bool:
-        result = event_type in Event.all_types()
+        all_event_types = [event_template.type() for event_template in bot.instance.data.guilds.get(self.guild_id).event_templates.all]
+        result = event_type in all_event_types
         if self == InputValidator.RAISING and not result:
             await feedback_and_log(interaction, f'tried using {event_type}, which does not correlate to a type of supported runs.')
         return result
@@ -62,7 +63,8 @@ class InputValidator:
         return result
 
     async def check_valid_event_type_or_category(self, interaction: Interaction, event_type: str) -> bool:
-        result = event_type in Event.all_types() or event_type in EventCategory._value2member_map_
+        all_event_types = [event_template.type() for event_template in bot.instance.data.guilds.get(self.guild_id).event_templates.all]
+        result = event_type in all_event_types or event_type in EventCategory._value2member_map_
         if self == InputValidator.RAISING and not result:
             await feedback_and_log(interaction, f'tried using {event_type}, which does not correlate to a supported category or run type.')
         return result
