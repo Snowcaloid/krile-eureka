@@ -33,7 +33,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         schedule = bot.instance.data.guilds.get(interaction.guild_id).schedule
         event = schedule.add(interaction.user.id, event_type, event_datetime, description, auto_passcode, use_support)
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
-        if event.use_pl_posts:
+        if event.use_recruitment_posts:
             await bot.instance.data.ui.pl_post.create(interaction.guild_id, event.id)
         guild = bot.instance.data.guilds.get(interaction.guild_id)
         if guild:

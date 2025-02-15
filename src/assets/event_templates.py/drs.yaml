@@ -1,0 +1,47 @@
+type: DRS
+description: DRS Prog Run
+short_description: DRS Prog Run
+category: DRS
+use_passcodes: true
+use_recruitment_posts: true
+use_recruitment_post_threads: true
+recruitment_post_thread_title: |
+  %time %description
+delete_recruitment_posts: false
+use_support: false
+main_passcode_text: |
+  Raid Leader: %rl.
+
+  **The passcode for the alliance is %passcode.**
+
+  Notes:
+  1: Please bring actions and pure essences as shown in our DRS Action Guide (This may differ to what you hold if you have progged on another server),
+  2: Prioritise mechanics over damage,
+  3: Listen to Raid Leaders and Party Leaders,
+  4: Most Importantly: Relax and don't stress.
+recruitment_post_text: |
+  Raid Leader: %rl
+  A: %pl1
+  B: %pl2
+  C: %pl3
+  D: %pl4
+  E: %pl5
+  F: %pl6
+  Please note, your assignment may be removed at the Raid Leader's discretion.
+party_leader_dm_text: |
+  You're leading **party %party.**
+  Passcode is %passcode.
+raid_leader_dm_text: |
+  Passcode for all parties will be: **%passcode_main**
+  These passcode(s) have been sent to the relevant party leaders.
+  The passcode(s) will be posted automatically at the appropriate time for that run.
+pl_passcode_delay: 45
+main_passcode_delay: 15
+pl_button_texts:
+  - A
+  - B
+  - C
+  - D
+  - E
+  - F
+  - ''

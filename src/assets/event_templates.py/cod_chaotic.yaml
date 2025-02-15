@@ -1,0 +1,16 @@
+type: CODC
+description: Cloud of Darkness Chaotic Run
+short_description: COD Chaotic Run
+category: CHAOTIC
+use_passcodes: true
+use_recruitment_posts: false
+main_passcode_text: |
+  Raid Leader: %rl.
+
+  **The passcode for the alliance is %passcode.**
+raid_leader_dm_text: |
+  Passcode for the alliance will be: **%passcode_main**.
+  The passcode will be posted automatically at the appropriate time for that run.
+pl_passcode_delay: 15
+main_passcode_delay: 10
+use_support: False

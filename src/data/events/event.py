@@ -170,8 +170,8 @@ class ScheduledEvent:
         self.load(self.id)
 
     @property
-    def use_pl_posts(self) -> str:
-        return self.template.use_pl_posts()
+    def use_recruitment_posts(self) -> str:
+        return self.template.use_recruitment_posts()
 
     @property
     def delete_recruitment_posts(self) -> str:
@@ -280,7 +280,7 @@ class ScheduledEvent:
 
     def create_tasks(self) -> None:
         bot.instance.data.tasks.add_task(self.time, TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
-        if self.use_pl_posts and self.delete_recruitment_posts:
+        if self.use_recruitment_posts and self.delete_recruitment_posts:
             channel_data = bot.instance.data.guilds.get(self.guild_id).channels.get(GuildChannelFunction.PL_CHANNEL, self.type)
             if channel_data:
                 bot.instance.data.tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})

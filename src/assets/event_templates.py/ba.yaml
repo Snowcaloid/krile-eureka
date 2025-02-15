@@ -1,0 +1,55 @@
+type: BA
+description: Baldesion Arsenal Open Run
+short_description: BA Open Run
+category: BA
+use_passcodes: true
+use_recruitment_posts: true
+main_passcode_text: |
+  Raid Leader: %rl.
+
+  **The passcode for all Parties 1-6 is %passcode.**
+  This will not work for the Support Party.
+
+  Notes:
+  1: Please bring proper logograms. If you do not bring and use Spirit of the Remembered we will not revive you.
+  2: We can not revive players normally in BA, so please bear this in mind and do mechanics properly.
+  3: If you die on trash mobs, this will usually result in you not being revived. There is no reason to die on them, so please wait 5s for the tank to establish aggro.
+support_passcode_text: |
+  Raid Leader: %rl.
+
+  **The Support Party passcode is %passcode.**
+
+  Notes:
+  1: Please bring proper logograms. If you do not bring and use Spirit of the Remembered we will not revive you.
+  2: We can not revive players normally in BA, so please bear this in mind and do mechanics properly.
+recruitment_post_text: |
+  Raid Leader: %rl
+  1: %pl1
+  2: %pl2
+  3: %pl3
+  4: %pl4
+  5: %pl5
+  6: %pl6
+  %support
+  Please note, your assignment may be removed at the Raid Leader's discretion.
+  %support=Support: %pls
+  %!support=Support party has been excluded manually by the raid leader.
+party_leader_dm_text: |
+  You're leading party %party.
+  [SoB] BA run party %party
+  Passcode is **%passcode**.
+support_party_leader_dm_text: |
+  You're leading **the support party.**
+  [SoB] BA support party
+  Passcode is %passcode.
+raid_leader_dm_text: |
+  Passcode for the Alliance will be: **%passcode_main**
+  %support
+  These passcode(s) have been sent to the relevant party leaders.
+  The passcode(s) will be posted automatically at the appropriate time for that run.
+  %support=Passcode for the Support Party will be: **%passcode_support**
+  %!support=Support party has been excluded manually by the raid leader. The support passcode will not be posted. In case this is changed, the passcode is **%passcode_support**.
+pl_passcode_delay: 30
+support_passcode_delay: 20
+main_passcode_delay: 15
+use_support: true

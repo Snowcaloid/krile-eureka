@@ -15,7 +15,7 @@ class UIPLPost:
     async def create(self, guild_id: int, id: int) -> None:
         guild_data = bot.instance.data.guilds.get(guild_id)
         event = guild_data.schedule.get(id)
-        if event is None or event.category == EventCategory.CUSTOM or not event.use_pl_posts: return
+        if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
@@ -32,7 +32,7 @@ class UIPLPost:
     async def rebuild(self, guild_id: int, id: int, recreate_view: bool = False) -> Message:
         guild_data = bot.instance.data.guilds.get(guild_id)
         event = guild_data.schedule.get(id)
-        if event is None or event.category == EventCategory.CUSTOM or not event.use_pl_posts: return
+        if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)

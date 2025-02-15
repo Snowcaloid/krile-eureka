@@ -1,0 +1,34 @@
+type: DALRIADA
+description: Dalriada Run
+short_description: Dalriada Run
+category: BOZJA
+use_passcodes: true
+use_recruitment_posts: true
+main_passcode_text: |
+  Raid Leader: %rl.
+
+  **The passcode for all Parties is %passcode.**
+recruitment_post_text: |
+  Raid Leader: %rl
+  1: %pl1
+  2: %pl2
+  3: %pl3
+  Please note, your assignment may be removed at the Raid Leader's discretion.
+party_leader_dm_text: |
+  You're leading **party %party**.
+  Passcode is **%passcode**.
+raid_leader_dm_text: |
+  Passcode for all parties will be: **%passcode_main**
+  These passcode(s) have been sent to the relevant party leaders.
+  The passcode(s) will be posted automatically at the appropriate time for that run.
+pl_passcode_delay: 45
+main_passcode_delay: 15
+pl_button_texts:
+  - '1'
+  - '2'
+  - '3'
+  - ''
+  - ''
+  - ''
+  - ''
+use_support: False
