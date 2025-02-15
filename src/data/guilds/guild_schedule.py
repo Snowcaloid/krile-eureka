@@ -58,7 +58,7 @@ class GuildSchedule:
             event.type = event_type
         if description:
             event.description = description
-        if event.base.use_support() and (use_support != event.use_support):
+        if event.template.use_support() and (use_support != event.use_support):
             event.use_support = use_support
         return event
 

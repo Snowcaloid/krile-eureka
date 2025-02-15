@@ -1,7 +1,7 @@
 
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import List, Tuple, Type
+from typing import List, Tuple
 from discord.app_commands import Choice
 
 from utils import get_discord_timestamp
@@ -34,26 +34,12 @@ class EventCategory(Enum):
             Choice(name='Chaotic', value=cl.CHAOTIC.value)
         ]
 
-    @classmethod
-    def as_choice(cl, category: Type['EventCategory']) -> Choice:
-        return next(choice for choice in cl.all_category_choices() if choice.value == category.value)
-
-    @classmethod
-    def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_chaotic: bool, use_custom: bool) -> List[Choice]:
-        result: List[EventTemplate] = []
-        if use_ba: result = result + cl.as_choice(EventCategory.BA)
-        if use_drs: result = result + cl.as_choice(EventCategory.DRS)
-        if use_bozja: result = result + cl.as_choice(EventCategory.BOZJA)
-        if use_chaotic: result = result + cl.as_choice(EventCategory.CHAOTIC)
-        if use_custom: result = result + cl.as_choice(EventCategory.CUSTOM)
-        return result
-
 class EventTemplate:
     _source: object = None
 
     def __init__(self, source: object):
         self._source = source
-
+    #TODO: Refactor
     # def all_events_for_category(self, category: EventCategory) -> List[Type['Event']]:
     #     return [event_base for event_base in Event._registered_events if event_base.category() == category]
 

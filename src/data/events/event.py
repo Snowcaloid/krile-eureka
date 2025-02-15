@@ -1,11 +1,11 @@
 
 from discord import Interaction, Member
 import bot
-from discord.app_commands import Choice
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
 from typing import List, Tuple, Type
 from data.db.sql import SQL, Record
+from data.events.event_template import EventCategory, EventTemplate
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.tasks.tasks import TaskExecutionType
@@ -14,20 +14,19 @@ from utils import DiscordTimestampType, get_discord_member, get_discord_timestam
 
 PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 
+#TODO: Refactor
+# class EventCategoryCollection:
+#     ALL_WITH_CUSTOM: List[Event]
 
-
-class EventCategoryCollection:
-    ALL_WITH_CUSTOM: List[Event]
-
-    @classmethod
-    def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_chaotic: bool, use_custom: bool) -> List[Choice]:
-        result: List[Event] = []
-        if use_ba: result = result + Event.all_events_for_category(EventCategory.BA)
-        if use_drs: result = result + Event.all_events_for_category(EventCategory.DRS)
-        if use_bozja: result = result + Event.all_events_for_category(EventCategory.BOZJA)
-        if use_chaotic: result = result + Event.all_events_for_category(EventCategory.CHAOTIC)
-        if use_custom: result = result + [Event]
-        return [event_base.as_choice() for event_base in result]
+#     @classmethod
+#     def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_chaotic: bool, use_custom: bool) -> List[Choice]:
+#         result: List[Event] = []
+#         if use_ba: result = result + Event.all_events_for_category(EventCategory.BA)
+#         if use_drs: result = result + Event.all_events_for_category(EventCategory.DRS)
+#         if use_bozja: result = result + Event.all_events_for_category(EventCategory.BOZJA)
+#         if use_chaotic: result = result + Event.all_events_for_category(EventCategory.CHAOTIC)
+#         if use_custom: result = result + [Event]
+#         return [event_base.as_choice() for event_base in result]
 
 class ScheduledEventUserData:
     event_id: int
@@ -67,7 +66,7 @@ class ScheduledEventUserData:
         self.load(self.event_id)
 
 class ScheduledEvent:
-    base: Type[Event]
+    template: EventTemplate
     id: int
     _pl_post_id: int
     _time: datetime
@@ -87,10 +86,11 @@ class ScheduledEvent:
                                               'guild_id', 'use_support'],
                                       where=f'id={id}')
         if record:
-            for type in Event._registered_events:
-                if type.type() == record['event_type']:
-                    self.base = type
-                    break
+            #TODO: Refactor
+            # for type in Event._registered_events:
+            #     if type.type() == record['event_type']:
+            #         self.template = type
+            #         break
             self.id = id
             self._pl_post_id = record['pl_post_id']
             self._time = record['timestamp']
@@ -107,10 +107,10 @@ class ScheduledEvent:
 
     @property
     def description(self) -> str:
-        if self.base.category == EventCategory.CUSTOM:
+        if self.template.category == EventCategory.CUSTOM:
             return self._description
         else:
-            return self.base.description()
+            return self.template.description()
 
     @description.setter
     def description(self, value: str) -> None:
@@ -120,7 +120,7 @@ class ScheduledEvent:
 
     @property
     def short_description(self) -> str:
-        return self.base.short_description()
+        return self.template.short_description()
 
     @property
     def time(self) -> datetime:
@@ -150,11 +150,11 @@ class ScheduledEvent:
 
     @property
     def dm_title(self) -> str:
-        return self.base.dm_title(time=self.time)
+        return self.template.dm_title(time=self.time)
 
     @property
     def raid_leader_dm_text(self) -> str:
-        return self.base.raid_leader_dm_text(
+        return self.template.raid_leader_dm_text(
             passcode_main=self.passcode_main,
             passcode_supp=self.passcode_supp,
             use_support=self.use_support)
@@ -165,34 +165,34 @@ class ScheduledEvent:
 
     @use_support.setter
     def use_support(self, value: bool) -> None:
-        if (value == self._use_support) or not self.base.use_support(): return
+        if (value == self._use_support) or not self.template.use_support(): return
         SQL('events').update(Record(use_support=value), f'id={self.id}')
         self.load(self.id)
 
     @property
     def use_pl_posts(self) -> str:
-        return self.base.use_pl_posts()
+        return self.template.use_pl_posts()
 
     @property
     def delete_recruitment_posts(self) -> str:
-        return self.base.delete_recruitment_posts()
+        return self.template.delete_recruitment_posts()
 
     @property
     def support_party_leader_dm_text(self) -> str:
-        return self.base.support_party_leader_dm_text(passcode=self.passcode_supp)
+        return self.template.support_party_leader_dm_text(passcode=self.passcode_supp)
 
     @property
     def schedule_entry_text(self) -> str:
         user = bot.instance.get_guild(self.guild_id).get_member(self.users.raid_leader)
-        return self.base.schedule_entry_text(user.mention, self.time, self.real_description, self._use_support)
+        return self.template.schedule_entry_text(user.mention, self.time, self.real_description, self._use_support)
 
     @property
     def category(self) -> EventCategory:
-        return self.base.category()
+        return self.template.category()
 
     @property
     def type(self) -> str:
-        return self.base.type()
+        return self.template.type()
 
     @type.setter
     def type(self, value: str):
@@ -202,29 +202,29 @@ class ScheduledEvent:
 
     @property
     def use_recruitment_post_threads(self) -> str:
-        return self.base.use_recruitment_post_threads()
+        return self.template.use_recruitment_post_threads()
 
     @property
     def recruitment_post_thread_title(self) -> str:
-        return self.base.recruitment_post_thread_title(self.time)
+        return self.template.recruitment_post_thread_title(self.time)
 
     @property
     def main_passcode_text(self) -> str:
         user = bot.instance.get_guild(self.guild_id).get_member(self.users.raid_leader)
-        return self.base.main_passcode_text(user.mention, self.passcode_main)
+        return self.template.main_passcode_text(user.mention, self.passcode_main)
 
     @property
     def support_passcode_text(self) -> str:
         user = bot.instance.get_guild(self.guild_id).get_member(self.users.raid_leader)
-        return self.base.support_passcode_text(user.mention, self.passcode_supp)
+        return self.template.support_passcode_text(user.mention, self.passcode_supp)
 
     @property
     def passcode_post_title(self) -> str:
-        return self.base.passcode_post_title(self.time)
+        return self.template.passcode_post_title(self.time)
 
     @property
     def pl_button_texts(self) -> Tuple[str, str, str, str, str, str, str]:
-        result = self.base.pl_button_texts()
+        result = self.template.pl_button_texts()
         if not self.use_support:
             result_list = list(result)
             result_list[6] = ''
@@ -233,19 +233,19 @@ class ScheduledEvent:
 
     @property
     def recruitment_post_title(self) -> str:
-        return self.base.recruitment_post_title(self.time)
+        return self.template.recruitment_post_title(self.time)
 
     @property
     def pl_passcode_delay(self) -> timedelta:
-        return self.base.pl_passcode_delay()
+        return self.template.pl_passcode_delay()
 
     @property
     def main_passcode_delay(self) -> timedelta:
-        return self.base.main_passcode_delay()
+        return self.template.main_passcode_delay()
 
     @property
     def support_passcode_delay(self) -> timedelta:
-        return self.base.support_passcode_delay()
+        return self.template.support_passcode_delay()
 
     def _pl_placeholder(self, member: Member) -> str:
         return member.display_name if member else 'TBD'
@@ -254,18 +254,18 @@ class ScheduledEvent:
     def recruitment_post_text(self) -> str:
         guild = bot.instance.get_guild(self.guild_id)
         rl = guild.get_member(self.users.raid_leader)
-        pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.base.pl_button_texts()[0] else None
-        pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1])) if self.base.pl_button_texts()[1] else None
-        pl3 = self._pl_placeholder(guild.get_member(self.users.party_leaders[2])) if self.base.pl_button_texts()[2] else None
-        pl4 = self._pl_placeholder(guild.get_member(self.users.party_leaders[3])) if self.base.pl_button_texts()[3] else None
-        pl5 = self._pl_placeholder(guild.get_member(self.users.party_leaders[4])) if self.base.pl_button_texts()[4] else None
-        pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5])) if self.base.pl_button_texts()[5] else None
+        pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.template.pl_button_texts()[0] else None
+        pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1])) if self.template.pl_button_texts()[1] else None
+        pl3 = self._pl_placeholder(guild.get_member(self.users.party_leaders[2])) if self.template.pl_button_texts()[2] else None
+        pl4 = self._pl_placeholder(guild.get_member(self.users.party_leaders[3])) if self.template.pl_button_texts()[3] else None
+        pl5 = self._pl_placeholder(guild.get_member(self.users.party_leaders[4])) if self.template.pl_button_texts()[4] else None
+        pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5])) if self.template.pl_button_texts()[5] else None
         pls = self._pl_placeholder(guild.get_member(self.users.party_leaders[6])) if self.use_support else None
 
-        return self.base.recruitment_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls)
+        return self.template.recruitment_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls)
 
     def party_leader_dm_text(self, index: int) -> str:
-        return self.base.party_leader_dm_text(
+        return self.template.party_leader_dm_text(
             party=self.pl_button_texts[index],
             passcode=self.passcode_main)
 
@@ -304,12 +304,12 @@ class ScheduledEvent:
     async def to_string(self) -> str:
         raid_leader = await get_discord_member(self.guild_id, self.users.raid_leader)
         discord_timestamp = get_discord_timestamp(self.time, DiscordTimestampType.RELATIVE)
-        return f'{self.base.short_description()} by {raid_leader.display_name} at {self.time} ST {discord_timestamp}'
+        return f'{self.template.short_description()} by {raid_leader.display_name} at {self.time} ST {discord_timestamp}'
 
     def get_changes(self, interaction: Interaction, old_event: Type['ScheduledEvent']) -> str:
         result = []
         if self.type != old_event.type:
-            result.append(f'* Run Type changed from {old_event.base.short_description()} to {self.base.short_description()}')
+            result.append(f'* Run Type changed from {old_event.template.short_description()} to {self.template.short_description()}')
         if self.time != old_event.time:
             result.append(f'* Run Time changed from {old_event.time} ST to {self.time} ST')
         if self.users.raid_leader != old_event.users.raid_leader:
