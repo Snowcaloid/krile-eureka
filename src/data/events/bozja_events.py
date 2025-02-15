@@ -16,7 +16,7 @@ class BozjaBase(Event):
             f'**The passcode for all parties is {str(passcode)}.**'
         )
     @classmethod
-    def pl_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
+    def recruitment_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
                      pl4: str, pl5: str, pl6: str, pls: str) -> str:
         return (
             f'Raid Leader: {rl}\n'

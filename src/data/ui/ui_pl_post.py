@@ -25,8 +25,8 @@ class UIPLPost:
         event.pl_post_id = message.id
         message = await self.rebuild(guild_id, id, True)
         guild_data.messages.add(message.id, channel.id, GuildMessageFunction.PL_POST)
-        if event.use_pl_post_thread:
-            await message.create_thread(name=event.pl_post_thread_title)
+        if event.use_recruitment_post_threads:
+            await message.create_thread(name=event.recruitment_post_thread_title)
 
 
     async def rebuild(self, guild_id: int, id: int, recreate_view: bool = False) -> Message:
@@ -38,7 +38,7 @@ class UIPLPost:
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
         message = await cache.messages.get(event.pl_post_id, channel)
         if message is None: return
-        embed = Embed(title=event.pl_post_title, description=event.pl_post_text)
+        embed = Embed(title=event.recruitment_post_title, description=event.recruitment_post_text)
         if recreate_view:
             delete_buttons(event.pl_post_id)
             view = PersistentView()

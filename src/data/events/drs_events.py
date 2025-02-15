@@ -16,12 +16,12 @@ class DRS_Normal(Event):
     @classmethod
     def use_pl_posts(cl) -> bool: return True
     @classmethod
-    def use_pl_post_thread(cl) -> bool: return True
+    def use_recruitment_post_threads(cl) -> bool: return True
     @classmethod
-    def pl_post_thread_title(cl, time: datetime) -> str:
+    def recruitment_post_thread_title(cl, time: datetime) -> str:
         return f'{time.strftime("%A, %d %B %Y")} {cl.description()}'
     @classmethod
-    def delete_pl_posts(cl) -> bool: return False
+    def delete_recruitment_posts(cl) -> bool: return False
     @classmethod
     def use_support(cl) -> bool: return False
     @classmethod
@@ -36,7 +36,7 @@ class DRS_Normal(Event):
             '4: Most Importantly: Relax and don\'t stress.'
         )
     @classmethod
-    def pl_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
+    def recruitment_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
                      pl4: str, pl5: str, pl6: str, pls: str) -> str:
         return (
             f'Raid Leader: {rl}\n'

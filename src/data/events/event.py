@@ -1,8 +1,6 @@
-from enum import Enum
 
 from discord import Interaction, Member
 import bot
-from abc import abstractclassmethod
 from discord.app_commands import Choice
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
@@ -16,137 +14,7 @@ from utils import DiscordTimestampType, get_discord_member, get_discord_timestam
 
 PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 
-class EventCategory(Enum):
-    CUSTOM = 'CUSTOM_CATEGORY'
-    BA = 'BA_CATEGORY'
-    DRS = 'DRS_CATEGORY'
-    BOZJA = 'BOZJA_CATEGORY'
-    CHAOTIC = 'CHAOTIC'
 
-    @classmethod
-    def all_category_choices(cl) -> List[Choice]:
-        return [
-            Choice(name='Custom runs', value=cl.CUSTOM.value),
-            Choice(name='All BA runs', value=cl.BA.value),
-            Choice(name='All DRS runs', value=cl.DRS.value),
-            Choice(name='All Bozja-related runs', value=cl.BOZJA.value),
-            Choice(name='All Chaotic Alliance runs', value=cl.CHAOTIC.value)
-        ]
-
-    @classmethod
-    def all_category_choices_short(cl) -> List[Choice]:
-        return [
-            Choice(name='Custom run', value=cl.CUSTOM.value),
-            Choice(name='BA', value=cl.BA.value),
-            Choice(name='DRS', value=cl.DRS.value),
-            Choice(name='Bozja', value=cl.BOZJA.value),
-            Choice(name='Chaotic', value=cl.CHAOTIC.value)
-        ]
-
-    @classmethod
-    def as_choice(cl, category: Type['EventCategory']) -> Choice:
-        return next(choice for choice in cl.all_category_choices() if choice.value == category.value)
-
-    @classmethod
-    def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_chaotic: bool, use_custom: bool) -> List[Choice]:
-        result: List[Event] = []
-        if use_ba: result = result + cl.as_choice(EventCategory.BA)
-        if use_drs: result = result + cl.as_choice(EventCategory.DRS)
-        if use_bozja: result = result + cl.as_choice(EventCategory.BOZJA)
-        if use_chaotic: result = result + cl.as_choice(EventCategory.CHAOTIC)
-        if use_custom: result = result + cl.as_choice(EventCategory.CUSTOM)
-        return result
-
-class Event:
-    _registered_events: List[Type['Event']] = []
-
-    @classmethod
-    def register(cl):
-        Event._registered_events.append(cl)
-
-    @classmethod
-    def all_events_for_category(cl, category: EventCategory) -> List[Type['Event']]:
-        return [event_base for event_base in Event._registered_events if event_base.category() == category]
-
-    @classmethod
-    def all_choices_for_category(cl, category: EventCategory) -> List[Choice]:
-        return [event_base.as_choice() for event_base in Event.all_events_for_category(category)]
-
-    @classmethod
-    def type(cl) -> str: return 'CUSTOM'
-    @classmethod
-    def description(cl) -> str: return 'Custom run'
-    @abstractclassmethod
-    def short_description(cl) -> str: pass
-    @classmethod
-    def category(cl) -> EventCategory: return EventCategory.CUSTOM
-    @classmethod
-    def use_pl_posts(cl) -> bool: return False
-    @classmethod
-    def use_passcodes(cl) -> bool: return False
-    @classmethod
-    def use_pl_post_thread(cl) -> bool: return False
-    @classmethod
-    def delete_pl_posts(cl) -> bool: return True
-    @abstractclassmethod
-    def use_support(cl) -> bool: pass
-    @abstractclassmethod
-    def main_passcode_text(cl, rl: str, passcode: int) -> str: pass
-    @abstractclassmethod
-    def support_passcode_text(cl, rl: str, passcode: int) -> str: pass
-    @abstractclassmethod
-    def pl_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
-                     pl4: str, pl5: str, pl6: str, pls: str) -> str: pass
-    @abstractclassmethod
-    def party_leader_dm_text(cl, party: str, passcode: int) -> str: pass
-    @abstractclassmethod
-    def support_party_leader_dm_text(cl, passcode: int) -> str: pass
-    @abstractclassmethod
-    def raid_leader_dm_text(cl, passcode_main: int, passcode_supp: int, use_support: bool) -> str: pass
-    @abstractclassmethod
-    def pl_passcode_delay(cl) -> timedelta: return timedelta()
-    @abstractclassmethod
-    def support_passcode_delay(cl) -> timedelta: return timedelta()
-    @abstractclassmethod
-    def main_passcode_delay(cl) -> timedelta: return timedelta()
-    @abstractclassmethod
-    def pl_post_thread_title(cl, time: datetime) -> str: pass
-    @abstractclassmethod
-    def pl_button_texts(cl) -> Tuple[str, str, str, str, str, str, str]: pass
-
-    @classmethod
-    def schedule_entry_text(cl, rl: str, time: datetime, custom: str, use_support: bool) -> str:
-        support_text = ' (__No support__)' if cl.use_support() and not use_support else ''
-        server_time = time.strftime('%H:%M')
-        if cl.short_description() is None:
-            return f'**{server_time} ST ({get_discord_timestamp(time)} LT)**: {custom} ({rl}){support_text}'
-        else:
-            if custom: custom = f' [{custom}]'
-            return f'**{server_time} ST ({get_discord_timestamp(time)} LT)**: {cl.short_description()} ({rl}){support_text}{custom}'
-
-    @classmethod
-    def passcode_post_title(cl, time: datetime) -> str:
-        return f'{time.strftime(f"%A, %d-%b-%y %H:%M ST")} ({get_discord_timestamp(time)} LT) {cl.description()} Passcode'
-
-    @classmethod
-    def pl_post_title(cl, time: datetime) -> str:
-        return f'{time.strftime(f"%A, %d-%b-%y %H:%M ST")} ({get_discord_timestamp(time)} LT) {cl.description()} Party Leader Recruitment'
-
-    @classmethod
-    def dm_title(cl, time: datetime) -> str:
-        return f'{time.strftime(f"%A, %d-%b-%y %H:%M ST")} ({get_discord_timestamp(time)} LT) {cl.description()} Passcode Notification'
-
-    @classmethod
-    def as_choice(cl) -> Choice:
-        return Choice(name=cl.description(), value=cl.type())
-
-    @classmethod
-    def all_types(cl) -> List[str]:
-        return [event_base.type() for event_base in Event._registered_events]
-
-    @classmethod
-    def by_type(cl, type: str) -> Type['Event']:
-        return next((event_base for event_base in Event._registered_events if event_base.type() == type), Event)
 
 class EventCategoryCollection:
     ALL_WITH_CUSTOM: List[Event]
@@ -306,8 +174,8 @@ class ScheduledEvent:
         return self.base.use_pl_posts()
 
     @property
-    def delete_pl_posts(self) -> str:
-        return self.base.delete_pl_posts()
+    def delete_recruitment_posts(self) -> str:
+        return self.base.delete_recruitment_posts()
 
     @property
     def support_party_leader_dm_text(self) -> str:
@@ -333,12 +201,12 @@ class ScheduledEvent:
         self.load(self.id)
 
     @property
-    def use_pl_post_thread(self) -> str:
-        return self.base.use_pl_post_thread()
+    def use_recruitment_post_threads(self) -> str:
+        return self.base.use_recruitment_post_threads()
 
     @property
-    def pl_post_thread_title(self) -> str:
-        return self.base.pl_post_thread_title(self.time)
+    def recruitment_post_thread_title(self) -> str:
+        return self.base.recruitment_post_thread_title(self.time)
 
     @property
     def main_passcode_text(self) -> str:
@@ -364,8 +232,8 @@ class ScheduledEvent:
         return result
 
     @property
-    def pl_post_title(self) -> str:
-        return self.base.pl_post_title(self.time)
+    def recruitment_post_title(self) -> str:
+        return self.base.recruitment_post_title(self.time)
 
     @property
     def pl_passcode_delay(self) -> timedelta:
@@ -383,7 +251,7 @@ class ScheduledEvent:
         return member.display_name if member else 'TBD'
 
     @property
-    def pl_post_text(self) -> str:
+    def recruitment_post_text(self) -> str:
         guild = bot.instance.get_guild(self.guild_id)
         rl = guild.get_member(self.users.raid_leader)
         pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.base.pl_button_texts()[0] else None
@@ -394,7 +262,7 @@ class ScheduledEvent:
         pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5])) if self.base.pl_button_texts()[5] else None
         pls = self._pl_placeholder(guild.get_member(self.users.party_leaders[6])) if self.use_support else None
 
-        return self.base.pl_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls)
+        return self.base.recruitment_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls)
 
     def party_leader_dm_text(self, index: int) -> str:
         return self.base.party_leader_dm_text(
@@ -412,7 +280,7 @@ class ScheduledEvent:
 
     def create_tasks(self) -> None:
         bot.instance.data.tasks.add_task(self.time, TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
-        if self.use_pl_posts and self.delete_pl_posts:
+        if self.use_pl_posts and self.delete_recruitment_posts:
             channel_data = bot.instance.data.guilds.get(self.guild_id).channels.get(GuildChannelFunction.PL_CHANNEL, self.type)
             if channel_data:
                 bot.instance.data.tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})

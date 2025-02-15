@@ -37,7 +37,7 @@ class BA_Normal(Event):
             '3: If you die on trash mobs, this will usually result in you not being revived. There is no reason to die on them, so please wait 5s for the tank to establish aggro.'
         )
     @classmethod
-    def pl_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
+    def recruitment_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
                      pl4: str, pl5: str, pl6: str, pls: str) -> str:
         support = f'Support: {pls}\n\n' if pls else 'Support party has been excluded manually by the raid leader.\n\n'
         return (
@@ -124,7 +124,7 @@ class BA_16Man_Provisionary(BA_Normal):
     @classmethod
     def short_description(cl) -> str: return 'BA 16 Man'
     @classmethod
-    def pl_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
+    def recruitment_post_text(cl, rl: str, pl1: str, pl2: str, pl3: str,
                      pl4: str, pl5: str, pl6: str, pls: str) -> str:
         return (
             f'Raid Leader: {rl}\n'
