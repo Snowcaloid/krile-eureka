@@ -5,7 +5,6 @@ from datetime import datetime
 from discord import Interaction, Member, TextChannel
 
 from data.eureka_info import EurekaTrackerZone
-from data.events.event import Event
 from data.events.event_template import EventCategory
 from data.notorious_monsters import NOTORIOUS_MONSTERS, NotoriousMonster
 from logger import feedback_and_log
@@ -22,8 +21,8 @@ class InputValidator:
             await feedback_and_log(interaction, f'tried using text `{text}`, which contains a prohibited SQL word.')
         return result
 
-    def event_type_name_to_type(self, event_type: str) -> str:
-        for event in Event._registered_events:
+    def event_type_name_to_type(self, event_type: str, guild_id: int) -> str:
+        for event in bot.instance.data.guilds.get(guild_id).event_templates.all:
             if event.description() == event_type:
                 return event.type()
         return event_type
