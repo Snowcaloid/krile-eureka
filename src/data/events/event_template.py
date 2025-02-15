@@ -47,11 +47,6 @@ class EventTemplate:
     def data(self) -> str:
         return dumps(self._source)
 
-    #TODO: Refactor
-
-    # def by_type(self, type: str) -> Type['Event']:
-    #     return next((event_base for event_base in Event._registered_events if event_base.type() == type), Event)
-
     def _handle_support_text(self, use_support: bool, template_text: str) -> str:
         index_of_no_support = template_text.find('%!support=') if '%!support=' in template_text else -1
         no_support_text = template_text[index_of_no_support + len('%!support='):] if '%!support=' in template_text else ''

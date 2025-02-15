@@ -59,7 +59,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         channels_data = bot.instance.data.guilds.get(interaction.guild_id).channels
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             channels_data.set(channel.id, function, event_type)
-            desc = Event.by_type(event_type).short_description()
+            desc = bot.instance.data.guilds.get(self.guild_id).event_templates.get(event_type).short_description()
         else:
             channels_data.set_category(channel.id, function, EventCategory(event_type))
             desc = EventCategory(event_type).value
@@ -142,7 +142,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             pings_data.add_ping(GuildPingType(ping_type), event_type, role.id)
-            desc = Event.by_type(event_type).short_description()
+            desc = bot.instance.data.guilds.get(self.guild_id).event_templates.get(event_type).short_description()
         else:
             pings_data.add_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
             desc = EventCategory(event_type).value
@@ -156,7 +156,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         pings_data = bot.instance.data.guilds.get(interaction.guild_id).pings
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             pings_data.remove_ping(GuildPingType(ping_type), event_type, role.id)
-            desc = Event.by_type(event_type).short_description()
+            desc = bot.instance.data.guilds.get(self.guild_id).event_templates.get(event_type).short_description()
         else:
             pings_data.remove_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
             desc = EventCategory(event_type).value

@@ -79,7 +79,7 @@ class InputValidator:
         return result
 
     async def check_custom_run_has_description(self, interaction: Interaction, event_type: str, description: str) -> bool:
-        result = Event.by_type(event_type).category() != EventCategory.CUSTOM or description
+        result = bot.instance.data.guilds.get(self.guild_id).event_templates.get(event_type).category() != EventCategory.CUSTOM or description
         if self == InputValidator.RAISING and not result:
             await feedback_and_log(interaction, 'tried booking a custom run without description, but description is mandatory for custom runs.')
         return result
