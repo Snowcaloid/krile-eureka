@@ -61,7 +61,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
             channels_data.set(channel.id, function, event_type)
             desc = bot.instance.data.guilds.get(self.guild_id).event_templates.get(event_type).short_description()
         else:
-            channels_data.set_category(channel.id, function, EventCategory(event_type))
+            channels_data.set_category(channel.id, function, EventCategory(event_type.replace('_CATEGORY', '')))
             desc = EventCategory(event_type).value
         await feedback_and_log(interaction, f'set {channel.jump_url} as the **{function_desc} channel** for type "{desc}".')
 
@@ -144,7 +144,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
             pings_data.add_ping(GuildPingType(ping_type), event_type, role.id)
             desc = bot.instance.data.guilds.get(self.guild_id).event_templates.get(event_type).short_description()
         else:
-            pings_data.add_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
+            pings_data.add_ping_category(GuildPingType(ping_type), EventCategory(event_type.replace('_CATEGORY', '')), role.id)
             desc = EventCategory(event_type).value
         await feedback_and_log(interaction, f'added a ping for role {role.mention} on event <{GuildPingType(ping_type).name}, {desc}>')
 
@@ -158,7 +158,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
             pings_data.remove_ping(GuildPingType(ping_type), event_type, role.id)
             desc = bot.instance.data.guilds.get(self.guild_id).event_templates.get(event_type).short_description()
         else:
-            pings_data.remove_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
+            pings_data.remove_ping_category(GuildPingType(ping_type), EventCategory(event_type.replace('_CATEGORY', '')), role.id)
             desc = EventCategory(event_type).value
         await feedback_and_log(interaction, f'removed a ping for role {role.mention} on event <{GuildPingType(ping_type).name}, {desc}>')
 

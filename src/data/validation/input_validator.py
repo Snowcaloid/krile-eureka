@@ -64,7 +64,8 @@ class InputValidator:
 
     async def check_valid_event_type_or_category(self, interaction: Interaction, event_type: str) -> bool:
         all_event_types = [event_template.type() for event_template in bot.instance.data.guilds.get(self.guild_id).event_templates.all]
-        result = event_type in all_event_types or event_type in EventCategory._value2member_map_
+        result = event_type in all_event_types or (event_type.endswith('_CATEGORY') and
+                                                   event_type.replace('_CATEGORY', '') in EventCategory._value2member_map_)
         if self == InputValidator.RAISING and not result:
             await feedback_and_log(interaction, f'tried using {event_type}, which does not correlate to a supported category or run type.')
         return result

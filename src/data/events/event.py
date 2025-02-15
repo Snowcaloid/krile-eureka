@@ -72,11 +72,6 @@ class ScheduledEvent:
                                               'guild_id', 'use_support'],
                                       where=f'id={id}')
         if record:
-            #TODO: Refactor
-            # for type in Event._registered_events:
-            #     if type.type() == record['event_type']:
-            #         self.template = type
-            #         break
             self.id = id
             self._pl_post_id = record['pl_post_id']
             self._time = record['timestamp']
@@ -84,7 +79,8 @@ class ScheduledEvent:
             self.passcode_main = record['pass_main']
             self.passcode_supp = record['pass_supp']
             self.guild_id = record['guild_id']
-            self._use_support = type.use_support() and record['use_support']
+            self.template = bot.instance.data.guilds.get(self.guild_id).event_templates.get(record['event_type'])
+            self._use_support = self.template.use_support() and record['use_support']
             self.users.load(id)
 
     @property

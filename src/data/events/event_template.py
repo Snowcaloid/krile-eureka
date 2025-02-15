@@ -20,11 +20,11 @@ class EventCategory(Enum):
     @classmethod
     def all_category_choices(cl) -> List[Choice]:
         return [
-            Choice(name='Custom runs', value=cl.CUSTOM.value),
-            Choice(name='All BA runs', value=cl.BA.value),
-            Choice(name='All DRS runs', value=cl.DRS.value),
-            Choice(name='All Bozja-related runs', value=cl.BOZJA.value),
-            Choice(name='All Chaotic Alliance runs', value=cl.CHAOTIC.value)
+            Choice(name='Custom runs', value=cl.CUSTOM.value + '_CATEGORY'),
+            Choice(name='All BA runs', value=cl.BA.value + '_CATEGORY'),
+            Choice(name='All DRS runs', value=cl.DRS.value + '_CATEGORY'),
+            Choice(name='All Bozja-related runs', value=cl.BOZJA.value + '_CATEGORY'),
+            Choice(name='All Chaotic Alliance runs', value=cl.CHAOTIC.value + '_CATEGORY')
         ]
 
     @classmethod
