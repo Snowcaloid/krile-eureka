@@ -2,10 +2,10 @@ from discord import Embed
 import bot
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
-from data.tasks.tasks import TaskExecutionType, TaskBase
+from data.tasks.tasks import TaskExecutionType, TaskTemplate
 
 
-class Task_PostSupportPasscode(TaskBase):
+class Task_PostSupportPasscode(TaskTemplate):
     @classmethod
     def type(cl) -> TaskExecutionType: return TaskExecutionType.POST_SUPPORT_PASSCODE
 

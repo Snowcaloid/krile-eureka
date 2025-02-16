@@ -1,8 +1,9 @@
 from abc import abstractclassmethod
 from enum import Enum
 from json import dumps, loads
-from typing import List, Type
+from typing import List
 from datetime import datetime
+from __future__ import annotations
 
 from data.db.sql import SQL, Record
 from logger import guild_log_message
@@ -19,12 +20,12 @@ class TaskExecutionType(Enum):
     REMOVE_BUTTONS = 8
     UPDATE_EUREKA_INFO_POSTS = 9
 
-class TaskBase:
-    _registered_tasks: List[Type['TaskBase']] = []
+class TaskTemplate:
+    _registered_tasks: List[TaskTemplate] = []
 
     @classmethod
     def register(cl) -> None:
-        TaskBase._registered_tasks.append(cl)
+        TaskTemplate._registered_tasks.append(cl)
 
     @classmethod
     def type(cl) -> TaskExecutionType: return TaskExecutionType.NONE
@@ -42,18 +43,18 @@ class TaskBase:
     async def internal_execute(cl, obj: object) -> None: pass
 
     @classmethod
-    def by_type(cl, task_type: TaskExecutionType) -> Type['TaskBase']:
-        return next(taskbase for taskbase in TaskBase._registered_tasks if taskbase.type() == task_type)
+    def by_type(cl, task_type: TaskExecutionType) -> TaskTemplate:
+        return next(taskbase for taskbase in TaskTemplate._registered_tasks if taskbase.type() == task_type)
 
 
 class Task:
-    base: Type[TaskBase]
+    template: TaskTemplate
     id: int
     time: datetime
     data: object
-    list: Type['Tasks']
+    list: Tasks
 
-    def __init__(self, list: Type['Tasks']) -> None:
+    def __init__(self, list: Tasks) -> None:
         self.list = list
 
     def load(self, id: int) -> None:
@@ -63,25 +64,25 @@ class Task:
             self.id = id
             self.time = record['execution_time']
             self.data = loads(record['data'])
-            for task_base in TaskBase._registered_tasks:
+            for task_base in TaskTemplate._registered_tasks:
                 if task_base.type().value == record['task_type']:
-                    self.base = task_base
+                    self.template = task_base
                     break
 
     @property
     def type(self) -> TaskExecutionType:
-        return self.base.type()
+        return self.template.type()
 
     @property
     def runtime_only(self) -> bool:
-        return self.base.runtime_only()
+        return self.template.runtime_only()
 
     async def execute(self) -> None:
         self.list.executing = True
         try:
-            await self.base.execute(self.data)
+            await self.template.execute(self.data)
         except Exception as e:
-            await self.base.handle_exception(e, self.data)
+            await self.template.handle_exception(e, self.data)
         finally:
             self.list.executing = False
 
@@ -103,18 +104,18 @@ class Tasks:
         self._runtime_tasks = sorted(self._runtime_tasks, key=lambda task: task.time)
 
     def add_task(self, time: datetime, task_type: TaskExecutionType, data: object = None) -> None:
-        if TaskBase.by_type(task_type).runtime_only():
+        if TaskTemplate.by_type(task_type).runtime_only():
             task = Task(self)
             task.time = time
             task.data = data
-            for task_base in TaskBase._registered_tasks:
+            for task_base in TaskTemplate._registered_tasks:
                 if task_base.type() == task_type:
-                    task.base = task_base
+                    task.template = task_base
                     break
             self._runtime_tasks.append(task)
             self.sort_runtime_tasks_by_time()
         else:
-            SQL('tasks').insert(Record(execution_time=time, task_type=task_type.value, data=dumps(data)))
+            SQL('tasks').insert(Record(execution_time=time, task_type=task_type.value, data=dumps(data), description=task_type.name))
             self.load()
 
     def contains(self, type: TaskExecutionType) -> bool:
@@ -152,7 +153,7 @@ class Tasks:
             self.load()
 
     def remove_all(self, type: TaskExecutionType):
-        if TaskBase.by_type(type).runtime_only():
+        if TaskTemplate.by_type(type).runtime_only():
             self._runtime_tasks = list(filter(lambda task: task.type != type, self._runtime_tasks))
         else:
             SQL('tasks').delete(f'task_type={type.value}')
@@ -162,7 +163,7 @@ class Tasks:
         if data is None:
             return
 
-        if TaskBase.by_type(type).runtime_only():
+        if TaskTemplate.by_type(type).runtime_only():
             self._runtime_tasks = list(filter(lambda task: task.type != type and task.data == data, self._runtime_tasks))
         else:
             SQL('tasks').delete(f'task_type={type.value} and data=\'{dumps(data)}\'')
