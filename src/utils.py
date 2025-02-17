@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 import time
-from typing import List
-from discord import Guild, Interaction, Message, Member, Role
+from discord import Guild, Interaction, Member, Role
 from dateutil.tz import tzlocal, tzutc
 from enum import Enum
 # DO NOT IMPORT OTHER UNITS FROM /src/!

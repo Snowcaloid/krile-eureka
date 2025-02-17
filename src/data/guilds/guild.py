@@ -1,5 +1,6 @@
 from typing import List
 from data.db.sql import SQL, Record
+from data.events.event_template import DefaultEventTemplates, EventTemplate
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_event_templates import GuildEventTemplates
 from data.guilds.guild_messages import GuildMessages
@@ -19,7 +20,7 @@ class Guild:
     messages: GuildMessages
     event_templates: GuildEventTemplates
 
-    def __init__(self, default_event_templates: List):
+    def __init__(self, default_event_templates: DefaultEventTemplates):
         self.schedule = GuildSchedule()
         self.channels = GuildChannels()
         self.pings = GuildPings()
@@ -36,12 +37,12 @@ class Guild:
             self._role_developer = record['role_developer']
             self._role_admin = record['role_admin']
         if soft_load: return
+        self.event_templates.load(guild_id)
         self.schedule.load(guild_id)
         self.channels.load(guild_id)
         self.pings.load(guild_id)
         self.roles.load(guild_id)
         self.messages.load(guild_id)
-        self.event_templates.load(guild_id)
         del query
 
     @property
@@ -65,14 +66,18 @@ class Guild:
 
 class Guilds:
     _list: List[Guild] = []
+    _default_event_templates: DefaultEventTemplates
+
+    def __init__(self, default_event_templates: List[EventTemplate]):
+        self._default_event_templates = default_event_templates
 
     def load(self) -> None:
         self._list.clear()
         for record in SQL('guilds').select(fields=['guild_id'],
                                            all=True):
-            guild = Guild()
-            guild.load(record['guild_id'])
+            guild = Guild(self._default_event_templates)
             self._list.append(guild)
+            guild.load(record['guild_id'])
 
     def get(self, guild_id: int) -> Guild:
         if not guild_id: return None

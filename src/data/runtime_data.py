@@ -13,25 +13,19 @@ from data.ui.copied_messages import MessageCopyController
 
 class RuntimeData:
     """General Runtime Data Class"""
-    message_copy_controller: MessageCopyController
+    message_copy_controller: MessageCopyController = MessageCopyController()
     guilds: Guilds
-    ui: UI
-    tasks: Tasks
-    eureka_info: EurekaInfo
-    default_event_templates: DefaultEventTemplates
+    ui: UI = UI()
+    tasks: Tasks = Tasks()
+    eureka_info: EurekaInfo = EurekaInfo()
+    default_event_templates: DefaultEventTemplates = DefaultEventTemplates()
     ready: bool
 
     def __init__(self):
-        self.default_event_templates = DefaultEventTemplates()
-        self.guilds = Guilds(self.default_event_templates)
-        self.ui = UI()
-        self.tasks = Tasks()
-        self.eureka_info = EurekaInfo()
-
         self.ready = False
+        self.guilds = Guilds(self.default_event_templates)
         RegisterTables.register()
         self.ensure_database_tables()
-        self.message_copy_controller = MessageCopyController()
 
     def ensure_database_tables(self):
         """Create the database and update the tables."""
@@ -43,7 +37,7 @@ class RuntimeData:
     async def reset(self):
         """Load general data from the db."""
         if self.ready:
-            self.__init__()
+            self.ready = False
         await self.ui.load()
         self.guilds.load()
         self.tasks.load()
@@ -51,7 +45,6 @@ class RuntimeData:
         self.ready = True
         cache.messages.cache.clear()
         for guild in bot.instance.guilds:
-            await guild.fetch_members()
             await self.ui.schedule.rebuild(guild.id)
 
         if not self.tasks.contains(TaskExecutionType.UPDATE_STATUS):

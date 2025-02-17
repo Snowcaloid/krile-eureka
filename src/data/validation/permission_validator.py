@@ -52,5 +52,5 @@ class PermissionValidator:
             else:
                 for guild_role in guild_roles.get_by_id(role.id):
                     if guild_role.function == GuildRoleFunction.RAID_LEADER and not guild_role.event_category in categories:
-                        categories.add(guild_role.event_category)
+                        categories.append(EventCategory(guild_role.event_category))
         return categories

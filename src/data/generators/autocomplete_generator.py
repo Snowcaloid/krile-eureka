@@ -19,13 +19,16 @@ from data.validation.permission_validator import PermissionValidator
 class AutoCompleteGenerator:
     @classmethod
     def filter_by_current(cl, list: List[Choice], current: str) -> List[Choice]:
-        return [choice for choice in list if choice.name.lower().startswith(current.lower())]
+        if current == '':
+            return list
+        else:
+            return [choice for choice in list if choice.name.lower().startswith(current.lower())]
 
     @classmethod
     def event_type(cl, interaction: Interaction, current: str) -> List[Choice]:
         allowed_categories = PermissionValidator.get_raid_leader_permissions(interaction.user)
-        return cl.filter_by_current(bot.instance.data.guilds.get(
-            interaction.guild_id).event_templates.get_by_categories(allowed_categories), current)
+        return cl.filter_by_current([event_template.as_choice() for event_template in bot.instance.data.guilds.get(
+            interaction.guild_id).event_templates.get_by_categories(allowed_categories)], current)
 
     @classmethod
     def event_type_with_categories(cl, current: str, guild_id: int) -> List[Choice]:

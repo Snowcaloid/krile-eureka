@@ -2,22 +2,23 @@ from json import loads
 from typing import List
 
 from data.db.sql import SQL, Record
-from data.events.event_template import EventCategory, EventTemplate
+from data.events.event_template import DefaultEventTemplates, EventCategory, EventTemplate
 
 
 class GuildEventTemplates:
-    _list: List[EventTemplate] = []
-    _default_templates: List[EventTemplate] = []
+    _list: List[EventTemplate]
+    _default_templates: DefaultEventTemplates
 
     guild_id: int
 
     def __init__(self, default_templates: List[EventTemplate] = []):
+        self._list = []
         self._default_templates = default_templates
 
     def load(self, guild_id: int) -> None:
         self.guild_id = guild_id
         self._list.clear()
-        self._list.extend(self._default_templates)
+        self._list.extend(self._default_templates.all)
         for record in SQL('event_templates').select(fields=['data'], where=f'guild_id={guild_id}', all=True):
             data = record['data']
             template = EventTemplate(loads(data))

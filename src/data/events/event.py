@@ -236,15 +236,15 @@ class Event:
     def recruitment_post_text(self) -> str:
         guild = bot.instance.get_guild(self.guild_id)
         rl = guild.get_member(self.users.raid_leader)
-        pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.template.pl_button_texts()[0] else None
-        pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1])) if self.template.pl_button_texts()[1] else None
-        pl3 = self._pl_placeholder(guild.get_member(self.users.party_leaders[2])) if self.template.pl_button_texts()[2] else None
-        pl4 = self._pl_placeholder(guild.get_member(self.users.party_leaders[3])) if self.template.pl_button_texts()[3] else None
-        pl5 = self._pl_placeholder(guild.get_member(self.users.party_leaders[4])) if self.template.pl_button_texts()[4] else None
-        pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5])) if self.template.pl_button_texts()[5] else None
-        pls = self._pl_placeholder(guild.get_member(self.users.party_leaders[6])) if self.use_support else None
+        pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.template.pl_button_texts()[0] else ''
+        pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1])) if self.template.pl_button_texts()[1] else ''
+        pl3 = self._pl_placeholder(guild.get_member(self.users.party_leaders[2])) if self.template.pl_button_texts()[2] else ''
+        pl4 = self._pl_placeholder(guild.get_member(self.users.party_leaders[3])) if self.template.pl_button_texts()[3] else ''
+        pl5 = self._pl_placeholder(guild.get_member(self.users.party_leaders[4])) if self.template.pl_button_texts()[4] else ''
+        pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5])) if self.template.pl_button_texts()[5] else ''
+        pls = self._pl_placeholder(guild.get_member(self.users.party_leaders[6])) if self.use_support else ''
 
-        return self.template.recruitment_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls)
+        return self.template.recruitment_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls, self._use_support)
 
     def party_leader_dm_text(self, index: int) -> str:
         return self.template.party_leader_dm_text(

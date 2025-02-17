@@ -28,6 +28,11 @@ class EventCategory(Enum):
         ]
 
     @classmethod
+    def _missing_(cls, value):
+        normalized_name = value.replace("_CATEGORY", "")
+        return cls.__members__.get(normalized_name, None)
+
+    @classmethod
     def all_category_choices_short(cl) -> List[Choice]:
         return [
             Choice(name='Custom run', value=cl.CUSTOM.value),
@@ -50,10 +55,15 @@ class EventTemplate:
     def _handle_support_text(self, use_support: bool, template_text: str) -> str:
         index_of_no_support = template_text.find('%!support=') if '%!support=' in template_text else -1
         no_support_text = template_text[index_of_no_support + len('%!support='):] if '%!support=' in template_text else ''
-        if index_of_no_support = -1:
+        if index_of_no_support == -1:
             support_text = template_text[template_text.find('%support=') + len('%support='):] if '%support=' in template_text else ''
         else:
             support_text = template_text[template_text.find('%support=') + len('%support='):template_text.find('%!support=')] if '%support=' in template_text else ''
+
+        if '%support=' in template_text:
+            template_text = template_text[:template_text.find('%support=')]
+        elif '%!support=' in template_text:
+            template_text = template_text[:template_text.find('%!support=')]
 
         if self.use_support() and use_support:
             return template_text.replace('%support', support_text)
@@ -215,7 +225,7 @@ class EventTemplate:
 class DefaultEventTemplates:
     _list: List[EventTemplate] = []
 
-    def find_yaml_templates(start_dir="/") -> List[str]:
+    def find_yaml_templates(self, start_dir: str= '/') -> List[str]:
         matches = []
         for root, dirs, files in walk(start_dir):
             if "assets/event_templates" in root:
@@ -230,8 +240,6 @@ class DefaultEventTemplates:
                 template = EventTemplate(yaml.safe_load(file.read()))
                 self._list.append(template)
 
-    def get(self, event_type: str) -> EventTemplate:
-        return next((template for template in self._list if template.type() == event_type), None)
-
-    def get_events_for_category(self, category: EventCategory) -> List[EventTemplate]:
-        return [template for template in self._list if template.category() == category]
+    @property
+    def all(self) -> List[EventTemplate]:
+        return self._list
