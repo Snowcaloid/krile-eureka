@@ -3,7 +3,7 @@ from typing import List
 from datetime import datetime
 
 from data.db.sql import SQL
-from register import Asset
+from register import LoadedAsset
 from abc import abstractmethod
 from enum import Enum
 
@@ -20,7 +20,7 @@ class TaskExecutionType(Enum):
     REMOVE_BUTTONS = 8
     UPDATE_EUREKA_INFO_POSTS = 9
 
-class TaskTemplate(Asset):
+class TaskTemplate(LoadedAsset):
     @classmethod
     def base_asset_class_name(cls) -> str: return 'TaskTemplate'
 

@@ -5,15 +5,15 @@ from datetime import datetime
 
 from data.db.sql import SQL, Record
 from data.tasks.task import Task, TaskExecutionType, TaskTemplate
-from register import AssetHolder
+from register import AssetLoader
 
-class Tasks(AssetHolder[Task]):
+class Tasks(AssetLoader[Task]):
     _list: List[Task] = []
     _runtime_tasks: List[Task] = []
     executing: bool = False
 
     def task_template(self, type: TaskExecutionType) -> TaskTemplate:
-        return next(task for task in self.registered_assets if task.type() == type)
+        return next(task for task in self.loaded_assets if task.type() == type)
 
     @override
     def asset_folder_name(self): return 'tasks'
@@ -23,7 +23,7 @@ class Tasks(AssetHolder[Task]):
         for record in SQL('tasks').select(fields=['id'],
                                           all=True,
                                           sort_fields=['execution_time']):
-            task = Task(self.registered_assets)
+            task = Task(self.loaded_assets)
             task.load(record['id'])
             self._list.append(task)
 
@@ -32,7 +32,7 @@ class Tasks(AssetHolder[Task]):
 
     def add_task(self, time: datetime, task_type: TaskExecutionType, data: object = None) -> None:
         if self.task_template(task_type).runtime_only():
-            task = Task(self.registered_assets)
+            task = Task(self.loaded_assets)
             task.time = time
             task.data = data
             task.template = self.task_template(task_type)
