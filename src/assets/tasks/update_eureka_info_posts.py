@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 
 import bot
 from data.guilds.guild_message_functions import GuildMessageFunction
-from data.tasks.tasks import TaskExecutionType, TaskBase
+from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
-class Task_UpdateEurekaInfoPosts(TaskBase):
+class Task_UpdateEurekaInfoPosts(TaskTemplate):
     @classmethod
     def type(cl) -> TaskExecutionType: return TaskExecutionType.UPDATE_EUREKA_INFO_POSTS
     @classmethod

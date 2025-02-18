@@ -1,4 +1,4 @@
-FROM python:3.12-bookworm
+FROM python:3.13-bookworm
 
 ARG BUILD_TIME=unknown
 ARG GIT_HEAD=unknown

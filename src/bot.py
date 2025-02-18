@@ -9,7 +9,7 @@ from commands.eureka import EurekaCommands
 from commands.logos import LogosCommands
 from commands.ping import PingCommands
 from data.runtime_data import RuntimeData
-from data.tasks.tasks import TaskExecutionType
+from data.tasks.task import TaskExecutionType
 from commands.embed import EmbedCommands
 from commands.schedule import ScheduleCommands
 from commands.log import LogCommands
@@ -72,10 +72,12 @@ async def task_loop(): # You can think of it as sleep(1000) after the last proce
         task = instance.data.tasks.get_next()
         if task is None: return
         if instance.data.tasks.executing: return
+        instance.data.tasks.executing = True
         try:
             await task.execute()
         finally:
             instance.data.tasks.remove_task(task)
+            instance.data.tasks.executing = False
 
 @instance.event
 async def on_member_join(member: Member):

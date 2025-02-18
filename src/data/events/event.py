@@ -8,7 +8,7 @@ from data.db.sql import SQL, Record
 from data.events.event_template import EventCategory, EventTemplate
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.tasks.tasks import TaskExecutionType
+from data.tasks.task import TaskExecutionType
 
 from utils import DiscordTimestampType, get_discord_member, get_discord_timestamp
 

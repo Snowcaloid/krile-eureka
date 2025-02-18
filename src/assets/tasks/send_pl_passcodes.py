@@ -1,9 +1,9 @@
 from discord import Embed
 import bot
-from data.tasks.tasks import TaskExecutionType, TaskBase
+from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
-class Task_SendPLPasscodes(TaskBase):
+class Task_SendPLPasscodes(TaskTemplate):
     @classmethod
     def type(cl) -> TaskExecutionType: return TaskExecutionType.SEND_PL_PASSCODES
 

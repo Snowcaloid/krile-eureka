@@ -1,8 +1,8 @@
-from data.tasks.tasks import TaskExecutionType, TaskBase
+from data.tasks.task import TaskExecutionType, TaskTemplate
 from data.ui.buttons import delete_buttons
 
 
-class Task_RemoveButtons(TaskBase):
+class Task_RemoveButtons(TaskTemplate):
     @classmethod
     def type(cl) -> TaskExecutionType: return TaskExecutionType.REMOVE_BUTTONS
 

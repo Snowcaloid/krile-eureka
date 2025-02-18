@@ -7,7 +7,8 @@ from data.events.event_template import DefaultEventTemplates
 from data.guilds.guild import Guilds
 from data.db.register import RegisterTables
 from data.db.definition import TableDefinitions
-from data.tasks.tasks import TaskExecutionType, Tasks
+from data.tasks.task import TaskExecutionType
+from data.tasks.tasks import Tasks
 from data.ui.ui import UI
 from data.ui.copied_messages import MessageCopyController
 

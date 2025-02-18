@@ -5,10 +5,10 @@ import bot
 from data.db.sql import SQL
 from data.events.event import Event
 from data.events.event_template import EventCategory
-from data.tasks.tasks import TaskExecutionType, TaskBase
+from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
-class Task_UpdateStatus(TaskBase):
+class Task_UpdateStatus(TaskTemplate):
     @classmethod
     def type(cl) -> TaskExecutionType: return TaskExecutionType.UPDATE_STATUS
     @classmethod

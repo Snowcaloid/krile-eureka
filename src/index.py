@@ -14,9 +14,6 @@ if os.getenv('WAIT_DEBUG').upper() == 'TRUE':
 
 import bot
 
-from data.tasks.task_registers import TaskRegisters
-TaskRegisters.register_all()
-
 # What the bot does upon connecting to discord for the first time
 @bot.instance.event
 async def on_ready():

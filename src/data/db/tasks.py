@@ -5,4 +5,5 @@ class TaskTable(TableDefinition):
         self.define_column('id', ColumnType.SERIAL)
         self.define_column('execution_time', ColumnType.TIMESTAMP)
         self.define_column('task_type', ColumnType.INTEGER)
-        self.define_column('data', ColumnType.TEXT)
+        self.define_column('description', ColumnType.VARCHAR, 30)
+        self.define_column('data', ColumnType.JSON)

@@ -1,8 +1,8 @@
 import bot
-from data.tasks.tasks import TaskExecutionType, TaskBase
+from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
-class Task_RemoveOldRun(TaskBase):
+class Task_RemoveOldRun(TaskTemplate):
     @classmethod
     def type(cl) -> TaskExecutionType: return TaskExecutionType.REMOVE_OLD_RUNS
 

@@ -1,9 +1,9 @@
 import bot
 import data.cache.message_cache as cache
-from data.tasks.tasks import TaskExecutionType, TaskBase
+from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
-class Task_RemoveOldMessage(TaskBase):
+class Task_RemoveOldMessage(TaskTemplate):
     @classmethod
     def type(cl) -> TaskExecutionType: return TaskExecutionType.REMOVE_OLD_MESSAGE
 
