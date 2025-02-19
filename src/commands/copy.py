@@ -1,5 +1,5 @@
 import bot
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Interaction, Thread
@@ -15,7 +15,7 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
     @check(PermissionValidator.is_admin)
     async def message(self, interaction: Interaction, channel: TextChannel, message_id: str):
         await default_defer(interaction)
-        message = await cache.messages.get(str(message_id), channel)
+        message = await MessageCache().get(str(message_id), channel)
         bot.instance.data.message_copy_controller.add(interaction.user.id, message)
         await default_response(interaction, f'Copied message.\n{message.content}')
 
@@ -33,7 +33,7 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
         await default_defer(interaction)
         if not await InputValidator.RAISING.check_message_exists(interaction, channel, str(message_id)): return
         message_source = bot.instance.data.message_copy_controller.get(interaction.user.id)
-        message_dest = await cache.messages.get(str(message_id), channel)
+        message_dest = await MessageCache().get(str(message_id), channel)
         message_dest = await message_dest.edit(content=message_source.content, embeds=message_source.embeds,
                                                attachments=[await a.to_file() for a in message_source.attachments])
         await default_response(interaction, f'Edited the message: {message_dest.jump_url}.')

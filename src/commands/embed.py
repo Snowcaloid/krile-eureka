@@ -1,5 +1,5 @@
 import bot
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 from discord.ext.commands import GroupCog
 from discord import Interaction, TextChannel
 from discord.app_commands import check, command
@@ -22,7 +22,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
     async def load(self, interaction: Interaction, channel: TextChannel, message_id: str):
         if not await InputValidator.RAISING.check_message_exists(interaction, channel, message_id): return
         if not await InputValidator.RAISING.check_message_contains_an_embed(interaction, channel, message_id): return
-        message = await cache.messages.get(int(message_id), channel)
+        message = await MessageCache().get(int(message_id), channel)
         await bot.instance.data.ui.embed.load(interaction, message)
 
     #region error-handling

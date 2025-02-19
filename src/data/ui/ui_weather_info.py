@@ -1,13 +1,15 @@
 from datetime import datetime
 from discord import Embed, Message, TextChannel
 from data.guilds.guild_message_functions import GuildMessageFunction
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 import bot
 from data.weather.weather import EurekaWeathers, EurekaZones, current_weather, next_day, next_night, next_weather, to_eorzea_time, weather_emoji
 from utils import DiscordTimestampType, get_discord_timestamp
 
 class UIWeatherPost:
     """Eureka Weather Info post."""
+    @MessageCache.bind
+    def message_cache(self) -> MessageCache: ...
 
     async def rebuild(self, guild_id: int, message: Message = None) -> Message:
         if message is None:
@@ -16,7 +18,7 @@ class UIWeatherPost:
             if message_data is None: return
             channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
             if channel is None: return
-            message = await cache.messages.get(message_data.message_id, channel)
+            message = await self.message_cache.get(message_data.message_id, channel)
 
         if message is None: return
         current_time = to_eorzea_time(datetime.utcnow())
@@ -54,7 +56,7 @@ class UIWeatherPost:
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return
-        message = await cache.messages.get(message_data.message_id, channel)
+        message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
         await message.delete()
         guild_data.messages.remove(message_data.message_id)

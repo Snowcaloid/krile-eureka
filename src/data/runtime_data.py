@@ -1,6 +1,6 @@
 from datetime import datetime
 import bot
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 from data.db.sql import Record
 from data.eureka_info import EurekaInfo
 from data.events.event_template import DefaultEventTemplates
@@ -43,7 +43,7 @@ class RuntimeData:
         self.tasks.load()
         self.eureka_info.load()
         self.ready = True
-        cache.messages.cache.clear()
+        MessageCache().clear()
         for guild in bot.instance.guilds:
             await self.ui.schedule.rebuild(guild.id)
 

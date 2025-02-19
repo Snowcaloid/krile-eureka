@@ -1,5 +1,5 @@
 import bot
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
@@ -28,7 +28,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         if message_data:
             old_channel = bot.instance.get_channel(message_data.channel_id)
             if old_channel:
-                old_message = await cache.messages.get(message_data.message_id, old_channel)
+                old_message = await MessageCache().get(message_data.message_id, old_channel)
                 if old_message:
                     await old_message.delete()
             guild_data.messages.remove(message_data.message_id) # TODO: This routine is used multiple times. It could be moved somewhere else

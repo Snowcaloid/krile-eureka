@@ -2,7 +2,7 @@ from datetime import date
 from typing import List
 from discord import TextChannel
 from data.events.event import Event
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 import bot
 from data.guilds.guild_message_functions import GuildMessageFunction
 
@@ -36,7 +36,7 @@ class UISchedule:
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return
-        post = await cache.messages.get(message_data.message_id, channel)
+        post = await MessageCache().get(message_data.message_id, channel)
         if post:
             embed = post.embeds[0]
             embed.title = 'Upcoming Runs'

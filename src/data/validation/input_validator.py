@@ -1,6 +1,7 @@
+from __future__ import annotations
 import re
 import bot
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 from datetime import datetime
 from discord import Interaction, Member, TextChannel
 
@@ -12,8 +13,11 @@ from data.validation.permission_validator import PermissionValidator
 
 
 class InputValidator:
-    NORMAL: 'InputValidator'
-    RAISING: 'InputValidator'
+    NORMAL: InputValidator
+    RAISING: InputValidator
+
+    @MessageCache.bind
+    def message_cache(self) -> MessageCache: ...
 
     async def check_for_sql_identifiers(self, interaction: Interaction, text: str) -> bool:
         result = not re.search('(\\s|^)(drop|alter|update|set|create|grant|;)\\s', text, re.IGNORECASE)
@@ -98,14 +102,14 @@ class InputValidator:
         return result
 
     async def check_message_exists(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
-        message = await cache.messages.get(int(message_id), channel)
+        message = await self.message_cache.get(int(message_id), channel)
         result = not message is None
         if self == InputValidator.RAISING and not result:
             await feedback_and_log(interaction, f'tried accessing Message with ID <{str(message_id)}>, which does not exist in {channel.mention}.')
         return result
 
     async def check_message_contains_an_embed(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
-        message = await cache.messages.get(int(message_id), channel)
+        message = await self.message_cache.get(int(message_id), channel)
         result = len(message.embeds) > 0
         if self == InputValidator.RAISING and not result:
             await feedback_and_log(interaction, f'tried accessing embeds in Message with ID <{str(message_id)}>, which does not contain any embeds.')

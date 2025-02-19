@@ -1,4 +1,5 @@
 import os
+from data.cache.message_cache import MessageCache
 from discord import Intents, Member, Object, HTTPException, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, Context, Greedy
 from commands.admin import AdminCommands
@@ -17,7 +18,6 @@ from datetime import datetime
 from typing import Literal, Optional
 from logger import guild_log_message
 from discord.ext import tasks
-import data.cache.message_cache as cache
 
 
 class Krile(Bot):
@@ -86,8 +86,9 @@ async def on_member_join(member: Member):
 @instance.event
 async def on_raw_message_delete(payload: RawMessageDeleteEvent):
     instance.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
-    if cache.messages.cache.get(payload.message_id, None) is None: return
-    cache.messages.cache.pop(payload.message_id)
+    message_cache = MessageCache()
+    if message_cache.get(payload.message_id, None) is None: return
+    message_cache.remove(payload.message_id)
 
 @instance.command()
 @guild_only()

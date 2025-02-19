@@ -1,7 +1,7 @@
 from discord import ButtonStyle, Embed, Message, TextChannel
 from data.eureka_info import EurekaTrackerZone
 from data.guilds.guild_message_functions import GuildMessageFunction
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 import bot
 from data.ui.buttons import AssignTrackerButton, GenerateTrackerButton, save_buttons
 from data.ui.views import PersistentView
@@ -10,6 +10,8 @@ from utils import DiscordTimestampType, get_discord_timestamp
 
 class UIEurekaInfoPost:
     """Eureka Info post."""
+    @MessageCache.bind
+    def message_cache(self) -> MessageCache: ...
 
     async def create(self, guild_id: int) -> Message:
         guild_data = bot.instance.data.guilds.get(guild_id)
@@ -17,7 +19,7 @@ class UIEurekaInfoPost:
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return
-        message = await cache.messages.get(message_data.message_id, channel)
+        message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
         view = PersistentView()
         view.add_item(AssignTrackerButton(style=ButtonStyle.success, label='Assign an existing tracker', row=0, index=0))
@@ -42,7 +44,7 @@ class UIEurekaInfoPost:
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return
-        message = await cache.messages.get(message_data.message_id, channel)
+        message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
 
         anemos_trackers = self.get_trackers_text(EurekaTrackerZone.ANEMOS)
@@ -80,7 +82,7 @@ class UIEurekaInfoPost:
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return
-        message = await cache.messages.get(message_data.message_id, channel)
+        message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
         await message.delete()
         guild_data.messages.remove(message_data.message_id)

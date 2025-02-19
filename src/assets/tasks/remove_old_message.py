@@ -1,5 +1,5 @@
 import bot
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
@@ -14,7 +14,7 @@ class Task_RemoveOldMessage(TaskTemplate):
             if message_data:
                 channel = bot.instance.get_channel(message_data.channel_id)
                 if channel:
-                    message = await cache.messages.get(message_data.message_id, channel)
+                    message = await MessageCache().get(message_data.message_id, channel)
                     if message:
                         await message.delete()
                 bot.instance.data.guilds.get(obj["guild"]).messages.remove(message_data.message_id)

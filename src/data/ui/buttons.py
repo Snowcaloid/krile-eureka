@@ -9,7 +9,7 @@ from data.ui.selects import EurekaTrackerZoneSelect
 from data.ui.views import TemporaryView
 from logger import feedback_and_log, guild_log_message
 from utils import default_defer, default_response
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 
 
 class ButtonBase(Button):
@@ -217,7 +217,7 @@ async def get_guild_button_data(button_id: str, channel_id: int, message_id: int
     channel: TextChannel = bot.instance.get_channel(channel_id)
     if channel is None: channel = await bot.instance.fetch_channel(channel_id)
     if channel:
-        message = await cache.messages.get(message_id, channel)
+        message = await MessageCache().get(message_id, channel)
         if message:
             if role_id:
                 role = channel.guild.get_role(role_id)

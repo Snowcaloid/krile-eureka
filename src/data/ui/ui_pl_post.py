@@ -3,7 +3,7 @@ from discord import ButtonStyle, Embed, Message, TextChannel
 from data.guilds.guild_channel import GuildChannel
 from data.guilds.guild_message_functions import GuildMessageFunction
 from data.guilds.guild_pings import GuildPingType
-import data.cache.message_cache as cache
+from data.cache.message_cache import MessageCache
 import bot
 from data.events.event_category import EventCategory
 from data.guilds.guild_channel_functions import GuildChannelFunction
@@ -12,6 +12,9 @@ from data.ui.views import PersistentView
 
 class UIPLPost:
     """Party leader post."""
+    @MessageCache.bind
+    def message_cache(self) -> MessageCache: ...
+
     async def create(self, guild_id: int, id: int) -> None:
         guild_data = bot.instance.data.guilds.get(guild_id)
         event = guild_data.schedule.get(id)
@@ -36,7 +39,7 @@ class UIPLPost:
         channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
-        message = await cache.messages.get(event.pl_post_id, channel)
+        message = await self.message_cache.get(event.pl_post_id, channel)
         if message is None: return
         embed = Embed(title=event.recruitment_post_title, description=event.recruitment_post_text)
         if recreate_view:
@@ -76,6 +79,6 @@ class UIPLPost:
         channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
-        message = await cache.messages.get(event.pl_post_id, channel)
+        message = await self.message_cache.get(event.pl_post_id, channel)
         if message is None: return
         await message.delete()

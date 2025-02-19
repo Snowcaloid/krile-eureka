@@ -1,3 +1,4 @@
+import asyncio
 import debugpy
 
 debugpy.listen(("0.0.0.0", 5678))
@@ -21,6 +22,10 @@ async def on_ready():
     for guild in bot.instance.data.guilds.all:
         from logger import guild_log_message
         from asset_loader import AssetLoader
+        while not bot.instance.data.ready:
+            print('Waiting for data to be ready...')
+            await asyncio.sleep(500)
+
         message = (
             f'{bot.instance.user.mention} has successfully started.\n'
             'Launch messages:\n'
