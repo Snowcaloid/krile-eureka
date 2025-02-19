@@ -3,7 +3,7 @@ from enum import Enum
 from typing import List
 
 from data.db.sql import SQL, Record
-from data.events.event_template import EventCategory
+from data.events.event_category import EventCategory
 
 # TODO: technically, this could be united with guild_roles
 

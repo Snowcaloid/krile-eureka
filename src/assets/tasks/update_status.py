@@ -4,7 +4,7 @@ from discord import Activity, ActivityType, Status
 import bot
 from data.db.sql import SQL
 from data.events.event import Event
-from data.events.event_template import EventCategory
+from data.events.event_category import EventCategory
 from data.tasks.task import TaskExecutionType, TaskTemplate
 
 

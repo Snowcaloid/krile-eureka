@@ -5,7 +5,7 @@ from datetime import datetime
 from discord import Interaction, Member, TextChannel
 
 from data.eureka_info import EurekaTrackerZone
-from data.events.event_template import EventCategory
+from data.events.event_category import EventCategory
 from data.notorious_monsters import NOTORIOUS_MONSTERS, NotoriousMonster
 from logger import feedback_and_log
 from data.validation.permission_validator import PermissionValidator

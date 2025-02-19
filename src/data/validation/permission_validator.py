@@ -2,7 +2,7 @@ import os
 from typing import List, Tuple, Union
 from discord import Interaction, InteractionResponse, Member
 import bot
-from data.events.event_template import EventCategory
+from data.events.event_category import EventCategory
 from data.guilds.guild_role_functions import GuildRoleFunction
 
 

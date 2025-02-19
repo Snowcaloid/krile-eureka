@@ -1,7 +1,8 @@
 from typing import List
 
 from data.db.sql import SQL, Record
-from data.events.event_template import DefaultEventTemplates, EventCategory, EventTemplate
+from data.events.event_category import EventCategory
+from data.events.event_template import DefaultEventTemplates, EventTemplate
 
 
 class GuildEventTemplates:

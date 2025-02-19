@@ -2,7 +2,7 @@ from typing import List
 
 import bot
 from data.db.sql import SQL, Record
-from data.events.event_template import EventCategory
+from data.events.event_category import EventCategory
 from data.guilds.guild_channel_functions import GuildChannelFunction
 
 class GuildChannel:

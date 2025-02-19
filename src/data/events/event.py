@@ -1,18 +1,17 @@
 
+from data.events.event_category import EventCategory
 from discord import Interaction, Member
 import bot
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
 from typing import List, Tuple, Type
 from data.db.sql import SQL, Record
-from data.events.event_template import EventCategory, EventTemplate
+from data.events.event_template import EventTemplate
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.tasks.task import TaskExecutionType
 
 from utils import DiscordTimestampType, get_discord_member, get_discord_timestamp
-
-PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 
 class EventUserData:
     event_id: int
@@ -50,6 +49,8 @@ class EventUserData:
         record[PL_FIELDS[index]] = value
         SQL('events').update(record, f'id={self.event_id}')
         self.load(self.event_id)
+
+PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 
 class Event:
     template: EventTemplate

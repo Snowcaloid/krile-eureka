@@ -7,7 +7,7 @@ from discord.app_commands import Choice
 
 from data.eureka_info import EurekaTrackerZone
 
-from data.events.event_template import EventCategory
+from data.events.event_category import EventCategory
 from data.guilds.guild_pings import GuildPingType
 from data.guilds.guild_role_functions import GuildRoleFunction
 from data.notorious_monsters import NM_ALIASES, NOTORIOUS_MONSTERS, NotoriousMonster
