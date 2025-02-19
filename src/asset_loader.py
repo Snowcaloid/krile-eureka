@@ -27,7 +27,7 @@ class AssetLoader[T: LoadedAsset]:
         AssetLoader._log += message + '\n' #test
         print(message)
 
-    def load(self, obj: T, name: str) -> None:
+    def add_asset(self, obj: T, name: str) -> None:
         self.loaded_assets.append(obj)
         self.log(f"Asset {name} loaded by {self.__class__.__name__}.")
 
@@ -47,7 +47,7 @@ class PythonAsset(LoadedAsset):
         if cls == LoadedAsset: return
         if cls.__name__ == cls.base_asset_class_name(): return
         instance = cls()
-        PythonAssetLoader.current_loader.load(instance, cls.__name__)
+        PythonAssetLoader.current_loader.add_asset(instance, cls.__name__)
 
     @classmethod
     def base_asset_class_name(cls): return 'PythonAsset'
@@ -98,4 +98,4 @@ class YamlAssetLoader[T: YamlAsset](AssetLoader[T]):
     @override
     def load_asset(self, filename):
         yaml_asset = self.asset_class()(filename)
-        self.load(yaml_asset, f'{self.asset_class().__name__}[{yaml_asset.asset_name()}]')
+        self.add_asset(yaml_asset, f'{self.asset_class().__name__}[{yaml_asset.asset_name()}]')

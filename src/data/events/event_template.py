@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 from enum import Enum
 from json import dumps
-from typing import List, Tuple, Type, override
+from typing import Dict, List, Tuple, Type, override
 from asset_loader import YamlAsset, YamlAssetLoader
 from discord.app_commands import Choice
 
@@ -45,6 +45,16 @@ class EventTemplate(YamlAsset):
     @override
     def asset_name(self) -> str:
         return self.description()
+
+    def autocomplete_weight(self) -> int:
+        category_weight = {
+            EventCategory.CUSTOM: 0,
+            EventCategory.BA: 1,
+            EventCategory.CHAOTIC: 2,
+            EventCategory.DRS: 3,
+            EventCategory.BOZJA: 4
+        }
+        return category_weight[self.category()] * 100 + 10 - len(self.type()) # the longer the type, the less specific it is
 
     @property
     def data(self) -> str:
@@ -219,8 +229,10 @@ class EventTemplate(YamlAsset):
     def as_choice(self) -> Choice:
         return Choice(name=self.description(), value=self.type())
 
-
 class DefaultEventTemplates(YamlAssetLoader[EventTemplate]):
+    def __init__(self):
+        super().__init__()
+        self.loaded_assets.sort(key=lambda template: template.autocomplete_weight())
     @override
     def asset_class(self) -> Type[EventTemplate]: return EventTemplate
 

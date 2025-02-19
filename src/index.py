@@ -27,14 +27,14 @@ async def on_ready():
         )
         await guild_log_message(guild.id, message)
         launch_messages = AssetLoader._log.splitlines(True)
-        limit = 2000 - 10 # leeway for the code block
+        limit = 2000 - 20 # leeway for the code block
         message = ''
         for line in launch_messages:
             limit -= len(line)
-            if limit < 0:
+            if limit <= 0:
                 await guild_log_message(guild.id, f'```\n{message}```\n')
                 message = line
-                limit = 2000 - 10 - len(line)
+                limit = 2000 - 20 - len(line)
             else:
                 message += line
         if message:
