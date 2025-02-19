@@ -1,13 +1,14 @@
+from typing import override
 import bot
 from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
 class Task_RemoveOldRun(TaskTemplate):
-    @classmethod
-    def type(cl) -> TaskExecutionType: return TaskExecutionType.REMOVE_OLD_RUNS
+    @override
+    def type(self) -> TaskExecutionType: return TaskExecutionType.REMOVE_OLD_RUNS
 
-    @classmethod
-    async def execute(cl, obj: object) -> None:
+    @override
+    async def execute(self, obj: object) -> None:
         if obj and obj["id"]:
             for guild in bot.instance.data.guilds.all:
                 guild.schedule.finish(obj["id"])

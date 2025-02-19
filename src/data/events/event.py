@@ -1,5 +1,6 @@
 
 from data.events.event_category import EventCategory
+from data.tasks.tasks import Tasks
 from discord import Interaction, Member
 import bot
 from indexedproperty import indexedproperty
@@ -63,6 +64,9 @@ class Event:
     passcode_supp: int
     _description: str
     _use_support: bool
+
+    @Tasks.bind
+    def _tasks(self) -> Tasks: ...
 
     def __init__(self):
         self.users = EventUserData()
@@ -262,23 +266,23 @@ class Event:
         self.load(self.id)
 
     def create_tasks(self) -> None:
-        bot.instance.data.tasks.add_task(self.time, TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
+        self._tasks.add_task(self.time, TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
         if self.use_recruitment_posts and self.delete_recruitment_posts:
             channel_data = bot.instance.data.guilds.get(self.guild_id).channels.get(GuildChannelFunction.PL_CHANNEL, self.type)
             if channel_data:
-                bot.instance.data.tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
+                self._tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
         if not self.auto_passcode: return
-        bot.instance.data.tasks.add_task(self.time - self.main_passcode_delay, TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
-        bot.instance.data.tasks.add_task(self.time - self.pl_passcode_delay, TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
+        self._tasks.add_task(self.time - self.main_passcode_delay, TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
+        self._tasks.add_task(self.time - self.pl_passcode_delay, TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
         if self.use_support:
-            bot.instance.data.tasks.add_task(self.time - self.support_passcode_delay, TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
+            self._tasks.add_task(self.time - self.support_passcode_delay, TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
 
     def delete_tasks(self) -> None:
-        bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
-        bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
-        bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
-        bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
-        bot.instance.data.tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
+        self._tasks.remove_task_by_data(TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
+        self._tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
+        self._tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
+        self._tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
+        self._tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
 
     def recreate_tasks(self) -> None:
         self.delete_tasks()

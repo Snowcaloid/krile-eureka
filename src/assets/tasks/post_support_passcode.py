@@ -1,3 +1,4 @@
+from typing import override
 from discord import Embed
 import bot
 from data.guilds.guild_channel_functions import GuildChannelFunction
@@ -6,11 +7,11 @@ from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
 class Task_PostSupportPasscode(TaskTemplate):
-    @classmethod
-    def type(cl) -> TaskExecutionType: return TaskExecutionType.POST_SUPPORT_PASSCODE
+    @override
+    def type(self) -> TaskExecutionType: return TaskExecutionType.POST_SUPPORT_PASSCODE
 
-    @classmethod
-    async def execute(cl, obj: object) -> None:
+    @override
+    async def execute(self, obj: object) -> None:
         """Sends the support party passcode embed to the allocated passcode channel."""
         if obj and obj["guild"] and obj["entry_id"]:
             guild_data = bot.instance.data.guilds.get(obj["guild"])

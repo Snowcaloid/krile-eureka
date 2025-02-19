@@ -7,21 +7,26 @@ from pathlib import Path
 from importlib.util import spec_from_file_location, module_from_spec
 from typing import List, Type, override
 
-class LoadedAsset: pass
+from data.data_provider import DataProvider
 
-class AssetLoader[T: LoadedAsset]:
+class LoadedAsset: ...
+
+class AssetLoader[T: LoadedAsset](DataProvider):
     _log: str = ''
     loaded_assets: List[T]
-    def __init__(self):
+
+    @override
+    def constructor(self) -> None:
+        super().constructor()
         self.loaded_assets: List[T] = []
         self.load_asset_modules()
 
     @abstractmethod
-    def asset_folder_name(self) -> str: pass
+    def asset_folder_name(self) -> str: ...
     @abstractmethod
-    def asset_file_extension(self) -> str: pass
+    def asset_file_extension(self) -> str: ...
     @abstractmethod
-    def load_asset(self, filename: str) -> None: pass
+    def load_asset(self, filename: str) -> None: ...
 
     def log(self, message: str) -> None:
         AssetLoader._log += message + '\n' #test
@@ -85,11 +90,10 @@ class YamlAsset(LoadedAsset):
         self.source = safe_load(open(filename).read())
 
     @abstractmethod
-    def asset_name(self) -> str: pass
+    def asset_name(self) -> str: ...
 
 
 class YamlAssetLoader[T: YamlAsset](AssetLoader[T]):
-
     def asset_class(self) -> Type[T]: return YamlAsset
 
     @override

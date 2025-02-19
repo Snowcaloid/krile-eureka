@@ -1,23 +1,25 @@
 from __future__ import annotations
-from abc import abstractmethod
 from functools import wraps
-from typing import Callable, Dict, List, Self, Type, override
+from typing import Callable, Dict, Self, Type
 
 class DataProvider:
+    _log: str = ''
     _providers: Dict[Type[DataProvider], DataProvider] = {}
 
     def __new__(cls) -> Self:
-        if DataProvider._providers.get(cls.provider_name()) is None:
-            DataProvider._providers[cls.provider_name()] = super().__new__(cls)
-        return DataProvider._providers[cls.provider_name()]
+        if DataProvider._providers.get(cls) is None:
+            DataProvider._providers[cls] = super().__new__(cls)
+        return DataProvider._providers[cls]
 
     def __init__(self, *args, **kwargs):
         if not hasattr(self, '_initialized'):
             self.constructor(*args, **kwargs)
             self._initialized = True
 
-    @abstractmethod
-    def constructor(self) -> None: pass
+    def constructor(self) -> None:
+        message = f'DataProvider {self.__class__.__name__} initializing.'
+        print(message)
+        DataProvider._log += f'{message}\n'
 
     @property
     def ready(self) -> bool:

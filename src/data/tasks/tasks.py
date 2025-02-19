@@ -8,9 +8,12 @@ from data.tasks.task import Task, TaskExecutionType, TaskTemplate
 from asset_loader import PythonAssetLoader
 
 class Tasks(PythonAssetLoader[TaskTemplate]):
-    _list: List[Task] = []
-    _runtime_tasks: List[Task] = []
-    executing: bool = False
+    @override
+    def constructor(self) -> None:
+        super().constructor()
+        self._db_tasks: List[Task] = []
+        self._runtime_tasks: List[Task] = []
+        self.executing: bool = False
 
     def task_template(self, type: TaskExecutionType) -> TaskTemplate:
         return next(task for task in self.loaded_assets if task.type() == type)
@@ -19,13 +22,13 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
     def asset_folder_name(self): return 'tasks'
 
     def load(self):
-        self._list.clear()
+        self._db_tasks.clear()
         for record in SQL('tasks').select(fields=['id'],
                                           all=True,
                                           sort_fields=['execution_time']):
             task = Task(self.loaded_assets)
             task.load(record['id'])
-            self._list.append(task)
+            self._db_tasks.append(task)
 
     def sort_runtime_tasks_by_time(self) -> None:
         self._runtime_tasks = sorted(self._runtime_tasks, key=lambda task: task.time)
@@ -43,7 +46,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
             self.load()
 
     def contains(self, type: TaskExecutionType) -> bool:
-        for task in self._list:
+        for task in self._db_tasks:
             if task.type == type:
                 return True
         return False
@@ -51,8 +54,8 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
     def get_next(self) -> Task:
         """Gets the next possible task to be executed."""
         task1, task2 = None, None
-        if self._list and self._list[0].time <= datetime.utcnow():
-            task1 = self._list[0]
+        if self._db_tasks and self._db_tasks[0].time <= datetime.utcnow():
+            task1 = self._db_tasks[0]
         if self._runtime_tasks and self._runtime_tasks[0].time <= datetime.utcnow():
             task2 = self._runtime_tasks[0]
 

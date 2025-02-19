@@ -1,23 +1,29 @@
 from datetime import datetime, timedelta
+from typing import override
 
 import bot
 from data.guilds.guild_message_functions import GuildMessageFunction
 from data.tasks.task import TaskExecutionType, TaskTemplate
+from data.tasks.tasks import Tasks
 
 
 class Task_UpdateEurekaInfoPosts(TaskTemplate):
-    @classmethod
-    def type(cl) -> TaskExecutionType: return TaskExecutionType.UPDATE_EUREKA_INFO_POSTS
-    @classmethod
-    async def handle_exception(cl, e: Exception, obj: object) -> None:
-        bot.instance.data.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
-        bot.instance.data.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
+    @Tasks.bind
+    def tasks(self) -> Tasks: ...
 
-    @classmethod
-    def runtime_only(cl) -> bool: return True
+    @override
+    def type(self) -> TaskExecutionType: return TaskExecutionType.UPDATE_EUREKA_INFO_POSTS
 
-    @classmethod
-    async def execute(cl, obj: object) -> None:
+    @override
+    async def handle_exception(self, e: Exception, obj: object) -> None:
+        self.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
+        self.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
+
+    @override
+    def runtime_only(self) -> bool: return True
+
+    @override
+    async def execute(self, obj: object) -> None:
         next_exec = datetime.utcnow() + timedelta(minutes=1)
         try:
             bot.instance.data.eureka_info.remove_old()
@@ -26,7 +32,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
                 if message_data:
                     await bot.instance.data.ui.eureka_info.rebuild(guild.id)
         finally:
-            bot.instance.data.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
-            bot.instance.data.tasks.add_task(next_exec, TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
+            self.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
+            self.tasks.add_task(next_exec, TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
 
 

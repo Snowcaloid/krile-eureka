@@ -1,5 +1,6 @@
 import os
 from data.cache.message_cache import MessageCache
+from data.tasks.tasks import Tasks
 from discord import Intents, Member, Object, HTTPException, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, Context, Greedy
 from commands.admin import AdminCommands
@@ -35,6 +36,9 @@ class Krile(Bot):
     """
     data: RuntimeData
 
+    @Tasks.bind
+    def tasks(self) -> Tasks: ...
+
     def __init__(self):
         intents = Intents.all()
         intents.message_content = True
@@ -69,15 +73,15 @@ instance = Krile()
 async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
     """Main loop, which runs required tasks at required times. await is necessery."""
     if instance.data.ready and instance.ws:
-        task = instance.data.tasks.get_next()
+        task = instance.tasks.get_next()
         if task is None: return
-        if instance.data.tasks.executing: return
-        instance.data.tasks.executing = True
+        if instance.tasks.executing: return
+        instance.tasks.executing = True
         try:
             await task.execute()
         finally:
-            instance.data.tasks.remove_task(task)
-            instance.data.tasks.executing = False
+            instance.tasks.remove_task(task)
+            instance.tasks.executing = False
 
 @instance.event
 async def on_member_join(member: Member):
@@ -85,7 +89,7 @@ async def on_member_join(member: Member):
 
 @instance.event
 async def on_raw_message_delete(payload: RawMessageDeleteEvent):
-    instance.data.tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
+    instance.tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
     message_cache = MessageCache()
     if message_cache.get(payload.message_id, None) is None: return
     message_cache.remove(payload.message_id)

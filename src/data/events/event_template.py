@@ -1,8 +1,8 @@
 
 from datetime import datetime, timedelta
 from json import dumps
-from typing import Tuple, Type, override
-from asset_loader import YamlAsset, YamlAssetLoader
+from typing import Tuple, override
+from asset_loader import YamlAsset
 from data.events.event_category import EventCategory
 from discord.app_commands import Choice
 
@@ -197,13 +197,3 @@ class EventTemplate(YamlAsset):
     def as_choice(self) -> Choice:
         return Choice(name=self.description(), value=self.type())
 
-class DefaultEventTemplates(YamlAssetLoader[EventTemplate]):
-    def __init__(self):
-        super().__init__()
-        self.loaded_assets.sort(key=lambda template: template.autocomplete_weight())
-    @override
-    def asset_class(self) -> Type[EventTemplate]: return EventTemplate
-
-    @override
-    def asset_folder_name(self):
-        return 'event_templates'
