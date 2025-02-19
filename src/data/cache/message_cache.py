@@ -1,5 +1,5 @@
 from typing import Dict, override
-from data_provider import DataProvider
+from data.data_provider import DataProvider
 from discord import Message, NotFound, TextChannel
 
 
