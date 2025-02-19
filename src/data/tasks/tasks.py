@@ -5,9 +5,9 @@ from datetime import datetime
 
 from data.db.sql import SQL, Record
 from data.tasks.task import Task, TaskExecutionType, TaskTemplate
-from register import AssetLoader
+from asset_loader import PythonAssetLoader
 
-class Tasks(AssetLoader[Task]):
+class Tasks(PythonAssetLoader[TaskTemplate]):
     _list: List[Task] = []
     _runtime_tasks: List[Task] = []
     executing: bool = False
