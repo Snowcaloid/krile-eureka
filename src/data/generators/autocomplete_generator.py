@@ -147,4 +147,4 @@ class AutoCompleteGenerator:
 
     @classmethod
     def table(cl, current: str) -> List[Choice]:
-        return cl.filter_by_current([Choice(name=definition.source, value=definition.name) for definition in bot.instance.data.tables.loaded_assets], current)
+        return cl.filter_by_current([Choice(name=definition.name(), value=definition.name()) for definition in bot.instance.data.tables.loaded_assets], current)

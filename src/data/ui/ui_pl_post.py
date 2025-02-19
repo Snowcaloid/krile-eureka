@@ -21,7 +21,7 @@ class UIPLPost:
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
         if channel is None: return
         pings = await guild_data.pings.get_mention_string(GuildPingType.PL_POST, event.type)
-        message = await channel.send(f'{pings} Recruitment post #{str(id)}')
+        message = await channel.send(pings, embed=Embed(description='...'))
         event.pl_post_id = message.id
         message = await self.rebuild(guild_id, id, True)
         guild_data.messages.add(message.id, channel.id, GuildMessageFunction.PL_POST)
@@ -46,13 +46,15 @@ class UIPLPost:
             for i in range(1, 8):
                 label = event.pl_button_texts[i-1]
                 if label:
-                    view.add_item(PartyLeaderButton(
+                    button = PartyLeaderButton(
                         label=label,
                         custom_id=str(uuid4()),
                         row=1 if i < 4 else 2,
                         index=i - 1 if i < 4 else i - 4,
                         style=ButtonStyle.primary if i < 4 else ButtonStyle.success if i != 7 else ButtonStyle.danger,
-                        pl=i-1))
+                        pl=i-1)
+                    button.event_id = event.id
+                    view.add_item(button)
             if event.category == EventCategory.BA:
                 view.add_item(SendPLGuideButton(
                     label='How to party lead?',

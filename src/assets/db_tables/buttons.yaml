@@ -24,3 +24,5 @@ columns:
   type: BIGINT
 - name: pl
   type: INTEGER
+- name: event_id
+  type: INTEGER

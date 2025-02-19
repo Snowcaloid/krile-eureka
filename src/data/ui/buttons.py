@@ -79,13 +79,14 @@ class RoleDisplayButton(ButtonBase):
 class PartyLeaderButton(ButtonBase):
     """Buttons, which the intaracting user uses to add or remove themself
     from party leader position of a run."""
+    event_id: int
 
     def button_type(self) -> ButtonType: return ButtonType.PL_POST
 
     async def callback(self, interaction: Interaction):
         if interaction.message == self.message:
             await default_defer(interaction)
-            id = int(interaction.message.content.split('#')[1])
+            id = self.event_id
             guild_data = bot.instance.data.guilds.get(interaction.guild_id)
             event = guild_data.schedule.get(id)
             if event:
@@ -199,7 +200,8 @@ def save_buttons(message: Message, view: View):
                                          role=role,
                                          pl=btn.pl,
                                          channel_id=message.channel.id,
-                                         message_id=message.id))
+                                         message_id=message.id,
+                                         event_id=btn.event_id if isinstance(btn, PartyLeaderButton) else None))
         del query
 
 
@@ -237,11 +239,11 @@ async def get_guild_button_data(button_id: str, channel_id: int, message_id: int
 async def load_button(button_id: str) -> ButtonBase:
     for record in SQL('buttons').select(fields=['button_type', 'style', 'label',
                                                 'row', 'index', 'role', 'pl',
-                                                'channel_id', 'message_id', 'emoji'],
+                                                'channel_id', 'message_id', 'emoji', 'event_id'],
                                         where=f"button_id='{button_id}'",
                                         all=True):
         message, role = await get_guild_button_data(button_id, record['channel_id'], record['message_id'], record['role'])
-        return BUTTON_CLASSES[ButtonType(record['button_type'])](
+        button = BUTTON_CLASSES[ButtonType(record['button_type'])](
             style=ButtonStyle(record['style']),
             label=record['label'],
             custom_id=button_id,
@@ -252,6 +254,9 @@ async def load_button(button_id: str) -> ButtonBase:
             pl=record['pl'],
             emoji=record['emoji']
         )
+        if isinstance(button, PartyLeaderButton):
+            button.event_id = record['event_id']
+        return button
     return None
 
 async def buttons_from_message(message: Message) -> List[ButtonBase]:

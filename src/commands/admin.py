@@ -24,7 +24,8 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
         where = f' where {filter}' if filter else ''
         order_by = f' order by {order}' if order else ''
         if fields == '*':
-            column_names = [column["name"] for column in next((definition for definition in bot.instance.data.tables.loaded_assets if definition._name == table), None)._columns]
+            column_names = [column["name"] for column in next(
+                (definition for definition in bot.instance.data.tables.loaded_assets if definition.name() == table), None).source["columns"]]
         else:
             column_names = [name.strip() for name in fields.split(',')]
         result = Record().DATABASE.query(f'select {fields} from {table}{where}{order_by} limit 25')
