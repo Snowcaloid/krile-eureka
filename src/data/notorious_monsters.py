@@ -1,6 +1,6 @@
 
 from enum import Enum
-from typing import Dict
+from typing import Dict, List
 
 class NotoriousMonster(Enum):
     PAZUZU = 'PAZUZU'
@@ -31,4 +31,15 @@ NOTORIOUS_MONSTERS: Dict[NotoriousMonster, str] = {
     NotoriousMonster.CETO: 'Ceto',
     NotoriousMonster.PROVENANCE_WATCHER: 'Provenance Watcher',
     NotoriousMonster.SUPPORT: 'Support FATE',
+}
+
+NM_ALIASES: Dict[NotoriousMonster, List[str]] = {
+    NotoriousMonster.KING_ARTHRO: ['Roi Arthro', 'König Athro', 'Crab'],
+    NotoriousMonster.LOUHI: ['Luigi'],
+    NotoriousMonster.CASSIE: ['Cassie la copieuse', 'Kopierende Cassie', 'Cassie'],
+    NotoriousMonster.PENTHESILEA: ['Penthésilée', 'Penny'],
+    NotoriousMonster.GOLDEMAR: ['Roi Goldemar', 'Goldemar'],
+    NotoriousMonster.PROVENANCE_WATCHER: ['PW', 'Gardien de Provenance', 'Kristallwächter'],
+    NotoriousMonster.LAMEBRIX: ['Wüterix-Söldner'],
+    NotoriousMonster.SKOLL: ['Skalli']
 }

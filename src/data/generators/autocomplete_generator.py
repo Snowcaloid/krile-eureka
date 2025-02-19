@@ -10,7 +10,7 @@ from data.eureka_info import EurekaTrackerZone
 from data.events.event_template import EventCategory
 from data.guilds.guild_pings import GuildPingType
 from data.guilds.guild_role_functions import GuildRoleFunction
-from data.notorious_monsters import NOTORIOUS_MONSTERS
+from data.notorious_monsters import NM_ALIASES, NOTORIOUS_MONSTERS, NotoriousMonster
 from data.ui.constants import ButtonType
 from data.validation.permission_validator import PermissionValidator
 
@@ -47,8 +47,23 @@ class AutoCompleteGenerator:
         return cl.filter_by_current(GuildRoleFunction.all_function_choices(), current)
 
     @classmethod
+    def alterantive_nm_names(cl, nm_choices: List[Choice], current: str) -> List[Choice]:
+        choices: List[Choice] = []
+        for choice in nm_choices:
+            aliases = NM_ALIASES.get(NotoriousMonster(choice.value), None)
+            if aliases:
+                for alias in aliases:
+                    if alias.lower().startswith(current.lower()):
+                        choices.append(Choice(name=alias, value=choice.value))
+        return choices
+
+    @classmethod
     def notorious_monster(cl, current: str) -> List[Choice]:
-        return cl.filter_by_current((Choice(name=nm_name, value=nm_enum.value) for nm_enum, nm_name in NOTORIOUS_MONSTERS.items()), current)
+        nm_choices = [Choice(name=nm_name, value=nm_enum.value) for nm_enum, nm_name in NOTORIOUS_MONSTERS.items()]
+        if current:
+            return cl.filter_by_current(nm_choices, current) + cl.alterantive_nm_names(nm_choices, current)
+        else:
+            return nm_choices
 
     @classmethod
     def date(cl, current: str) -> List[Choice]:
