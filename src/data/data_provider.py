@@ -2,6 +2,8 @@ from __future__ import annotations
 from functools import wraps
 from typing import Callable, Dict, Self, Type
 
+from init_logger import InitLogger
+
 class DataProvider:
     _log: str = ''
     _providers: Dict[Type[DataProvider], DataProvider] = {}
@@ -17,9 +19,7 @@ class DataProvider:
             self._initialized = True
 
     def constructor(self) -> None:
-        message = f'DataProvider {self.__class__.__name__} initializing.'
-        print(message)
-        DataProvider._log += f'{message}\n'
+        InitLogger.log(f'DataProvider {self.__class__.__name__} initializing.')
 
     @property
     def ready(self) -> bool:

@@ -8,11 +8,11 @@ from importlib.util import spec_from_file_location, module_from_spec
 from typing import List, Type, override
 
 from data.data_provider import DataProvider
+from init_logger import InitLogger
 
 class LoadedAsset: ...
 
 class AssetLoader[T: LoadedAsset](DataProvider):
-    _log: str = ''
     loaded_assets: List[T]
 
     @override
@@ -28,13 +28,9 @@ class AssetLoader[T: LoadedAsset](DataProvider):
     @abstractmethod
     def load_asset(self, filename: str) -> None: ...
 
-    def log(self, message: str) -> None:
-        AssetLoader._log += message + '\n' #test
-        print(message)
-
     def add_asset(self, obj: T, name: str) -> None:
         self.loaded_assets.append(obj)
-        self.log(f"Asset {name} loaded by {self.__class__.__name__}.")
+        InitLogger.log(f"Asset {name} loaded by {self.__class__.__name__}.")
 
     def load_asset_modules(self) -> None:
         directory = self.asset_folder_name()

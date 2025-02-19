@@ -21,7 +21,7 @@ async def on_ready():
     print(f'{bot.instance.user} has connected to Discord!')
     for guild in bot.instance.data.guilds.all:
         from logger import guild_log_message
-        from asset_loader import AssetLoader
+        from init_logger import InitLogger
         while not bot.instance.data.ready:
             print('Waiting for data to be ready...')
             await asyncio.sleep(500)
@@ -31,7 +31,7 @@ async def on_ready():
             'Launch messages:\n'
         )
         await guild_log_message(guild.id, message)
-        launch_messages = AssetLoader._log.splitlines(True)
+        launch_messages = InitLogger.content.splitlines(True)
         limit = 2000 - 20 # leeway for the code block
         message = ''
         for line in launch_messages:
