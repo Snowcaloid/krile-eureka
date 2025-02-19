@@ -5,7 +5,6 @@ from data.db.sql import Record
 from data.eureka_info import EurekaInfo
 from data.events.event_template import DefaultEventTemplates
 from data.guilds.guild import Guilds
-from data.db.register import RegisterTables
 from data.db.definition import TableDefinitions
 from data.tasks.task import TaskExecutionType
 from data.tasks.tasks import Tasks
@@ -14,6 +13,7 @@ from data.ui.copied_messages import MessageCopyController
 
 class RuntimeData:
     """General Runtime Data Class"""
+    tables: TableDefinitions = TableDefinitions()
     message_copy_controller: MessageCopyController = MessageCopyController()
     guilds: Guilds
     ui: UI = UI()
@@ -25,13 +25,12 @@ class RuntimeData:
     def __init__(self):
         self.ready = False
         self.guilds = Guilds(self.default_event_templates)
-        RegisterTables.register()
         self.ensure_database_tables()
 
     def ensure_database_tables(self):
         """Create the database and update the tables."""
         record = Record()
-        for table in TableDefinitions.DEFINITIONS:
+        for table in self.tables.loaded_assets:
             record.DATABASE.query(table.to_sql_create())
             record.DATABASE.query(table.to_sql_alter())
 

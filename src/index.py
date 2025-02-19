@@ -20,7 +20,25 @@ async def on_ready():
     print(f'{bot.instance.user} has connected to Discord!')
     for guild in bot.instance.data.guilds.all:
         from logger import guild_log_message
-        await guild_log_message(guild.id, f'{bot.instance.user.mention} has successfully started.')
+        from asset_loader import AssetLoader
+        message = (
+            f'{bot.instance.user.mention} has successfully started.\n'
+            'Launch messages:\n'
+        )
+        await guild_log_message(guild.id, message)
+        launch_messages = AssetLoader._log.splitlines(True)
+        limit = 2000 - 10 # leeway for the code block
+        message = ''
+        for line in launch_messages:
+            limit -= len(line)
+            if limit < 0:
+                await guild_log_message(guild.id, f'```\n{message}```\n')
+                message = line
+                limit = 2000 - 10 - len(line)
+            else:
+                message += line
+        if message:
+            await guild_log_message(guild.id, f'```\n{message}```\n')
 
 
 bot.instance.run(os.getenv('DISCORD_TOKEN'))

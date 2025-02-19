@@ -1,0 +1,26 @@
+name: buttons
+columns:
+- name: button_id
+  type: VARCHAR(50)
+  unique: true
+  primary_key: true
+- name: button_type
+  type: INTEGER
+- name: channel_id
+  type: BIGINT
+- name: message_id
+  type: BIGINT
+- name: emoji
+  type: VARCHAR(2)
+- name: label
+  type: VARCHAR(50)
+- name: style
+  type: INTEGER
+- name: row
+  type: INTEGER
+- name: index
+  type: INTEGER
+- name: role
+  type: BIGINT
+- name: pl
+  type: INTEGER

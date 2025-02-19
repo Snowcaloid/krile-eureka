@@ -1,4 +1,3 @@
-from json import loads
 from typing import List
 
 from data.db.sql import SQL, Record
@@ -18,10 +17,10 @@ class GuildEventTemplates:
     def load(self, guild_id: int) -> None:
         self.guild_id = guild_id
         self._list.clear()
-        self._list.extend(self._default_templates.all)
+        self._list.extend(self._default_templates.loaded_assets)
         for record in SQL('event_templates').select(fields=['data'], where=f'guild_id={guild_id}', all=True):
             data = record['data']
-            template = EventTemplate(loads(data))
+            template = EventTemplate(data)
             self._list.append(template)
 
     @property

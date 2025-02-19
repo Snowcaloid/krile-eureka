@@ -1,0 +1,16 @@
+name: guild_messages
+columns:
+  - name: id
+    type: SERIAL
+    unique: true
+    primary_key: true
+  - name: guild_id
+    type: BIGINT
+  - name: channel_id
+    type: BIGINT
+  - name: message_id
+    type: BIGINT
+  - name: function
+    type: INTEGER
+  - name: event_type
+    type: VARCHAR(15)

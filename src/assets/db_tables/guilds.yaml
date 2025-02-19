@@ -1,0 +1,10 @@
+name: guilds
+columns:
+  - name: guild_id
+    type: BIGINT
+    unique: true
+    primary_key: true
+  - name: role_developer
+    type: BIGINT
+  - name: role_admin
+    type: BIGINT

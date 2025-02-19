@@ -5,7 +5,6 @@ from typing import List
 from discord import Interaction
 from discord.app_commands import Choice
 
-from data.db.definition import TableDefinitions
 from data.eureka_info import EurekaTrackerZone
 
 from data.events.event_template import EventCategory
@@ -133,4 +132,4 @@ class AutoCompleteGenerator:
 
     @classmethod
     def table(cl, current: str) -> List[Choice]:
-        return cl.filter_by_current([Choice(name=definition._name, value=definition._name) for definition in TableDefinitions.DEFINITIONS], current)
+        return cl.filter_by_current([Choice(name=definition.source, value=definition.name) for definition in bot.instance.data.tables.loaded_assets], current)

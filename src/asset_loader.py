@@ -10,6 +10,7 @@ from typing import List, Type, override
 class LoadedAsset: pass
 
 class AssetLoader[T: LoadedAsset]:
+    _log: str = ''
     loaded_assets: List[T]
     def __init__(self):
         self.loaded_assets: List[T] = []
@@ -22,9 +23,13 @@ class AssetLoader[T: LoadedAsset]:
     @abstractmethod
     def load_asset(self, filename: str) -> None: pass
 
-    def register(self, obj: T, name: str) -> None:
+    def log(self, message: str) -> None:
+        AssetLoader._log += message + '\n' #test
+        print(message)
+
+    def load(self, obj: T, name: str) -> None:
         self.loaded_assets.append(obj)
-        print(f"Asset {name} registered to {self.__class__.__name__}.")
+        self.log(f"Asset {name} loaded by {self.__class__.__name__}.")
 
     def load_asset_modules(self) -> None:
         directory = self.asset_folder_name()
@@ -42,7 +47,7 @@ class PythonAsset(LoadedAsset):
         if cls == LoadedAsset: return
         if cls.__name__ == cls.base_asset_class_name(): return
         instance = cls()
-        PythonAssetLoader.current_loader.register(instance, cls.__name__)
+        PythonAssetLoader.current_loader.load(instance, cls.__name__)
 
     @classmethod
     def base_asset_class_name(cls): return 'PythonAsset'
@@ -85,13 +90,12 @@ class YamlAsset(LoadedAsset):
 
 class YamlAssetLoader[T: YamlAsset](AssetLoader[T]):
 
-    def asset_class(self) -> Type[T]: YamlAsset
+    def asset_class(self) -> Type[T]: return YamlAsset
 
     @override
-    def asset_file_extension(self) -> str:
-        return '.yaml'
+    def asset_file_extension(self) -> str: return '.yaml'
 
     @override
     def load_asset(self, filename):
         yaml_asset = self.asset_class()(filename)
-        self.register(yaml_asset, f'{self.asset_class().__name__}[{yaml_asset.asset_name()}]')
+        self.load(yaml_asset, f'{self.asset_class().__name__}[{yaml_asset.asset_name()}]')

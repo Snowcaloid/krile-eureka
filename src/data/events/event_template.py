@@ -227,7 +227,3 @@ class DefaultEventTemplates(YamlAssetLoader[EventTemplate]):
     @override
     def asset_folder_name(self):
         return 'event_templates'
-
-    @property
-    def all(self) -> List[EventTemplate]:
-        return self._list
