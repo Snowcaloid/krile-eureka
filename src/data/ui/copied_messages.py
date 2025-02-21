@@ -1,10 +1,11 @@
 
 from typing import Dict
 
+from bindable import Bindable
 from discord import Message
 
 
-class MessageCopyController:
+class MessageCopyController(Bindable):
     _list: Dict[int, Message]
 
     def __init__(self):

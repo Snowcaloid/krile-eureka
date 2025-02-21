@@ -8,12 +8,10 @@ from data.db.definition import TableDefinitions
 from data.tasks.task import TaskExecutionType
 from data.tasks.tasks import Tasks
 from data.ui.ui import UI
-from data.ui.copied_messages import MessageCopyController
 
 class RuntimeData:
     """General Runtime Data Class"""
-    message_copy_controller: MessageCopyController = MessageCopyController()
-    guilds: Guilds
+    guilds: Guilds = Guilds()
     ui: UI = UI()
     ready: bool
 
@@ -28,7 +26,6 @@ class RuntimeData:
 
     def __init__(self):
         self.ready = False
-        self.guilds = Guilds()
         self.ensure_database_tables()
 
     def ensure_database_tables(self):
