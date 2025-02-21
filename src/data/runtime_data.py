@@ -12,7 +12,6 @@ from data.ui.copied_messages import MessageCopyController
 
 class RuntimeData:
     """General Runtime Data Class"""
-    tables: TableDefinitions = TableDefinitions()
     message_copy_controller: MessageCopyController = MessageCopyController()
     guilds: Guilds
     ui: UI = UI()
@@ -23,6 +22,9 @@ class RuntimeData:
 
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
+
+    @TableDefinitions.bind
+    def tables(self) -> TableDefinitions: ...
 
     def __init__(self):
         self.ready = False

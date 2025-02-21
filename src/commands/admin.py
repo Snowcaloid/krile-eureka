@@ -5,6 +5,7 @@ import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Interaction
+from data.db.definition import TableDefinitions
 from data.db.sql import Record
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from data.validation.input_validator import InputValidator
@@ -25,7 +26,7 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
         order_by = f' order by {order}' if order else ''
         if fields == '*':
             column_names = [column["name"] for column in next(
-                (definition for definition in bot.instance.data.tables.loaded_assets if definition.name() == table), None).source["columns"]]
+                (definition for definition in TableDefinitions().loaded_assets if definition.name() == table), None).source["columns"]]
         else:
             column_names = [name.strip() for name in fields.split(',')]
         result = Record().DATABASE.query(f'select {fields} from {table}{where}{order_by} limit 25')
