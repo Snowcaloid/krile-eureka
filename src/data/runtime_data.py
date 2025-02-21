@@ -11,7 +11,6 @@ from data.ui.ui import UI
 
 class RuntimeData:
     """General Runtime Data Class"""
-    guilds: Guilds = Guilds()
     ui: UI = UI()
     ready: bool
 
@@ -23,6 +22,9 @@ class RuntimeData:
 
     @TableDefinitions.bind
     def tables(self) -> TableDefinitions: ...
+
+    @Guilds.bind
+    def guilds(self) -> Guilds: ...
 
     def __init__(self):
         self.ready = False

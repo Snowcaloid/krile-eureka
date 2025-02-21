@@ -9,6 +9,7 @@ from data.db.definition import TableDefinitions
 from data.eureka_info import EurekaTrackerZone
 
 from data.events.event_category import EventCategory
+from data.guilds.guild import Guilds
 from data.guilds.guild_pings import GuildPingType
 from data.guilds.guild_role_functions import GuildRoleFunction
 from data.notorious_monsters import NM_ALIASES, NOTORIOUS_MONSTERS, NotoriousMonster
@@ -26,14 +27,14 @@ class AutoCompleteGenerator:
 
     @classmethod
     def event_type(cl, interaction: Interaction, current: str) -> List[Choice]:
-        allowed_categories = PermissionValidator.get_raid_leader_permissions(interaction.user)
-        return cl.filter_by_current([event_template.as_choice() for event_template in bot.instance.data.guilds.get(
+        allowed_categories = PermissionValidator().get_raid_leader_permissions(interaction.user)
+        return cl.filter_by_current([event_template.as_choice() for event_template in Guilds().get(
             interaction.guild_id).event_templates.get_by_categories(allowed_categories)], current)
 
     @classmethod
     def event_type_with_categories(cl, current: str, guild_id: int) -> List[Choice]:
         return cl.filter_by_current(EventCategory.all_category_choices() + [
-            event_template.as_choice() for event_template in bot.instance.data.guilds.get(guild_id).event_templates.all], current)
+            event_template.as_choice() for event_template in Guilds().get(guild_id).event_templates.all], current)
 
     @classmethod
     def event_categories(cl, current: str) -> List[Choice]:

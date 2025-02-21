@@ -16,7 +16,7 @@ from logger import guild_log_message
 
 class AdminCommands(GroupCog, group_name='admin', group_description='Bot administrator commands.'):
     @command(name = "query", description = "Does a select query over a table.")
-    @check(PermissionValidator.is_admin)
+    @check(PermissionValidator().is_admin)
     async def query(self, interaction: Interaction, table: str, fields: Optional[str] = '*', filter: Optional[str] = '', order: Optional[str] = ''):
         await default_defer(interaction)
         if not await InputValidator.RAISING.check_for_sql_identifiers(interaction, filter): return
@@ -38,7 +38,7 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
 
 
     @command(name = "reload", description = "Loads all bot data from the database again.")
-    @check(PermissionValidator.is_owner)
+    @check(PermissionValidator().is_owner)
     async def reload(self, interaction: Interaction):
         await default_defer(interaction)
         await bot.instance.data.reset()

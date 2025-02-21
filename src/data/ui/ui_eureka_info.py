@@ -1,5 +1,6 @@
 from discord import ButtonStyle, Embed, Message, TextChannel
 from data.eureka_info import EurekaTrackerZone
+from data.guilds.guild import Guilds
 from data.guilds.guild_message_functions import GuildMessageFunction
 from data.cache.message_cache import MessageCache
 import bot
@@ -13,8 +14,11 @@ class UIEurekaInfoPost:
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
 
+    @Guilds.bind
+    def guilds(self) -> Guilds: ...
+
     async def create(self, guild_id: int) -> Message:
-        guild_data = bot.instance.data.guilds.get(guild_id)
+        guild_data = self.guilds.get(guild_id)
         message_data = guild_data.messages.get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
@@ -39,7 +43,7 @@ class UIEurekaInfoPost:
         return result
 
     async def rebuild(self, guild_id: int) -> Message:
-        guild_data = bot.instance.data.guilds.get(guild_id)
+        guild_data = self.guilds.get(guild_id)
         message_data = guild_data.messages.get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
@@ -75,9 +79,8 @@ class UIEurekaInfoPost:
         ))
         return await message.edit(embed=embed)
 
-
     async def remove(self, guild_id: int) -> None:
-        guild_data = bot.instance.data.guilds.get(guild_id)
+        guild_data = self.guilds.get(guild_id)
         message_data = guild_data.messages.get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)

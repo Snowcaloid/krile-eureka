@@ -16,7 +16,7 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
     def message_copy_controller(self) -> MessageCopyController: ...
 
     @command(name = "message", description = "Copy a message posted by anyone.")
-    @check(PermissionValidator.is_admin)
+    @check(PermissionValidator().is_admin)
     async def message(self, interaction: Interaction, channel: TextChannel, message_id: str):
         await default_defer(interaction)
         message = await MessageCache().get(str(message_id), channel)
@@ -24,7 +24,7 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
         await default_response(interaction, f'Copied message.\n{message.content}')
 
     @command(name = "post", description = "Post the copied message in a channel.")
-    @check(PermissionValidator.is_admin)
+    @check(PermissionValidator().is_admin)
     async def post(self, interaction: Interaction, channel: TextChannel | Thread):
         await default_defer(interaction)
         message = self.message_copy_controller.get(interaction.user.id)
@@ -32,7 +32,7 @@ class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands
         await default_response(interaction, f'Sent the message: {message.jump_url}.')
 
     @command(name = "replace", description = "Replace a message with the copied message.")
-    @check(PermissionValidator.is_admin)
+    @check(PermissionValidator().is_admin)
     async def replace(self, interaction: Interaction, channel: TextChannel | Thread, message_id: str):
         await default_defer(interaction)
         if not await InputValidator.RAISING.check_message_exists(interaction, channel, str(message_id)): return

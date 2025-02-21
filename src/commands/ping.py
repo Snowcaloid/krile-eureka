@@ -3,6 +3,7 @@ from discord import Interaction
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
 from data.generators.autocomplete_generator import AutoCompleteGenerator
+from data.guilds.guild import Guilds
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.notorious_monsters import NOTORIOUS_MONSTERS, NotoriousMonster
@@ -14,13 +15,15 @@ from utils import default_defer, default_response
 # pings
 ##################################################################################
 class PingCommands(GroupCog, group_name='ping', group_description='Ping people for mob spawns.'):
+    @Guilds.bind
+    def guilds(self) -> Guilds: ...
 
     @command(name = "spawn", description = "Ping a Eureka NM.")
     async def spawn(self, interaction: Interaction, notorious_monster: str, text: str):
         await default_defer(interaction)
         notorious_monster = InputValidator.NORMAL.notorious_monster_name_to_type(notorious_monster)
         if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
-        guild_data = bot.instance.data.guilds.get(interaction.guild_id)
+        guild_data = self.guilds.get(interaction.guild_id)
         channel_data = guild_data.channels.get(GuildChannelFunction.NM_PINGS, notorious_monster)
         if channel_data:
             channel = bot.instance.get_channel(channel_data.id)

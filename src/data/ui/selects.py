@@ -5,6 +5,7 @@ from discord.ui import Button, Select
 
 import bot
 from data.eureka_info import EurekaInfo, EurekaTrackerZone
+from data.guilds.guild import Guilds
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.ui.modals import EurekaTrackerModal
@@ -17,9 +18,11 @@ class EurekaTrackerZoneSelect(Select):
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
+    @Guilds.bind
+    def guilds(self) -> Guilds: ...
+
     def __init__(self, *, generate: bool = False):
         self.generate = generate
-        self.eureka_info.g
         self.message: Message = None
         options = [
             SelectOption(label='Anemos', value=str(EurekaTrackerZone.ANEMOS.value)),
@@ -61,15 +64,15 @@ class EurekaTrackerZoneSelect(Select):
             await default_defer(interaction)
             url, passcode = await self.generate_url(zone)
             if next((tracker for tracker in self.eureka_info._trackers if tracker.url == url), None) is not None:
-                eureka.remove(url)
-            bot.instance.data.eureka_info.add(url, zone)
+                self.eureka_info.remove(url)
+            self.eureka_info.add(url, zone)
             await bot.instance.data.ui.eureka_info.rebuild(interaction.guild_id)
             view = TemporaryView()
             view.add_item(Button(url=url, label='Visit the tracker', style=ButtonStyle.link))
             await interaction.followup.send(content=f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view, ephemeral=True)
             await interaction.user.send(f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view)
             await guild_log_message(interaction.guild_id, f'{interaction.user.display_name} has added a tracker for {zone.name} - `{url}`.')
-            guild = bot.instance.data.guilds.get(interaction.guild_id)
+            guild = self.guilds.get(interaction.guild_id)
             if guild:
                 notification_channel = guild.channels.get(GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION, str(zone.value))
                 if notification_channel:

@@ -4,6 +4,7 @@ from discord import TextChannel
 from data.events.event import Event
 from data.cache.message_cache import MessageCache
 import bot
+from data.guilds.guild import Guilds
 from data.guilds.guild_message_functions import GuildMessageFunction
 
 class DateSeparatedScheduleData:
@@ -17,6 +18,10 @@ class DateSeparatedScheduleData:
 
 class UISchedule:
     """Schedule post."""
+
+    @Guilds.bind
+    def guilds(self) -> Guilds: ...
+
     def events_per_date(self, event_list: List[Event]) -> List[DateSeparatedScheduleData]:
         """Splits the event list by date."""
         result = []
@@ -30,7 +35,7 @@ class UISchedule:
         return result
 
     async def rebuild(self, guild_id: int) -> None:
-        guild_data = bot.instance.data.guilds.get(guild_id)
+        guild_data = self.guilds.get(guild_id)
         if guild_data is None: return
         message_data = guild_data.messages.get(GuildMessageFunction.SCHEDULE_POST)
         if message_data is None: return

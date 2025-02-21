@@ -1,5 +1,6 @@
 from datetime import datetime
 from discord import Embed, Message, TextChannel
+from data.guilds.guild import Guilds
 from data.guilds.guild_message_functions import GuildMessageFunction
 from data.cache.message_cache import MessageCache
 import bot
@@ -11,9 +12,12 @@ class UIWeatherPost:
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
 
+    @Guilds.bind
+    def guilds(self) -> Guilds: ...
+
     async def rebuild(self, guild_id: int, message: Message = None) -> Message:
         if message is None:
-            guild_data = bot.instance.data.guilds.get(guild_id)
+            guild_data = self.guilds.get(guild_id)
             message_data = guild_data.messages.get(GuildMessageFunction.WEATHER_POST)
             if message_data is None: return
             channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
@@ -51,7 +55,7 @@ class UIWeatherPost:
 
 
     async def remove(self, guild_id: int) -> None:
-        guild_data = bot.instance.data.guilds.get(guild_id)
+        guild_data = self.guilds.get(guild_id)
         message_data = guild_data.messages.get(GuildMessageFunction.WEATHER_POST)
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)

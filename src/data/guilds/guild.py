@@ -1,4 +1,6 @@
 from typing import List
+
+from bindable import Bindable
 from data.db.sql import SQL, Record
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_event_templates import GuildEventTemplates
@@ -63,7 +65,7 @@ class Guild:
         self.load(self.id, True)
 
 
-class Guilds:
+class Guilds(Bindable):
     _list: List[Guild] = []
 
     def load(self) -> None:

@@ -1,17 +1,21 @@
 from typing import override
 from discord import Embed
 import bot
+from data.guilds.guild import Guilds
 from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
 class Task_SendPLPasscodes(TaskTemplate):
+    @Guilds.bind
+    def guilds(self) -> Guilds: ...
+
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.SEND_PL_PASSCODES
 
     @override
     async def execute(self, obj: object) -> None:
         if obj and obj["guild"] and obj["entry_id"]:
-            event = bot.instance.data.guilds.get(obj["guild"]).schedule.get(obj["entry_id"])
+            event = self.guilds.get(obj["guild"]).schedule.get(obj["entry_id"])
             if event:
                 guild = bot.instance.get_guild(obj["guild"])
                 member = guild.get_member(event.users.raid_leader)

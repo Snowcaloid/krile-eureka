@@ -5,6 +5,7 @@ from discord.app_commands import check, command
 from discord import Interaction
 from typing import Optional
 from data.generators.autocomplete_generator import AutoCompleteGenerator
+from data.guilds.guild import Guilds
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.validation.input_validator import InputValidator
@@ -16,8 +17,11 @@ from logger import feedback_and_log, guild_log_message
 # schedule
 ###################################################################################
 class ScheduleCommands(GroupCog, group_name='schedule', group_description='Commands regarding scheduling runs.'):
+    @Guilds.bind
+    def guilds(self) -> Guilds: ...
+
     @command(name = "add", description = "Add an entry to the schedule.")
-    @check(PermissionValidator.is_raid_leader)
+    @check(PermissionValidator().is_raid_leader)
     async def add(self, interaction: Interaction, event_type: str,
                   event_date: str, event_time: str,
                   description: Optional[str] = '',
@@ -30,12 +34,12 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if not await InputValidator.RAISING.check_custom_run_has_description(interaction, event_type, description): return
         event_datetime = await InputValidator.RAISING.check_and_combine_date_and_time(interaction, event_date, event_time)
         if not event_datetime: return
-        schedule = bot.instance.data.guilds.get(interaction.guild_id).schedule
+        schedule = self.guilds.get(interaction.guild_id).schedule
         event = schedule.add(interaction.user.id, event_type, event_datetime, description, auto_passcode, use_support)
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         if event.use_recruitment_posts:
             await bot.instance.data.ui.pl_post.create(interaction.guild_id, event.id)
-        guild = bot.instance.data.guilds.get(interaction.guild_id)
+        guild = self.guilds.get(interaction.guild_id)
         if guild:
             notification_channel = guild.channels.get(GuildChannelFunction.RUN_NOTIFICATION, event_type)
             if notification_channel:
@@ -46,25 +50,25 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         await feedback_and_log(interaction, f'scheduled a {event_type} run #{event.id} for {event_time} with description: <{event.description}>.')
 
     @command(name = "cancel", description = "Cancel a schedule entry.")
-    @check(PermissionValidator.is_raid_leader)
+    @check(PermissionValidator().is_raid_leader)
     async def cancel(self, interaction: Interaction, event_id: int):
         await default_defer(interaction, False)
         if not await InputValidator.RAISING.check_run_exists(interaction, event_id): return
         if not await InputValidator.RAISING.check_allowed_to_change_run(interaction, event_id): return
-        bot.instance.data.guilds.get(interaction.guild_id).schedule.cancel(event_id)
+        self.guilds.get(interaction.guild_id).schedule.cancel(event_id)
         await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         await feedback_and_log(interaction, f'canceled the run #{event_id}.')
 
     @command(name = "edit", description = "Edit an entry from the schedule.")
-    @check(PermissionValidator.is_raid_leader)
+    @check(PermissionValidator().is_raid_leader)
     async def edit(self, interaction: Interaction, event_id: int, event_type: Optional[str] = None,
                    raid_leader: Optional[str] = None, event_date: Optional[str] = None,
                    event_time: Optional[str] = None, description: Optional[str] = None,
                    auto_passcode: Optional[bool] = None, use_support: Optional[bool] = None):
         await default_defer(interaction, False)
         if not await InputValidator.RAISING.check_run_exists(interaction, event_id): return
-        schedule = bot.instance.data.guilds.get(interaction.guild_id).schedule
+        schedule = self.guilds.get(interaction.guild_id).schedule
         old_event = schedule.get(event_id)
         check_type = old_event.type if event_type is None else event_type
         if event_type:

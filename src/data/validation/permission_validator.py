@@ -1,50 +1,49 @@
+from __future__ import annotations
 import os
 from typing import List, Union
+from bindable import Bindable
 from discord import Interaction, InteractionResponse, Member
-import bot
 from data.events.event_category import EventCategory
+from data.guilds.guild import Guilds
 from data.guilds.guild_role_functions import GuildRoleFunction
 
 
-class PermissionValidator:
-    @classmethod
-    def is_in_guild(cl, interaction: Union[Interaction, InteractionResponse]) -> bool:
+class PermissionValidator(Bindable):
+    @Guilds.bind
+    def guilds(self) -> Guilds: ...
+
+    def is_in_guild(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
         return not interaction.guild is None
 
-    @classmethod
-    def is_owner(cl, interaction: Union[Interaction, InteractionResponse]) -> bool:
+    def is_owner(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
         return interaction.user.id == int(os.getenv('OWNER_ID'))
 
-    @classmethod
-    def is_developer(cl, interaction: Union[Interaction, InteractionResponse]) -> bool:
-        if cl.is_in_guild(interaction):
-            role_id = bot.instance.data.guilds.get(interaction.guild_id).role_developer
-            if not role_id: return cl.is_owner(interaction)
-            return not interaction.user.get_role(role_id) is None or cl.is_owner(interaction)
+    def is_developer(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
+        if self.is_in_guild(interaction):
+            role_id = self.guilds.get(interaction.guild_id).role_developer
+            if not role_id: return self.is_owner(interaction)
+            return not interaction.user.get_role(role_id) is None or self.is_owner(interaction)
         return False
 
-    @classmethod
-    def is_admin(cl, interaction: Union[Interaction, InteractionResponse]) -> bool:
-        if cl.is_in_guild(interaction):
-            role_id = bot.instance.data.guilds.get(interaction.guild_id).role_admin
-            if not role_id: return cl.is_developer(interaction)
-            return not interaction.user.get_role(role_id) is None or cl.is_developer(interaction)
+    def is_admin(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
+        if self.is_in_guild(interaction):
+            role_id = self.guilds.get(interaction.guild_id).role_admin
+            if not role_id: return self.is_developer(interaction)
+            return not interaction.user.get_role(role_id) is None or self.is_developer(interaction)
         return False
 
-    @classmethod
-    def is_raid_leader(cl, interaction: Union[Interaction, InteractionResponse]) -> bool:
-        if cl.is_in_guild(interaction):
-            raid_leader_roles = bot.instance.data.guilds.get(interaction.guild_id).roles.get(GuildRoleFunction.RAID_LEADER)
+    def is_raid_leader(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
+        if self.is_in_guild(interaction):
+            raid_leader_roles = self.guilds.get(interaction.guild_id).roles.get(GuildRoleFunction.RAID_LEADER)
             for role in raid_leader_roles:
                 if not interaction.user.get_role(role.role_id) is None:
                     return True
-            return cl.is_admin(interaction)
+            return self.is_admin(interaction)
         return False
 
-    @classmethod
-    def get_raid_leader_permissions(cl, member: Member) -> List[EventCategory]:
-        guild_roles = bot.instance.data.guilds.get(member.guild.id).roles
-        admin_role_id = bot.instance.data.guilds.get(member.guild.id).role_admin
+    def get_raid_leader_permissions(self, member: Member) -> List[EventCategory]:
+        guild_roles = self.guilds.get(member.guild.id).roles
+        admin_role_id = self.guilds.get(member.guild.id).role_admin
         categories: List[EventCategory] = []
         for role in member.roles:
             if role.id == admin_role_id:

@@ -13,12 +13,12 @@ from data.validation.permission_validator import PermissionValidator
 ###################################################################################
 class EmbedCommands(GroupCog, group_name='embed', group_description='Commands for creating an embed.'):
     @command(name = "create", description = "Initialize creation process of an embed.")
-    @check(PermissionValidator.is_admin)
+    @check(PermissionValidator().is_admin)
     async def create(self, interaction: Interaction):
         await bot.instance.data.ui.embed.create(interaction)
 
     @command(name = "load", description = "Load an embed for editing/creation process.")
-    @check(PermissionValidator.is_admin)
+    @check(PermissionValidator().is_admin)
     async def load(self, interaction: Interaction, channel: TextChannel, message_id: str):
         if not await InputValidator.RAISING.check_message_exists(interaction, channel, message_id): return
         if not await InputValidator.RAISING.check_message_contains_an_embed(interaction, channel, message_id): return
