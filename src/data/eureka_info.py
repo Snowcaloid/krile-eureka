@@ -2,6 +2,8 @@ from datetime import datetime
 from enum import Enum
 from typing import List
 
+from bindable import Bindable
+
 from data.db.database import pg_timestamp
 from data.db.sql import SQL, Record
 
@@ -21,8 +23,10 @@ class EurekaTracker:
             self.timestamp: datetime = record['timestamp']
 
 
-class EurekaInfo:
-    _trackers: List[EurekaTracker] = []
+class EurekaInfo(Bindable):
+    def constructor(self) -> None:
+        super().constructor()
+        self._trackers: List[EurekaTracker] = []
 
     def load(self) -> None:
         self._trackers.clear()

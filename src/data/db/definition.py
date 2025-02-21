@@ -3,9 +3,6 @@ from typing import Type, override
 from asset_loader import YamlAsset, YamlAssetLoader
 
 class TableDefinition(YamlAsset):
-    @override
-    def asset_name(self) -> str:
-        return self.name()
 
     def name(self) -> str:
         return self.source["name"]

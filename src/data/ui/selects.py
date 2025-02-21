@@ -4,7 +4,7 @@ from discord import ButtonStyle, Interaction, Message, SelectOption
 from discord.ui import Button, Select
 
 import bot
-from data.eureka_info import EurekaTrackerZone
+from data.eureka_info import EurekaInfo, EurekaTrackerZone
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.ui.modals import EurekaTrackerModal
@@ -14,8 +14,12 @@ from utils import default_defer
 
 
 class EurekaTrackerZoneSelect(Select):
+    @EurekaInfo.bind
+    def eureka_info(self) -> EurekaInfo: ...
+
     def __init__(self, *, generate: bool = False):
         self.generate = generate
+        self.eureka_info.g
         self.message: Message = None
         options = [
             SelectOption(label='Anemos', value=str(EurekaTrackerZone.ANEMOS.value)),
@@ -56,8 +60,7 @@ class EurekaTrackerZoneSelect(Select):
         if self.generate:
             await default_defer(interaction)
             url, passcode = await self.generate_url(zone)
-            eureka = bot.instance.data.eureka_info
-            if next((tracker for tracker in eureka._trackers if tracker.url == url), None) is not None:
+            if next((tracker for tracker in self.eureka_info._trackers if tracker.url == url), None) is not None:
                 eureka.remove(url)
             bot.instance.data.eureka_info.add(url, zone)
             await bot.instance.data.ui.eureka_info.rebuild(interaction.guild_id)

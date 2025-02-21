@@ -17,12 +17,14 @@ class RuntimeData:
     message_copy_controller: MessageCopyController = MessageCopyController()
     guilds: Guilds
     ui: UI = UI()
-    eureka_info: EurekaInfo = EurekaInfo()
     default_event_templates: DefaultEventTemplates = DefaultEventTemplates()
     ready: bool
 
     @Tasks.bind
     def tasks(self) -> Tasks: ...
+
+    @EurekaInfo.bind
+    def eureka_info(self) -> EurekaInfo: ...
 
     def __init__(self):
         self.ready = False

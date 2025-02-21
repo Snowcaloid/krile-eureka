@@ -1,9 +1,9 @@
 from typing import Dict, override
-from data.data_provider import DataProvider
+from bindable import Bindable
 from discord import Message, NotFound, TextChannel
 
 
-class MessageCache(DataProvider):
+class MessageCache(Bindable):
     _cache: Dict[int, Message]
 
     @classmethod

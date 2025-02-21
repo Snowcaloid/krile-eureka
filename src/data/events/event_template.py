@@ -1,7 +1,7 @@
 
 from datetime import datetime, timedelta
 from json import dumps
-from typing import Tuple, override
+from typing import Tuple
 from asset_loader import YamlAsset
 from data.events.event_category import EventCategory
 from discord.app_commands import Choice
@@ -10,10 +10,6 @@ from utils import get_discord_timestamp
 
 
 class EventTemplate(YamlAsset):
-    @override
-    def asset_name(self) -> str:
-        return self.description()
-
     def autocomplete_weight(self) -> int:
         category_weight = {
             EventCategory.CUSTOM: 0,
