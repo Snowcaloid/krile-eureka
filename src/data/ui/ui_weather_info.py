@@ -1,17 +1,17 @@
 from datetime import datetime
 from discord import Embed, Message, TextChannel
-from data.guilds.guild import Guilds
 from data.guilds.guild_message_functions import GuildMessageFunction
-from data.cache.message_cache import MessageCache
 import bot
 from data.weather.weather import EurekaWeathers, EurekaZones, current_weather, next_day, next_night, next_weather, to_eorzea_time, weather_emoji
 from utils import DiscordTimestampType, get_discord_timestamp
 
 class UIWeatherPost:
     """Eureka Weather Info post."""
+    from data.cache.message_cache import MessageCache
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
 
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

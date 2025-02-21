@@ -1,7 +1,7 @@
 
 from datetime import datetime, timedelta
 from json import dumps
-from typing import Tuple
+from typing import Dict, Tuple
 from asset_loader import YamlAsset
 from data.events.event_category import EventCategory
 from discord.app_commands import Choice
@@ -193,3 +193,7 @@ class EventTemplate(YamlAsset):
     def as_choice(self) -> Choice:
         return Choice(name=self.description(), value=self.type())
 
+class CustomEventTamplate(EventTemplate):
+    def __init__(self, guild_id: int, source: Dict):
+        self.guild_id = guild_id
+        self.source = source

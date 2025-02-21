@@ -1,8 +1,6 @@
 from discord import ButtonStyle, Embed, Message, TextChannel
-from data.eureka_info import EurekaTrackerZone
-from data.guilds.guild import Guilds
+from data.eureka_tracker_zone import EurekaTrackerZone
 from data.guilds.guild_message_functions import GuildMessageFunction
-from data.cache.message_cache import MessageCache
 import bot
 from data.ui.buttons import AssignTrackerButton, GenerateTrackerButton, save_buttons
 from data.ui.views import PersistentView
@@ -11,9 +9,11 @@ from utils import DiscordTimestampType, get_discord_timestamp
 
 class UIEurekaInfoPost:
     """Eureka Info post."""
+    from data.cache.message_cache import MessageCache
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
 
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

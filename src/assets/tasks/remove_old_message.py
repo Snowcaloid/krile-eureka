@@ -1,11 +1,11 @@
 from typing import override
 import bot
 from data.cache.message_cache import MessageCache
-from data.guilds.guild import Guilds
 from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
 class Task_RemoveOldMessage(TaskTemplate):
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

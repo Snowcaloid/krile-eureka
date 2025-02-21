@@ -1,18 +1,11 @@
 from datetime import datetime
-from enum import Enum
 from typing import List
 
 from bindable import Bindable
 
+from data.eureka_tracker_zone import EurekaTrackerZone
 from data.db.database import pg_timestamp
 from data.db.sql import SQL, Record
-
-
-class EurekaTrackerZone(Enum):
-    ANEMOS = 1
-    PAGOS = 2
-    PYROS = 3
-    HYDATOS = 4
 
 
 class EurekaTracker:

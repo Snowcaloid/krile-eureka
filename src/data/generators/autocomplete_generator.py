@@ -1,3 +1,4 @@
+from bindable import Bindable
 import bot
 from calendar import month_abbr, monthrange
 from datetime import date
@@ -6,10 +7,9 @@ from discord import Interaction
 from discord.app_commands import Choice
 
 from data.db.definition import TableDefinitions
-from data.eureka_info import EurekaTrackerZone
+from data.eureka_tracker_zone import EurekaTrackerZone
 
 from data.events.event_category import EventCategory
-from data.guilds.guild import Guilds
 from data.guilds.guild_pings import GuildPingType
 from data.guilds.guild_role_functions import GuildRoleFunction
 from data.notorious_monsters import NM_ALIASES, NOTORIOUS_MONSTERS, NotoriousMonster
@@ -17,39 +17,36 @@ from data.ui.constants import ButtonType
 from data.validation.permission_validator import PermissionValidator
 
 
-class AutoCompleteGenerator:
-    @classmethod
-    def filter_by_current(cl, list: List[Choice], current: str) -> List[Choice]:
+class AutoCompleteGenerator(Bindable):
+    from data.events.event_templates import EventTemplates
+    @EventTemplates.bind
+    def event_templates(self) -> EventTemplates: ...
+
+    def filter_by_current(self, list: List[Choice], current: str) -> List[Choice]:
         if current == '':
             return list
         else:
             return [choice for choice in list if choice.name.lower().startswith(current.lower())]
 
-    @classmethod
-    def event_type(cl, interaction: Interaction, current: str) -> List[Choice]:
+    def event_type(self, interaction: Interaction, current: str) -> List[Choice]:
         allowed_categories = PermissionValidator().get_raid_leader_permissions(interaction.user)
-        return cl.filter_by_current([event_template.as_choice() for event_template in Guilds().get(
-            interaction.guild_id).event_templates.get_by_categories(allowed_categories)], current)
+        return self.filter_by_current([
+            event_template.as_choice() for event_template in self.event_templates.get_by_categories(interaction.guild_id, allowed_categories)], current)
 
-    @classmethod
-    def event_type_with_categories(cl, current: str, guild_id: int) -> List[Choice]:
-        return cl.filter_by_current(EventCategory.all_category_choices() + [
-            event_template.as_choice() for event_template in Guilds().get(guild_id).event_templates.all], current)
+    def event_type_with_categories(self, current: str, guild_id: int) -> List[Choice]:
+        return self.filter_by_current(EventCategory.all_category_choices() + [
+            event_template.as_choice() for event_template in self.event_templates.all(guild_id)], current)
 
-    @classmethod
-    def event_categories(cl, current: str) -> List[Choice]:
-        return cl.filter_by_current(EventCategory.all_category_choices(), current)
+    def event_categories(self, current: str) -> List[Choice]:
+        return self.filter_by_current(EventCategory.all_category_choices(), current)
 
-    @classmethod
-    def event_categories_short(cl, current: str) -> List[Choice]:
-        return cl.filter_by_current(EventCategory.all_category_choices_short(), current)
+    def event_categories_short(self, current: str) -> List[Choice]:
+        return self.filter_by_current(EventCategory.all_category_choices_short(), current)
 
-    @classmethod
-    def guild_role_functions(cl, current: str) -> List[Choice]:
-        return cl.filter_by_current(GuildRoleFunction.all_function_choices(), current)
+    def guild_role_functions(self, current: str) -> List[Choice]:
+        return self.filter_by_current(GuildRoleFunction.all_function_choices(), current)
 
-    @classmethod
-    def alterantive_nm_names(cl, nm_choices: List[Choice], current: str) -> List[Choice]:
+    def alterantive_nm_names(self, nm_choices: List[Choice], current: str) -> List[Choice]:
         choices: List[Choice] = []
         for choice in nm_choices:
             aliases = NM_ALIASES.get(NotoriousMonster(choice.value), None)
@@ -59,16 +56,14 @@ class AutoCompleteGenerator:
                         choices.append(Choice(name=alias, value=choice.value))
         return choices
 
-    @classmethod
-    def notorious_monster(cl, current: str) -> List[Choice]:
+    def notorious_monster(self, current: str) -> List[Choice]:
         nm_choices = [Choice(name=nm_name, value=nm_enum.value) for nm_enum, nm_name in NOTORIOUS_MONSTERS.items()]
         if current:
-            return cl.filter_by_current(nm_choices, current) + cl.alterantive_nm_names(nm_choices, current)
+            return self.filter_by_current(nm_choices, current) + self.alterantive_nm_names(nm_choices, current)
         else:
             return nm_choices
 
-    @classmethod
-    def date(cl, current: str) -> List[Choice]:
+    def date(self, current: str) -> List[Choice]:
         result = []
         if len(current) >= 2 and current[0:2].isdigit():
             day = int(current[0:2])
@@ -82,8 +77,7 @@ class AutoCompleteGenerator:
                     result.append(Choice(name=dt, value=dt))
         return result
 
-    @classmethod
-    def time(cl, current: str) -> List[Choice]:
+    def time(self, current: str) -> List[Choice]:
         result = []
         if len(current) >= 2 and current[0:2].isdigit():
             hour = int(current[0:2])
@@ -93,8 +87,7 @@ class AutoCompleteGenerator:
                     result.append(Choice(name=dt, value=dt))
         return result
 
-    @classmethod
-    def raid_leader(cl, interaction: Interaction, current: str) -> List[Choice]:
+    def raid_leader(self, interaction: Interaction, current: str) -> List[Choice]:
         result: List[Choice] = []
         currentlower = current.lower()
         for member in interaction.guild.members:
@@ -105,8 +98,7 @@ class AutoCompleteGenerator:
                         break
         return result
 
-    @classmethod
-    def guild_member(cl, interaction: Interaction, current: str) -> List[Choice]:
+    def guild_member(self, interaction: Interaction, current: str) -> List[Choice]:
         users = []
         i = 0
         currentlower = current.lower()
@@ -122,31 +114,27 @@ class AutoCompleteGenerator:
                 break
         return users
 
-    @classmethod
-    def ping_type(cl, current: str) -> List[Choice]:
-        return cl.filter_by_current([
+    def ping_type(self, current: str) -> List[Choice]:
+        return self.filter_by_current([
             Choice(name='Main passcodes',  value=GuildPingType.MAIN_PASSCODE.value),
             Choice(name='Support passcodes', value=GuildPingType.SUPPORT_PASSCODE.value),
             Choice(name='Party leader posts', value=GuildPingType.PL_POST.value),
             Choice(name='Run Notification', value=GuildPingType.RUN_NOTIFICATION.value)
         ], current)
 
-    @classmethod
-    def eureka_instance(cl, current: str) -> List[Choice]:
-        return cl.filter_by_current([
+    def eureka_instance(self, current: str) -> List[Choice]:
+        return self.filter_by_current([
             Choice(name='Anemos',  value=str(EurekaTrackerZone.ANEMOS.value)),
             Choice(name='Pagos', value=str(EurekaTrackerZone.PAGOS.value)),
             Choice(name='Pyros', value=str(EurekaTrackerZone.PYROS.value)),
             Choice(name='Hydatos', value=str(EurekaTrackerZone.HYDATOS.value))
         ], current)
 
-    @classmethod
-    def button_type(cl, current: str) -> List[Choice]:
+    def button_type(self, current: str) -> List[Choice]:
         return [
             Choice(name='Role selection Button', value=ButtonType.ROLE_SELECTION.value),
             Choice(name='Role display Button', value=ButtonType.ROLE_DISPLAY.value)
         ]
 
-    @classmethod
-    def table(cl, current: str) -> List[Choice]:
-        return cl.filter_by_current([Choice(name=definition.name(), value=definition.name()) for definition in TableDefinitions().loaded_assets], current)
+    def table(self, current: str) -> List[Choice]:
+        return self.filter_by_current([Choice(name=definition.name(), value=definition.name()) for definition in TableDefinitions().loaded_assets], current)

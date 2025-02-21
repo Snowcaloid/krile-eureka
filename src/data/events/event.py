@@ -1,7 +1,5 @@
 
 from data.events.event_category import EventCategory
-from data.guilds.guild import Guilds
-from data.tasks.tasks import Tasks
 from discord import Interaction, Member
 import bot
 from indexedproperty import indexedproperty
@@ -66,11 +64,17 @@ class Event:
     _description: str
     _use_support: bool
 
+    from data.tasks.tasks import Tasks
     @Tasks.bind
     def _tasks(self) -> Tasks: ...
 
+    from data.guilds.guild import Guilds
     @Guilds.bind
-    def guilds(self) -> Guilds: ...
+    def _guilds(self) -> Guilds: ...
+
+    from data.events.event_templates import EventTemplates
+    @EventTemplates.bind
+    def _event_templates(self) -> EventTemplates: ...
 
     def __init__(self):
         self.users = EventUserData()
@@ -88,7 +92,7 @@ class Event:
             self.passcode_main = record['pass_main']
             self.passcode_supp = record['pass_supp']
             self.guild_id = record['guild_id']
-            self.template = self.guilds.get(self.guild_id).event_templates.get(record['event_type'])
+            self.template = self._event_templates.get(self.guild_id, record['event_type'])
             self._use_support = self.template.use_support() and record['use_support']
             self.users.load(id)
 
@@ -272,7 +276,7 @@ class Event:
     def create_tasks(self) -> None:
         self._tasks.add_task(self.time, TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
         if self.use_recruitment_posts and self.delete_recruitment_posts:
-            channel_data = self.guilds.get(self.guild_id).channels.get(GuildChannelFunction.PL_CHANNEL, self.type)
+            channel_data = self._guilds.get(self.guild_id).channels.get(GuildChannelFunction.PL_CHANNEL, self.type)
             if channel_data:
                 self._tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
         if not self.auto_passcode: return

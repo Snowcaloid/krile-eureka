@@ -4,7 +4,6 @@ from discord import TextChannel
 from data.events.event import Event
 from data.cache.message_cache import MessageCache
 import bot
-from data.guilds.guild import Guilds
 from data.guilds.guild_message_functions import GuildMessageFunction
 
 class DateSeparatedScheduleData:
@@ -18,7 +17,7 @@ class DateSeparatedScheduleData:
 
 class UISchedule:
     """Schedule post."""
-
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

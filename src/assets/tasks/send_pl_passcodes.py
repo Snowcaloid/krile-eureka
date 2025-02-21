@@ -1,11 +1,11 @@
 from typing import override
 from discord import Embed
 import bot
-from data.guilds.guild import Guilds
 from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
 class Task_SendPLPasscodes(TaskTemplate):
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

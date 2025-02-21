@@ -4,7 +4,6 @@ from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Interaction, Thread
 from discord.channel import TextChannel
-from data.ui.copied_messages import MessageCopyController
 from data.validation.input_validator import InputValidator
 from utils import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
@@ -12,6 +11,7 @@ from logger import guild_log_message
 
 
 class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands.'):
+    from data.ui.copied_messages import MessageCopyController
     @MessageCopyController.bind
     def message_copy_controller(self) -> MessageCopyController: ...
 

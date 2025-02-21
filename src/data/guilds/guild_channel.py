@@ -2,7 +2,6 @@ from typing import List
 
 from data.db.sql import SQL, Record
 from data.events.event_category import EventCategory
-from data.guilds.guild import Guilds
 from data.guilds.guild_channel_functions import GuildChannelFunction
 
 class GuildChannel:
@@ -21,8 +20,9 @@ class GuildChannels:
     _list: List[GuildChannel]
     guild_id: int
 
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
+    from data.events.event_templates import EventTemplates
+    @EventTemplates.bind
+    def event_templates(self) -> EventTemplates: ...
 
     def __init__(self):
         self._list = []
@@ -54,7 +54,7 @@ class GuildChannels:
 
     def set_category(self, id: int, function: GuildChannelFunction, event_category: EventCategory):
         query = Record() # Prevent multiple connects and disconnects
-        for event_template in self.guilds.get(self.guild_id).event_templates.get_by_categories([event_category]):
+        for event_template in self.event_templates.get_by_categories(self.guild_id, [event_category]):
             self.set(id, function, event_template.type())
         self.load(self.guild_id)
         del query

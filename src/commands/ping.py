@@ -3,7 +3,6 @@ from discord import Interaction
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.guilds.guild import Guilds
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.notorious_monsters import NOTORIOUS_MONSTERS, NotoriousMonster
@@ -15,6 +14,7 @@ from utils import default_defer, default_response
 # pings
 ##################################################################################
 class PingCommands(GroupCog, group_name='ping', group_description='Ping people for mob spawns.'):
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
@@ -40,7 +40,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
 
     @spawn.autocomplete('notorious_monster')
     async def autocomplete_notorious_monster(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.notorious_monster(current)
+        return AutoCompleteGenerator().notorious_monster(current)
 
     #region error-handling
     @spawn.error

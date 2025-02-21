@@ -4,10 +4,9 @@ from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
-from data.eureka_info import EurekaTrackerZone
+from data.eureka_tracker_zone import EurekaTrackerZone
 from data.events.event_category import EventCategory
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.guilds.guild import Guilds
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_message_functions import GuildMessageFunction
 from data.guilds.guild_pings import GuildPingType
@@ -20,8 +19,13 @@ from logger import feedback_and_log, guild_log_message
 
 
 class ConfigCommands(GroupCog, group_name='config', group_description='Config commands.'):
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
+
+    from data.events.event_templates import EventTemplates
+    @EventTemplates.bind
+    def event_templates(self) -> EventTemplates: ...
 
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)
@@ -62,7 +66,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         channels_data = self.guilds.get(interaction.guild_id).channels
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             channels_data.set(channel.id, function, event_type)
-            desc = self.guilds.get(self.guild_id).event_templates.get(event_type).short_description()
+            desc = self.event_templates.get(interaction.guild_id, event_type).short_description()
         else:
             channels_data.set_category(channel.id, function, EventCategory(event_type))
             desc = EventCategory(event_type).value
@@ -145,7 +149,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         pings_data = self.guilds.get(interaction.guild_id).pings
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             pings_data.add_ping(GuildPingType(ping_type), event_type, role.id)
-            desc = self.guilds.get(self.guild_id).event_templates.get(event_type).short_description()
+            desc = self.event_templates.get(interaction.guild_id, event_type).short_description()
         else:
             pings_data.add_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
             desc = EventCategory(event_type).value
@@ -159,7 +163,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         pings_data = self.guilds.get(interaction.guild_id).pings
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             pings_data.remove_ping(GuildPingType(ping_type), event_type, role.id)
-            desc = self.guilds.get(self.guild_id).event_templates.get(event_type).short_description()
+            desc = self.event_templates.get(interaction.guild_id, event_type).short_description()
         else:
             pings_data.remove_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
             desc = EventCategory(event_type).value
@@ -206,18 +210,18 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @ping_add_role.autocomplete('ping_type')
     @ping_remove_role.autocomplete('ping_type')
     async def autocomplete_ping_type(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.ping_type(current)
+        return AutoCompleteGenerator().ping_type(current)
 
     @ping_add_eureka_role.autocomplete('instance')
     @ping_remove_eureka_role.autocomplete('instance')
     async def autocomplete_eureka_instance(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.eureka_instance(current)
+        return AutoCompleteGenerator().eureka_instance(current)
 
     @nm_notification_channel.autocomplete('notorious_monster')
     @ping_add_nm_role.autocomplete('notorious_monster')
     @ping_remove_nm_role.autocomplete('notorious_monster')
     async def autocomplete_eureka_instance(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.notorious_monster(current)
+        return AutoCompleteGenerator().notorious_monster(current)
 
     @passcode_channel.autocomplete('event_type')
     @party_leader_channel.autocomplete('event_type')
@@ -226,16 +230,16 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @ping_add_role.autocomplete('event_type')
     @ping_remove_role.autocomplete('event_type')
     async def autocomplete_event_type_with_all(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.event_type_with_categories(current, interaction.guild_id)
+        return AutoCompleteGenerator().event_type_with_categories(current, interaction.guild_id)
 
     @eureka_notification_channel.autocomplete('instance')
     async def autocomplete_instance(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.eureka_instance(current)
+        return AutoCompleteGenerator().eureka_instance(current)
 
     @add_raid_leader_role.autocomplete('event_category')
     @remove_raid_leader_role.autocomplete('event_category')
     async def autocomplete_event_category(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.event_categories(current)
+        return AutoCompleteGenerator().event_categories(current)
 
     #region error-handling
     @create_schedule_post.error

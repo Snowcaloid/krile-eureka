@@ -5,7 +5,6 @@ from typing import Coroutine
 from discord import Interaction
 
 import bot
-from data.guilds.guild import Guilds
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from utils import default_response, get_discord_timestamp
 
@@ -18,6 +17,7 @@ async def guild_log_message(guild_id: int, message: str):
             message (str): the message to log
     """
     # Retrieve the log channel id for this guild
+    from data.guilds.guild import Guilds
     channel_data = Guilds().get(guild_id).channels.get(GuildChannelFunction.LOGGING)
     if channel_data is None: return
     guild = bot.instance.get_guild(guild_id)

@@ -3,7 +3,6 @@ from typing import List
 from bindable import Bindable
 from data.db.sql import SQL, Record
 from data.guilds.guild_channel import GuildChannels
-from data.guilds.guild_event_templates import GuildEventTemplates
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
 from data.guilds.guild_roles import GuildRoles
@@ -19,7 +18,6 @@ class Guild:
     pings: GuildPings
     roles: GuildRoles
     messages: GuildMessages
-    event_templates: GuildEventTemplates
 
     def __init__(self):
         self.schedule = GuildSchedule()
@@ -27,7 +25,6 @@ class Guild:
         self.pings = GuildPings()
         self.roles = GuildRoles()
         self.messages = GuildMessages()
-        self.event_templates = GuildEventTemplates()
 
     def load(self, guild_id: int, soft_load: bool = False) -> None:
         query = Record() # Prevent multiple connects and disconnects
@@ -38,7 +35,6 @@ class Guild:
             self._role_developer = record['role_developer']
             self._role_admin = record['role_admin']
         if soft_load: return
-        self.event_templates.load(guild_id)
         self.schedule.load(guild_id)
         self.channels.load(guild_id)
         self.pings.load(guild_id)

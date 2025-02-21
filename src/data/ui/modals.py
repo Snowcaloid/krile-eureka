@@ -4,20 +4,18 @@ from discord import ButtonStyle, HTTPException, Interaction, TextStyle
 from discord.ui import Modal, TextInput, Button
 
 import bot
-from data.eureka_info import EurekaInfo, EurekaTrackerZone
-from data.guilds.guild import Guilds
+from data.eureka_tracker_zone import EurekaTrackerZone
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.ui.views import TemporaryView
 from logger import guild_log_message
 
 class EurekaTrackerModal(Modal):
-    @property
-    def something(self) -> EurekaInfo: ...
-
+    from data.eureka_info import EurekaInfo
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

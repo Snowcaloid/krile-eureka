@@ -4,8 +4,7 @@ from discord import ButtonStyle, Interaction, Message, SelectOption
 from discord.ui import Button, Select
 
 import bot
-from data.eureka_info import EurekaInfo, EurekaTrackerZone
-from data.guilds.guild import Guilds
+from data.eureka_tracker_zone import EurekaTrackerZone
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.ui.modals import EurekaTrackerModal
@@ -15,9 +14,11 @@ from utils import default_defer
 
 
 class EurekaTrackerZoneSelect(Select):
+    from data.eureka_info import EurekaInfo
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

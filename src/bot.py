@@ -1,6 +1,5 @@
 import os
 from data.cache.message_cache import MessageCache
-from data.tasks.tasks import Tasks
 from discord import Intents, Member, Object, HTTPException, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, Context, Greedy
 from commands.admin import AdminCommands
@@ -36,6 +35,7 @@ class Krile(Bot):
     """
     data: RuntimeData
 
+    from data.tasks.tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 

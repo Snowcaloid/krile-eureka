@@ -5,7 +5,6 @@ from discord.app_commands import check, command
 from discord import Interaction
 from typing import Optional
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.guilds.guild import Guilds
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.validation.input_validator import InputValidator
@@ -17,6 +16,7 @@ from logger import feedback_and_log, guild_log_message
 # schedule
 ###################################################################################
 class ScheduleCommands(GroupCog, group_name='schedule', group_description='Commands regarding scheduling runs.'):
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
@@ -101,21 +101,21 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     @add.autocomplete('event_type')
     @edit.autocomplete('event_type')
     async def autocomplete_schedule_type(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.event_type(interaction, current)
+        return AutoCompleteGenerator().event_type(interaction, current)
 
     @edit.autocomplete('raid_leader')
     async def autocomplete_leader(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.raid_leader(interaction, current)
+        return AutoCompleteGenerator().raid_leader(interaction, current)
 
     @add.autocomplete('event_date')
     @edit.autocomplete('event_date')
     async def autocomplete_schedule_date(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.date(current)
+        return AutoCompleteGenerator().date(current)
 
     @add.autocomplete('event_time')
     @edit.autocomplete('event_time')
     async def autocomplete_schedule_time(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.time(current)
+        return AutoCompleteGenerator().time(current)
 
     #region error-handling
     @add.error

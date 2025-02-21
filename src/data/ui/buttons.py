@@ -4,7 +4,6 @@ from discord.ui import Button, View
 from discord import ButtonStyle, Embed, Emoji, Interaction, Message, PartialEmoji, Role, Member, TextChannel
 from typing import Dict, List, Optional, Tuple, Type, Union
 from data.db.sql import SQL, Record
-from data.guilds.guild import Guilds
 from data.ui.constants import BUTTON_STYLE_DESCRIPTIONS, BUTTON_TYPE_DESCRIPTIONS, ButtonType
 from data.ui.selects import EurekaTrackerZoneSelect
 from data.ui.views import TemporaryView
@@ -82,6 +81,7 @@ class PartyLeaderButton(ButtonBase):
     from party leader position of a run."""
     event_id: int
 
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

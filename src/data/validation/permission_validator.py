@@ -4,11 +4,11 @@ from typing import List, Union
 from bindable import Bindable
 from discord import Interaction, InteractionResponse, Member
 from data.events.event_category import EventCategory
-from data.guilds.guild import Guilds
 from data.guilds.guild_role_functions import GuildRoleFunction
 
 
 class PermissionValidator(Bindable):
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

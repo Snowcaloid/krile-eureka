@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from typing import override
 
-from data.tasks.tasks import Tasks
 from discord import Activity, ActivityType, Status
 import bot
 from data.db.sql import SQL
@@ -11,11 +10,13 @@ from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
 class Task_UpdateStatus(TaskTemplate):
+    from data.tasks.tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.UPDATE_STATUS
+
     @override
     async def handle_exception(self, e: Exception, obj: object) -> None:
         self.tasks.remove_all(TaskExecutionType.UPDATE_STATUS)

@@ -1,10 +1,8 @@
 from uuid import uuid4
 from discord import ButtonStyle, Embed, Message, TextChannel
-from data.guilds.guild import Guilds
 from data.guilds.guild_channel import GuildChannel
 from data.guilds.guild_message_functions import GuildMessageFunction
 from data.guilds.guild_pings import GuildPingType
-from data.cache.message_cache import MessageCache
 import bot
 from data.events.event_category import EventCategory
 from data.guilds.guild_channel_functions import GuildChannelFunction
@@ -13,9 +11,11 @@ from data.ui.views import PersistentView
 
 class UIPLPost:
     """Party leader post."""
+    from data.cache.message_cache import MessageCache
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
 
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

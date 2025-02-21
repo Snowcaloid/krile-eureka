@@ -2,11 +2,7 @@ from datetime import datetime
 import bot
 from data.cache.message_cache import MessageCache
 from data.db.sql import Record
-from data.eureka_info import EurekaInfo
-from data.guilds.guild import Guilds
-from data.db.definition import TableDefinitions
 from data.tasks.task import TaskExecutionType
-from data.tasks.tasks import Tasks
 from data.ui.ui import UI
 
 class RuntimeData:
@@ -14,15 +10,19 @@ class RuntimeData:
     ui: UI = UI()
     ready: bool
 
+    from data.tasks.tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 
+    from data.eureka_info import EurekaInfo
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
+    from data.db.definition import TableDefinitions
     @TableDefinitions.bind
     def tables(self) -> TableDefinitions: ...
 
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

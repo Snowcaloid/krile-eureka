@@ -4,7 +4,6 @@ from typing import List
 
 from data.db.sql import SQL, Record
 from data.events.event_category import EventCategory
-from data.guilds.guild import Guilds
 
 # TODO: technically, this could be united with guild_roles
 
@@ -36,8 +35,9 @@ class GuildPings:
     _list: List[GuildPing] = []
     guild_id: int
 
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
+    from data.events.event_templates import EventTemplates
+    @EventTemplates.bind
+    def event_templates(self) -> EventTemplates: ...
 
     def load(self, guild_id: int) -> None:
         self.guild_id = guild_id
@@ -58,7 +58,7 @@ class GuildPings:
 
     def add_ping_category(self, ping_type: GuildPingType, event_category: EventCategory, tag: int):
         query = Record() # Prevent multiple connects and disconnects
-        for event_template in self.guilds.get(self.guild_id).event_templates.get_by_categories([event_category]):
+        for event_template in self.event_templates.get_by_categories(self.guild_id, [event_category]):
             self.add_ping(ping_type, event_template.type(), tag)
         del query
 
@@ -68,7 +68,7 @@ class GuildPings:
 
     def remove_ping_category(self, ping_type: GuildPingType, event_category: EventCategory, tag: int):
         query = Record() # Prevent multiple connects and disconnects
-        for event_template in self.guilds.get(self.guild_id).event_templates.get_by_categories([event_category]):
+        for event_template in self.event_templates.get_by_categories(self.guild_id, [event_category]):
             self.remove_ping(ping_type, event_template.type(), tag)
         del query
 

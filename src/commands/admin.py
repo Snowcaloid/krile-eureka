@@ -47,7 +47,7 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
 
     @query.autocomplete('table')
     async def autocomplete_table(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator.table(current)
+        return AutoCompleteGenerator().table(current)
 
 
     #region error-handling

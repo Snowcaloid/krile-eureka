@@ -1,13 +1,10 @@
 from __future__ import annotations
 import re
-import bot
-from data.cache.message_cache import MessageCache
 from datetime import datetime
 from discord import Interaction, Member, TextChannel
 
-from data.eureka_info import EurekaTrackerZone
+from data.eureka_tracker_zone import EurekaTrackerZone
 from data.events.event_category import EventCategory
-from data.guilds.guild import Guilds
 from data.notorious_monsters import NOTORIOUS_MONSTERS, NotoriousMonster
 from logger import feedback_and_log
 from data.validation.permission_validator import PermissionValidator
@@ -17,11 +14,13 @@ class InputValidator:
     NORMAL: InputValidator
     RAISING: InputValidator
 
+    from data.cache.message_cache import MessageCache
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
 
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
+    from data.events.event_templates import EventTemplates
+    @EventTemplates.bind
+    def event_templates(self) -> EventTemplates: ...
 
     async def check_for_sql_identifiers(self, interaction: Interaction, text: str) -> bool:
         result = not re.search('(\\s|^)(drop|alter|update|set|create|grant|;)\\s', text, re.IGNORECASE)
@@ -30,7 +29,7 @@ class InputValidator:
         return result
 
     def event_type_name_to_type(self, event_type: str, guild_id: int) -> str:
-        for event in self.guilds.get(guild_id).event_templates.all:
+        for event in self.event_templates.all(guild_id):
             if event.description() == event_type:
                 return event.type()
         return event_type
@@ -57,7 +56,7 @@ class InputValidator:
         return result
 
     async def check_valid_event_type(self, interaction: Interaction, event_type: str) -> bool:
-        all_event_types = [event_template.type() for event_template in self.guilds.get(interaction.guild_id).event_templates.all]
+        all_event_types = [event_template.type() for event_template in self.guilds.event_templates.all(interaction.guild_id)]
         result = event_type in all_event_types
         if self == InputValidator.RAISING and not result:
             await feedback_and_log(interaction, f'tried using {event_type}, which does not correlate to a type of supported runs.')
@@ -70,7 +69,7 @@ class InputValidator:
         return result
 
     async def check_valid_event_type_or_category(self, interaction: Interaction, event_type: str) -> bool:
-        all_event_types = [event_template.type() for event_template in self.guilds.get(interaction.guild_id).event_templates.all]
+        all_event_types = [event_template.type() for event_template in self.guilds.event_templates.all(interaction.guild_id)]
         result = event_type in all_event_types or (event_type.endswith('_CATEGORY') and
                                                    event_type.replace('_CATEGORY', '') in EventCategory._value2member_map_)
         if self == InputValidator.RAISING and not result:
@@ -79,7 +78,7 @@ class InputValidator:
 
     async def check_valid_raid_leader(self, interaction: Interaction, member: Member, event_type: str) -> bool:
         allowed_categories = PermissionValidator().get_raid_leader_permissions(member)
-        event_template = self.guilds.get(interaction.guild_id).event_templates.get(event_type)
+        event_template = self.guilds.event_templates.get(interaction.guild_id, event_type)
         if event_template is None: return False
         result = event_template.category() in allowed_categories
         if self == InputValidator.RAISING and not result:
@@ -87,7 +86,7 @@ class InputValidator:
         return result
 
     async def check_custom_run_has_description(self, interaction: Interaction, event_type: str, description: str) -> bool:
-        result = self.guilds.get(interaction.guild_id).event_templates.get(event_type).category() != EventCategory.CUSTOM or description
+        result = self.guilds.event_templates.get(interaction.guild_id, event_type).category() != EventCategory.CUSTOM or description
         if self == InputValidator.RAISING and not result:
             await feedback_and_log(interaction, 'tried booking a custom run without description, but description is mandatory for custom runs.')
         return result

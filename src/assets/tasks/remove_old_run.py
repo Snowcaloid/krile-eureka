@@ -1,10 +1,10 @@
 from typing import override
 import bot
-from data.guilds.guild import Guilds
 from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
 class Task_RemoveOldRun(TaskTemplate):
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 

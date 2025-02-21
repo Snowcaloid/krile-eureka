@@ -1,13 +1,13 @@
 from typing import override
 from discord import Embed
 import bot
-from data.guilds.guild import Guilds
 from data.guilds.guild_channel_functions import GuildChannelFunction
 from data.guilds.guild_pings import GuildPingType
 from data.tasks.task import TaskExecutionType, TaskTemplate
 
 
 class Task_PostSupportPasscode(TaskTemplate):
+    from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
