@@ -8,18 +8,18 @@ from data.events.event_template import EventTemplate
 
 class GuildEventTemplates:
     _list: List[EventTemplate]
-    _default_templates: DefaultEventTemplates
-
     guild_id: int
 
-    def __init__(self, default_templates: List[EventTemplate] = []):
+    @DefaultEventTemplates.bind
+    def default_templates(self) -> DefaultEventTemplates: ...
+
+    def __init__(self):
         self._list = []
-        self._default_templates = default_templates
 
     def load(self, guild_id: int) -> None:
         self.guild_id = guild_id
         self._list.clear()
-        self._list.extend(self._default_templates.loaded_assets)
+        self._list.extend(self.default_templates.loaded_assets)
         for record in SQL('event_templates').select(fields=['data'], where=f'guild_id={guild_id}', all=True):
             data = record['data']
             template = EventTemplate(data)

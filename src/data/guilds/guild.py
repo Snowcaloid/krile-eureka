@@ -1,7 +1,5 @@
 from typing import List
 from data.db.sql import SQL, Record
-from data.events.default_event_templates import DefaultEventTemplates
-from data.events.event_template import EventTemplate
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_event_templates import GuildEventTemplates
 from data.guilds.guild_messages import GuildMessages
@@ -21,13 +19,13 @@ class Guild:
     messages: GuildMessages
     event_templates: GuildEventTemplates
 
-    def __init__(self, default_event_templates: DefaultEventTemplates):
+    def __init__(self):
         self.schedule = GuildSchedule()
         self.channels = GuildChannels()
         self.pings = GuildPings()
         self.roles = GuildRoles()
         self.messages = GuildMessages()
-        self.event_templates = GuildEventTemplates(default_event_templates)
+        self.event_templates = GuildEventTemplates()
 
     def load(self, guild_id: int, soft_load: bool = False) -> None:
         query = Record() # Prevent multiple connects and disconnects
@@ -67,16 +65,12 @@ class Guild:
 
 class Guilds:
     _list: List[Guild] = []
-    _default_event_templates: DefaultEventTemplates
-
-    def __init__(self, default_event_templates: List[EventTemplate]):
-        self._default_event_templates = default_event_templates
 
     def load(self) -> None:
         self._list.clear()
         for record in SQL('guilds').select(fields=['guild_id'],
                                            all=True):
-            guild = Guild(self._default_event_templates)
+            guild = Guild()
             self._list.append(guild)
             guild.load(record['guild_id'])
 

@@ -3,7 +3,6 @@ import bot
 from data.cache.message_cache import MessageCache
 from data.db.sql import Record
 from data.eureka_info import EurekaInfo
-from data.events.default_event_templates import DefaultEventTemplates
 from data.guilds.guild import Guilds
 from data.db.definition import TableDefinitions
 from data.tasks.task import TaskExecutionType
@@ -17,7 +16,6 @@ class RuntimeData:
     message_copy_controller: MessageCopyController = MessageCopyController()
     guilds: Guilds
     ui: UI = UI()
-    default_event_templates: DefaultEventTemplates = DefaultEventTemplates()
     ready: bool
 
     @Tasks.bind
@@ -28,7 +26,7 @@ class RuntimeData:
 
     def __init__(self):
         self.ready = False
-        self.guilds = Guilds(self.default_event_templates)
+        self.guilds = Guilds()
         self.ensure_database_tables()
 
     def ensure_database_tables(self):
