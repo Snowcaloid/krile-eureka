@@ -1,4 +1,4 @@
-from typing import TypeVar, TypedDict, Optional, Dict, Union
+from typing import Dict, Union
 
 ZoneInfoType = Dict[int, Dict[str, Union[int, Dict[str, str]]]]
 

@@ -1,5 +1,5 @@
 import os
-from typing import List, Tuple, Union
+from typing import List, Union
 from discord import Interaction, InteractionResponse, Member
 import bot
 from data.events.event_category import EventCategory
