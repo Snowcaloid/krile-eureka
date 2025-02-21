@@ -1,38 +1,37 @@
-from datetime import datetime
-from typing import List
+from bindable import Bindable
 from data.db.sql import SQL, Record
 from data.events.event import Event
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 
+from datetime import datetime
+from typing import List
 
-class GuildSchedule:
-    _list: List[Event] = []
+class Schedule(Bindable):
+    _list: List[Event]
 
-    guild_id: int
+    def constructor(self) -> None:
+        super().constructor()
+        self._list = []
 
-    def load(self, guild_id: int) -> None:
-        self.guild_id = guild_id
+    def load(self) -> None:
         self._list.clear()
         for record in SQL('events').select(fields=['id'],
-                                           where=f'guild_id={guild_id} and (not finished or finished is null) and (not canceled or canceled is null)',
+                                           where=f'(not finished or finished is null) and (not canceled or canceled is null)',
                                            all=True):
             event = Event()
             event.load(record['id'])
             self._list.append(event)
 
     def get(self, event_id: int) -> Event:
-        for event in self._list:
-            if event.id == event_id:
-                return event
-        return None
+        return next([event for event in self._list if event.id == event_id])
 
-    def add(self, leader: int, event_type: str, time: datetime,
+    def add(self, guild_id: int, leader: int, event_type: str, time: datetime,
             description: str = '', auto_passcode: bool = True,
             use_support: bool = True) -> Event:
         description = description.replace('\'', '\'\'')
         pass_main = EventPasscodeGenerator.generate() if auto_passcode else 0
         pass_supp = EventPasscodeGenerator.generate() if auto_passcode else 0
-        id = SQL('events').insert(Record(guild_id=self.guild_id,
+        id = SQL('events').insert(Record(guild_id=guild_id,
                                          raid_leader=leader,
                                          event_type=event_type,
                                          timestamp=time,
@@ -73,6 +72,5 @@ class GuildSchedule:
     def contains(self, event_id: int) -> bool:
         return not self.get(event_id) is None
 
-    @property
-    def all(self) -> List[Event]:
-        return self._list
+    def all(self, guild_id: int) -> List[Event]:
+        return [event for event in self._list if event.guild_id == guild_id]

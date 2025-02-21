@@ -26,6 +26,10 @@ class RuntimeData:
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
+    from data.events.schedule import Schedule
+    @Schedule.bind
+    def schedule(self) -> Schedule: ...
+
     def __init__(self):
         self.ready = False
         self.ensure_database_tables()
@@ -43,8 +47,9 @@ class RuntimeData:
             self.ready = False
         await self.ui.load()
         self.guilds.load()
-        self.tasks.load()
+        self.schedule.load()
         self.eureka_info.load()
+        self.tasks.load()
         self.ready = True
         MessageCache().clear()
         for guild in bot.instance.guilds:

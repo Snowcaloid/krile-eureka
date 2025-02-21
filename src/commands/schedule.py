@@ -20,6 +20,10 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
+    from data.events.schedule import Schedule
+    @Schedule.bind
+    def schedule(self) -> Schedule: ...
+
     @command(name = "add", description = "Add an entry to the schedule.")
     @check(PermissionValidator().is_raid_leader)
     async def add(self, interaction: Interaction, event_type: str,
@@ -34,8 +38,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if not await InputValidator.RAISING.check_custom_run_has_description(interaction, event_type, description): return
         event_datetime = await InputValidator.RAISING.check_and_combine_date_and_time(interaction, event_date, event_time)
         if not event_datetime: return
-        schedule = self.guilds.get(interaction.guild_id).schedule
-        event = schedule.add(interaction.user.id, event_type, event_datetime, description, auto_passcode, use_support)
+        event = self.schedule.add(interaction.guild_id, interaction.user.id, event_type, event_datetime, description, auto_passcode, use_support)
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         if event.use_recruitment_posts:
             await bot.instance.data.ui.pl_post.create(interaction.guild_id, event.id)
@@ -55,7 +58,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         await default_defer(interaction, False)
         if not await InputValidator.RAISING.check_run_exists(interaction, event_id): return
         if not await InputValidator.RAISING.check_allowed_to_change_run(interaction, event_id): return
-        self.guilds.get(interaction.guild_id).schedule.cancel(event_id)
+        self.schedule.cancel(event_id)
         await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         await feedback_and_log(interaction, f'canceled the run #{event_id}.')
@@ -68,8 +71,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                    auto_passcode: Optional[bool] = None, use_support: Optional[bool] = None):
         await default_defer(interaction, False)
         if not await InputValidator.RAISING.check_run_exists(interaction, event_id): return
-        schedule = self.guilds.get(interaction.guild_id).schedule
-        old_event = schedule.get(event_id)
+        old_event = self.schedule.get(event_id)
         check_type = old_event.type if event_type is None else event_type
         if event_type:
             event_type = InputValidator.NORMAL.event_type_name_to_type(event_type, interaction.guild_id)
@@ -87,7 +89,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if is_type_change:
             await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
         old_event = copy.deepcopy(old_event)
-        event = schedule.edit(event_id, raid_leader, event_type, event_datetime,
+        event = self.schedule.edit(event_id, raid_leader, event_type, event_datetime,
                               InputValidator.NORMAL.escape_event_description(description), auto_passcode, use_support)
         if is_type_change:
             await bot.instance.data.ui.pl_post.create(interaction.guild_id, event_id)

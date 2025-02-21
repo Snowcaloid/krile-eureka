@@ -27,6 +27,10 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @EventTemplates.bind
     def event_templates(self) -> EventTemplates: ...
 
+    from data.events.schedule import Schedule
+    @Schedule.bind
+    def schedule(self) -> Schedule: ...
+
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)
     async def create_schedule_post(self, interaction: Interaction, channel: TextChannel):

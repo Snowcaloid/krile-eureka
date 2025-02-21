@@ -8,14 +8,18 @@ class Task_RemoveOldRun(TaskTemplate):
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
+    from data.events.schedule import Schedule
+    @Schedule.bind
+    def schedule(self) -> Schedule: ...
+
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.REMOVE_OLD_RUNS
 
     @override
     async def execute(self, obj: object) -> None:
         if obj and obj["id"]:
+            self.schedule.finish(obj["id"])
             for guild in self.guilds.all:
-                guild.schedule.finish(obj["id"])
                 await bot.instance.data.ui.schedule.rebuild(guild.id)
 
 

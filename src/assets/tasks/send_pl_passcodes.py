@@ -9,15 +9,19 @@ class Task_SendPLPasscodes(TaskTemplate):
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
+    from data.events.schedule import Schedule
+    @Schedule.bind
+    def schedule(self) -> Schedule: ...
+
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.SEND_PL_PASSCODES
 
     @override
     async def execute(self, obj: object) -> None:
-        if obj and obj["guild"] and obj["entry_id"]:
-            event = self.guilds.get(obj["guild"]).schedule.get(obj["entry_id"])
+        if obj and obj["entry_id"]:
+            event = self.schedule.get(obj["entry_id"])
             if event:
-                guild = bot.instance.get_guild(obj["guild"])
+                guild = bot.instance.get_guild(event.guild_id)
                 member = guild.get_member(event.users.raid_leader)
                 if member:
                     await member.send(embed=Embed(

@@ -6,21 +6,18 @@ from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
 from data.guilds.guild_roles import GuildRoles
-from data.guilds.guild_schedule import GuildSchedule
 
 
 class Guild:
     id: int
     _role_developer: int
     _role_admin: int
-    schedule: GuildSchedule
     channels: GuildChannels
     pings: GuildPings
     roles: GuildRoles
     messages: GuildMessages
 
     def __init__(self):
-        self.schedule = GuildSchedule()
         self.channels = GuildChannels()
         self.pings = GuildPings()
         self.roles = GuildRoles()
@@ -35,7 +32,6 @@ class Guild:
             self._role_developer = record['role_developer']
             self._role_admin = record['role_admin']
         if soft_load: return
-        self.schedule.load(guild_id)
         self.channels.load(guild_id)
         self.pings.load(guild_id)
         self.roles.load(guild_id)

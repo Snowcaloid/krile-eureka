@@ -21,6 +21,10 @@ class UISchedule:
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
+    from data.events.schedule import Schedule
+    @Schedule.bind
+    def schedule(self) -> Schedule: ...
+
     def events_per_date(self, event_list: List[Event]) -> List[DateSeparatedScheduleData]:
         """Splits the event list by date."""
         result = []
@@ -51,8 +55,8 @@ class UISchedule:
                 'Just join via the private party finder in Adventuring Forays tab whenever the passcodes are posted.'
             )
             embed.clear_fields()
-            guild_data.schedule.all.sort(key=lambda e: e.time)
-            per_date = self.events_per_date(guild_data.schedule.all)
+            self.schedule.all(guild_id).sort(key=lambda e: e.time)
+            per_date = self.events_per_date(self.schedule.all(guild_id))
             if not per_date:
                 description = f'{description}\n### There are currently no runs scheduled.'
             else:

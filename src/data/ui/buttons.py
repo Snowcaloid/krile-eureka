@@ -81,9 +81,9 @@ class PartyLeaderButton(ButtonBase):
     from party leader position of a run."""
     event_id: int
 
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
+    from data.events.schedule import Schedule
+    @Schedule.bind
+    def schedule(self) -> Schedule: ...
 
     def button_type(self) -> ButtonType: return ButtonType.PL_POST
 
@@ -91,8 +91,7 @@ class PartyLeaderButton(ButtonBase):
         if interaction.message == self.message:
             await default_defer(interaction)
             id = self.event_id
-            guild_data = self.guilds.get(interaction.guild_id)
-            event = guild_data.schedule.get(id)
+            event = self.schedule.get(id)
             if event:
                 index = self.pl
                 party_name = event.pl_button_texts[index]

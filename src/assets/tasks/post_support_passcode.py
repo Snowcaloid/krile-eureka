@@ -11,6 +11,10 @@ class Task_PostSupportPasscode(TaskTemplate):
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
+    from data.events.schedule import Schedule
+    @Schedule.bind
+    def schedule(self) -> Schedule: ...
+
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.POST_SUPPORT_PASSCODE
 
@@ -20,7 +24,7 @@ class Task_PostSupportPasscode(TaskTemplate):
         if obj and obj["guild"] and obj["entry_id"]:
             guild_data = self.guilds.get(obj["guild"])
             if guild_data is None: return
-            event = guild_data.schedule.get(obj["entry_id"])
+            event = self.schedule.get(obj["entry_id"])
             if event is None: return
             channel_data = guild_data.channels.get(GuildChannelFunction.SUPPORT_PASSCODES, event.type)
             if channel_data is None: return
