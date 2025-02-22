@@ -1,5 +1,6 @@
 from datetime import date
 from typing import List
+from centralized_data import Bindable
 from discord import TextChannel
 from data.events.event import Event
 from data.cache.message_cache import MessageCache
@@ -17,7 +18,7 @@ class DateSeparatedScheduleData:
         self._date = date
         self._list = []
 
-class UISchedule:
+class UISchedule(Bindable):
     """Schedule post."""
 
     def events_per_date(self, event_list: List[Event]) -> List[DateSeparatedScheduleData]:

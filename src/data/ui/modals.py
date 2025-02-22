@@ -16,10 +16,6 @@ class EurekaTrackerModal(Modal):
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
-    from data.ui.ui import UI
-    @UI.bind
-    def ui(self) -> UI: ...
-
     def __init__(self, *, zone: EurekaTrackerZone = None) -> None:
         self.zone = zone
         super().__init__(title="Enter tracker URL or ID", timeout=None)

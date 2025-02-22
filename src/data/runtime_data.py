@@ -22,6 +22,10 @@ class RuntimeData:
     @ButtonLoader.bind
     def button_loader(self) -> ButtonLoader: ...
 
+    from data.ui.ui_schedule import UISchedule
+    @UISchedule.bind
+    def ui_schedule(self) -> UISchedule: ...
+
     async def reset(self):
         """Load general data from the db."""
         await self.button_loader.load()
@@ -34,7 +38,7 @@ class RuntimeData:
             GuildMessages(guild.id).load()
             GuildRoles(guild.id).load()
             GuildPings(guild.id).load()
-            await self.ui.schedule.rebuild(guild.id)
+            await self.ui_schedule.rebuild(guild.id)
 
         self.tasks.load()
 

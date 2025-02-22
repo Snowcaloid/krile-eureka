@@ -24,9 +24,9 @@ from logger import feedback_and_log, guild_log_message
 
 
 class ConfigCommands(GroupCog, group_name='config', group_description='Config commands.'):
-    from data.ui.ui import UI
-    @UI.bind
-    def ui(self) -> UI: ...
+    from data.ui.ui_schedule import UISchedule
+    @UISchedule.bind
+    def ui_schedule(self) -> UISchedule: ...
 
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)
@@ -43,7 +43,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
             messages.remove(message_data.message_id) # TODO: This routine is used multiple times. It could be moved somewhere else
         message = await channel.send(embed=Embed(description='...'))
         messages.add(message.id, channel.id, GuildMessageFunction.SCHEDULE_POST)
-        await self.ui.schedule.rebuild(interaction.guild_id)
+        await self.ui_schedule.rebuild(interaction.guild_id)
         await feedback_and_log(interaction, f'created **schedule post** in {channel.jump_url}')
 
     @command(name = "create_eureka_info_post", description = "Create an updated eureka post for a guild.")

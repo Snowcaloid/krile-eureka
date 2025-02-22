@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from typing import List
+from centralized_data import Bindable
 from discord import Embed, Emoji, Message
 from discord.utils import get
 
@@ -191,7 +192,7 @@ class UIHelpPost_BAPartyLeader(UIHelpPost):
         )
 
 
-class UIHelp:
+class UIHelp(Bindable):
     """Various help posts"""
 
     async def ba_portals(self, message: Message) -> Message:

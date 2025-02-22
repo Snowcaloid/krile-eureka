@@ -154,11 +154,15 @@ class SendPLGuideButton(ButtonBase):
 
     def button_type(self) -> ButtonType: return ButtonType.SEND_PL_GUIDE
 
+    from data.ui.ui_help import UIHelp
+    @UIHelp.bind
+    def ui_help(self) -> UIHelp: ...
+
     async def callback(self, interaction: Interaction):
         if interaction.message == self.message:
             await default_defer(interaction)
             message = await interaction.user.send('_ _')
-            await self.ui.help.ba_party_leader(message, interaction.guild.emojis)
+            await self.ui_help.ba_party_leader(message, interaction.guild.emojis)
             await default_response(interaction, 'The guide has been sent to your DMs.')
 
 

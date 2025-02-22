@@ -18,9 +18,9 @@ from logger import feedback_and_log, guild_log_message
 # schedule
 ###################################################################################
 class ScheduleCommands(GroupCog, group_name='schedule', group_description='Commands regarding scheduling runs.'):
-    from data.ui.ui import UI
-    @UI.bind
-    def ui(self) -> UI: ...
+    from data.ui.ui_schedule import UISchedule
+    @UISchedule.bind
+    def ui_schedule(self) -> UISchedule: ...
 
     @command(name = "add", description = "Add an entry to the schedule.")
     @check(PermissionValidator().is_raid_leader)
@@ -37,7 +37,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         event_datetime = await InputValidator.RAISING.check_and_combine_date_and_time(interaction, event_date, event_time)
         if not event_datetime: return
         event = Schedule(interaction.guild_id).add(interaction.user.id, event_type, event_datetime, description, auto_passcode, use_support)
-        await self.ui.schedule.rebuild(interaction.guild_id)
+        await self.ui_schedule.rebuild(interaction.guild_id)
         if event.use_recruitment_posts:
             await self.ui.pl_post.create(interaction.guild_id, event.id)
         notification_channel = GuildChannels(interaction.guild_id).get(GuildChannelFunction.RUN_NOTIFICATION, event_type)
@@ -56,7 +56,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if not await InputValidator.RAISING.check_allowed_to_change_run(interaction, event_id): return
         Schedule(interaction.guild_id).cancel(event_id)
         await self.ui.pl_post.remove(interaction.guild_id, event_id)
-        await self.ui.schedule.rebuild(interaction.guild_id)
+        await self.ui_schedule.rebuild(interaction.guild_id)
         await feedback_and_log(interaction, f'canceled the run #{event_id}.')
 
     @command(name = "edit", description = "Edit an entry from the schedule.")
@@ -91,7 +91,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             await self.ui.pl_post.create(interaction.guild_id, event_id)
         if is_time_change or is_passcode_change or is_support_change:
             event.recreate_tasks()
-        await self.ui.schedule.rebuild(interaction.guild_id)
+        await self.ui_schedule.rebuild(interaction.guild_id)
         await self.ui.pl_post.rebuild(interaction.guild_id, event_id, True)
         changes = event.get_changes(interaction, old_event)
         await feedback_and_log(interaction, f'adjusted run #{str(event_id)}:\n{changes}')
