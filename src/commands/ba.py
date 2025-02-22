@@ -7,53 +7,57 @@ from logger import guild_log_message
 
 
 class BACommands(GroupCog, group_name='ba', group_description='Baldesion Arsenal commands.'):
+    from data.ui.ui import UI
+    @UI.bind
+    def ui(self) -> UI: ...
+
     @command(name = "portals", description = "BA Map with portals macro")
     async def portals(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.ba_portals(message)
+        await self.ui.help.ba_portals(message)
 
     @command(name = "rooms", description = "BA Rooms Image")
     async def rooms(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.ba_rooms(message)
+        await self.ui.help.ba_rooms(message)
 
     @command(name = "raiden", description = "BA Raiden Waymarks")
     async def raiden(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.ba_raiden(message)
+        await self.ui.help.ba_raiden(message)
 
     @command(name = "av", description = "BA AV Waymarks")
     async def av(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.ba_av(message)
+        await self.ui.help.ba_av(message)
 
     @command(name = "ozma", description = "BA Ozma help post")
     async def ozma(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.ba_ozma(message)
+        await self.ui.help.ba_ozma(message)
 
     @command(name = "fairy", description = "Hydatos Fairy guide")
     async def fairy(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.ba_fairy(message)
+        await self.ui.help.ba_fairy(message)
 
     @command(name = "trapping", description = "BA trapping guide")
     async def trapping(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.ba_trapping(message)
+        await self.ui.help.ba_trapping(message)
 
     @command(name = "entrance", description = "BA entrance guide")
     async def entrance(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.ba_entrance(message)
+        await self.ui.help.ba_entrance(message)
 
     #region error-handling
     @portals.error

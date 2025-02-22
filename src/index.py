@@ -25,9 +25,6 @@ import bot
 @bot.instance.event
 async def on_ready():
     print(f'{bot.instance.user} has connected to Discord!')
-    while not bot.instance.data.ready:
-        print('Waiting for data to be ready...')
-        await asyncio.sleep(500)
     for guild in bot.instance.guilds:
         from logger import guild_log_message
         message = (

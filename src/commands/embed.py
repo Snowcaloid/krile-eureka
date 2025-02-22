@@ -1,4 +1,3 @@
-import bot
 from data.cache.message_cache import MessageCache
 from discord.ext.commands import GroupCog
 from discord import Interaction, TextChannel
@@ -12,10 +11,14 @@ from data.validation.permission_validator import PermissionValidator
 # embeds
 ###################################################################################
 class EmbedCommands(GroupCog, group_name='embed', group_description='Commands for creating an embed.'):
+    from data.ui.ui import UI
+    @UI.bind
+    def ui(self) -> UI: ...
+
     @command(name = "create", description = "Initialize creation process of an embed.")
     @check(PermissionValidator().is_admin)
     async def create(self, interaction: Interaction):
-        await bot.instance.data.ui.embed.create(interaction)
+        await self.ui.embed.create(interaction)
 
     @command(name = "load", description = "Load an embed for editing/creation process.")
     @check(PermissionValidator().is_admin)
@@ -23,7 +26,7 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
         if not await InputValidator.RAISING.check_message_exists(interaction, channel, message_id): return
         if not await InputValidator.RAISING.check_message_contains_an_embed(interaction, channel, message_id): return
         message = await MessageCache().get(int(message_id), channel)
-        await bot.instance.data.ui.embed.load(interaction, message)
+        await self.ui.embed.load(interaction, message)
 
     #region error-handling
     @create.error

@@ -20,6 +20,7 @@ class EurekaInfo(Bindable):
     def constructor(self) -> None:
         super().constructor()
         self._trackers: List[EurekaTracker] = []
+        self.load()
 
     def load(self) -> None:
         self._trackers.clear()

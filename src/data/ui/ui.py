@@ -1,3 +1,4 @@
+from centralized_data import Bindable
 from data.ui.ui_eureka_info import UIEurekaInfoPost
 from data.ui.ui_embed_builder import UI_Embed_Builder
 from data.ui.ui_pl_post import UIPLPost
@@ -6,7 +7,7 @@ from data.ui.ui_weather_info import UIWeatherPost
 from data.ui.ui_help import UIHelp
 
 
-class UI:
+class UI(Bindable):
     schedule: UISchedule = UISchedule()
     pl_post: UIPLPost = UIPLPost()
     weather_post: UIWeatherPost = UIWeatherPost()

@@ -20,6 +20,10 @@ class EurekaTrackerZoneSelect(Select):
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
+    from data.ui.ui import UI
+    @UI.bind
+    def ui(self) -> UI: ...
+
     def __init__(self, *, generate: bool = False):
         self.generate = generate
         self.message: Message = None
@@ -65,7 +69,7 @@ class EurekaTrackerZoneSelect(Select):
             if next((tracker for tracker in self.eureka_info._trackers if tracker.url == url), None) is not None:
                 self.eureka_info.remove(url)
             self.eureka_info.add(url, zone)
-            await bot.instance.data.ui.eureka_info.rebuild(interaction.guild_id)
+            await self.ui.eureka_info.rebuild(interaction.guild_id)
             view = TemporaryView()
             view.add_item(Button(url=url, label='Visit the tracker', style=ButtonStyle.link))
             await interaction.followup.send(content=f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view, ephemeral=True)

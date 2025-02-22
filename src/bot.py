@@ -72,7 +72,7 @@ instance = Krile()
 @tasks.loop(seconds=1) # The delay is calculated from the end of execution of the last task.
 async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
     """Main loop, which runs required tasks at required times. await is necessery."""
-    if instance.data.ready and instance.ws:
+    if instance.ws:
         task = instance.tasks.get_next()
         if task is None: return
         if instance.tasks.executing: return

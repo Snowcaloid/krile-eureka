@@ -3,7 +3,6 @@ from re import search
 from discord import ButtonStyle, HTTPException, Interaction, TextStyle
 from discord.ui import Modal, TextInput, Button
 
-import bot
 from basic_types import EurekaTrackerZone
 from basic_types import GuildChannelFunction
 from basic_types import GuildPingType
@@ -16,6 +15,10 @@ class EurekaTrackerModal(Modal):
     from data.eureka_info import EurekaInfo
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
+
+    from data.ui.ui import UI
+    @UI.bind
+    def ui(self) -> UI: ...
 
     def __init__(self, *, zone: EurekaTrackerZone = None) -> None:
         self.zone = zone
@@ -39,7 +42,7 @@ class EurekaTrackerModal(Modal):
         if next((tracker for tracker in self.eureka_info._trackers if tracker.url == url), None) is not None:
             self.eureka_info.remove(url)
         self.eureka_info.add(url, self.zone)
-        await bot.instance.data.ui.eureka_info.rebuild(interaction.guild_id)
+        await self.ui.eureka_info.rebuild(interaction.guild_id)
         view = TemporaryView()
         view.add_item(Button(url=url, label='Visit the tracker', style=ButtonStyle.link))
         await interaction.response.edit_message(content='Successfully assigned tracker.', view=view)

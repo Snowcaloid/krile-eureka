@@ -82,6 +82,10 @@ class PartyLeaderButton(ButtonBase):
     from party leader position of a run."""
     event_id: int
 
+    from data.ui.ui import UI
+    @UI.bind
+    def ui(self) -> UI: ...
+
     def button_type(self) -> ButtonType: return ButtonType.PL_POST
 
     async def callback(self, interaction: Interaction):
@@ -94,13 +98,13 @@ class PartyLeaderButton(ButtonBase):
                 current_party_leader = event.users.party_leaders[self.pl]
                 if not current_party_leader and not interaction.user.id in event.users._party_leaders:
                     event.users.party_leaders[self.pl] = interaction.user.id
-                    await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event.id)
+                    await self.ui.pl_post.rebuild(interaction.guild_id, event.id)
                     run = await event.to_string()
                     await feedback_and_log(interaction, f'applied as Party Leader for Party {party_name} on {run}')
                 elif current_party_leader and (interaction.user.id == current_party_leader or interaction.user.id == event.users.raid_leader):
                     is_party_leader_removing_self = interaction.user.id == current_party_leader
                     event.users.party_leaders[self.pl] = 0
-                    await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event.id)
+                    await self.ui.pl_post.rebuild(interaction.guild_id, event.id)
                     await default_response(interaction, f'{interaction.guild.get_member(current_party_leader).display_name} has been removed from party {party_name}')
 
                     run = await event.to_string()
@@ -154,7 +158,7 @@ class SendPLGuideButton(ButtonBase):
         if interaction.message == self.message:
             await default_defer(interaction)
             message = await interaction.user.send('_ _')
-            await bot.instance.data.ui.help.ba_party_leader(message, interaction.guild.emojis)
+            await self.ui.help.ba_party_leader(message, interaction.guild.emojis)
             await default_response(interaction, 'The guide has been sent to your DMs.')
 
 
@@ -182,26 +186,25 @@ def buttons_as_text(buttons: List[ButtonBase]) -> str:
 
 
 def save_buttons(message: Message, view: View):
-    if bot.instance.data.ready:
-        query = Record() # Prevent multiple connects and disconnects
-        for button in view.children:
-            btn: ButtonBase = button
-            btn.message = message
-            role = btn.role.id if btn.role else 0
-            emoji = None if btn.emoji is None else str(btn.emoji)
-            SQL('buttons').insert(Record(button_type=btn.button_type().value,
-                                         style=btn.style.value,
-                                         emoji=emoji,
-                                         label=btn.label,
-                                         button_id=btn.custom_id,
-                                         row=btn.row,
-                                         index=btn.index,
-                                         role=role,
-                                         pl=btn.pl,
-                                         channel_id=message.channel.id,
-                                         message_id=message.id,
-                                         event_id=btn.event_id if isinstance(btn, PartyLeaderButton) else None))
-        del query
+    query = Record() # Prevent multiple connects and disconnects
+    for button in view.children:
+        btn: ButtonBase = button
+        btn.message = message
+        role = btn.role.id if btn.role else 0
+        emoji = None if btn.emoji is None else str(btn.emoji)
+        SQL('buttons').insert(Record(button_type=btn.button_type().value,
+                                        style=btn.style.value,
+                                        emoji=emoji,
+                                        label=btn.label,
+                                        button_id=btn.custom_id,
+                                        row=btn.row,
+                                        index=btn.index,
+                                        role=role,
+                                        pl=btn.pl,
+                                        channel_id=message.channel.id,
+                                        message_id=message.id,
+                                        event_id=btn.event_id if isinstance(btn, PartyLeaderButton) else None))
+    del query
 
 
 def delete_button(button_id: str) -> None:

@@ -15,6 +15,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
         self._db_tasks: List[Task] = []
         self._runtime_tasks: List[Task] = []
         self.executing: bool = False
+        self.load()
 
     def task_template(self, type: TaskExecutionType) -> TaskTemplate:
         return next(task for task in self.loaded_assets if task.type() == type)
@@ -67,10 +68,8 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
                 return task2
         elif task1:
             return task1
-        elif task2:
+        else:
             return task2
-
-        return None
 
     def remove_task(self, task: Task):
         if task.runtime_only:

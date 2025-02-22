@@ -6,6 +6,10 @@ from data.tasks.task import TaskTemplate
 
 
 class Task_RemoveOldRun(TaskTemplate):
+    from data.ui.ui import UI
+    @UI.bind
+    def ui(self) -> UI: ...
+
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.REMOVE_OLD_RUNS
 
@@ -14,6 +18,6 @@ class Task_RemoveOldRun(TaskTemplate):
         if obj and obj["id"]:
             Schedule().finish(obj["id"])
             for guild in bot.instance.guilds:
-                await bot.instance.data.ui.schedule.rebuild(guild.id)
+                await self.ui.schedule.rebuild(guild.id)
 
 

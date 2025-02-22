@@ -24,6 +24,10 @@ from logger import feedback_and_log, guild_log_message
 
 
 class ConfigCommands(GroupCog, group_name='config', group_description='Config commands.'):
+    from data.ui.ui import UI
+    @UI.bind
+    def ui(self) -> UI: ...
+
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)
     async def create_schedule_post(self, interaction: Interaction, channel: TextChannel):
@@ -39,7 +43,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
             messages.remove(message_data.message_id) # TODO: This routine is used multiple times. It could be moved somewhere else
         message = await channel.send(embed=Embed(description='...'))
         messages.add(message.id, channel.id, GuildMessageFunction.SCHEDULE_POST)
-        await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
+        await self.ui.schedule.rebuild(interaction.guild_id)
         await feedback_and_log(interaction, f'created **schedule post** in {channel.jump_url}')
 
     @command(name = "create_eureka_info_post", description = "Create an updated eureka post for a guild.")
@@ -49,11 +53,11 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         messages = GuildMessages(interaction.guild_id)
         message_data = messages.get(GuildMessageFunction.EUREKA_INFO)
         if message_data:
-            await bot.instance.data.ui.eureka_info.remove(interaction.guild_id)
+            await self.ui.eureka_info.remove(interaction.guild_id)
             messages.remove(message_data.message_id)
         message = await channel.send(embed=Embed(description='_ _'))
         messages.add(message.id, channel.id, GuildMessageFunction.EUREKA_INFO)
-        await bot.instance.data.ui.eureka_info.create(interaction.guild_id)
+        await self.ui.eureka_info.create(interaction.guild_id)
         await feedback_and_log(interaction, f'created a **Persistent Eureka Info Post** in {channel.jump_url}')
 
     async def config_channel(self, interaction: Interaction, event_type: str, channel: TextChannel,

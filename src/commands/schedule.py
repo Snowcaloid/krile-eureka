@@ -1,5 +1,4 @@
 import copy
-import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Interaction
@@ -19,6 +18,10 @@ from logger import feedback_and_log, guild_log_message
 # schedule
 ###################################################################################
 class ScheduleCommands(GroupCog, group_name='schedule', group_description='Commands regarding scheduling runs.'):
+    from data.ui.ui import UI
+    @UI.bind
+    def ui(self) -> UI: ...
+
     @command(name = "add", description = "Add an entry to the schedule.")
     @check(PermissionValidator().is_raid_leader)
     async def add(self, interaction: Interaction, event_type: str,
@@ -34,9 +37,9 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         event_datetime = await InputValidator.RAISING.check_and_combine_date_and_time(interaction, event_date, event_time)
         if not event_datetime: return
         event = Schedule(interaction.guild_id).add(interaction.user.id, event_type, event_datetime, description, auto_passcode, use_support)
-        await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
+        await self.ui.schedule.rebuild(interaction.guild_id)
         if event.use_recruitment_posts:
-            await bot.instance.data.ui.pl_post.create(interaction.guild_id, event.id)
+            await self.ui.pl_post.create(interaction.guild_id, event.id)
         notification_channel = GuildChannels(interaction.guild_id).get(GuildChannelFunction.RUN_NOTIFICATION, event_type)
         if notification_channel:
             channel = interaction.guild.get_channel(notification_channel.id)
@@ -52,8 +55,8 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if not await InputValidator.RAISING.check_run_exists(interaction, event_id): return
         if not await InputValidator.RAISING.check_allowed_to_change_run(interaction, event_id): return
         Schedule(interaction.guild_id).cancel(event_id)
-        await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
-        await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
+        await self.ui.pl_post.remove(interaction.guild_id, event_id)
+        await self.ui.schedule.rebuild(interaction.guild_id)
         await feedback_and_log(interaction, f'canceled the run #{event_id}.')
 
     @command(name = "edit", description = "Edit an entry from the schedule.")
@@ -80,16 +83,16 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         is_time_change = old_event.time != event_datetime
         is_support_change = not use_support is None and old_event.use_support != use_support
         if is_type_change:
-            await bot.instance.data.ui.pl_post.remove(interaction.guild_id, event_id)
+            await self.ui.pl_post.remove(interaction.guild_id, event_id)
         old_event = copy.deepcopy(old_event)
         event = Schedule(interaction.guild_id).edit(event_id, raid_leader, event_type, event_datetime,
                          InputValidator.NORMAL.escape_event_description(description), auto_passcode, use_support)
         if is_type_change:
-            await bot.instance.data.ui.pl_post.create(interaction.guild_id, event_id)
+            await self.ui.pl_post.create(interaction.guild_id, event_id)
         if is_time_change or is_passcode_change or is_support_change:
             event.recreate_tasks()
-        await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
-        await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event_id, True)
+        await self.ui.schedule.rebuild(interaction.guild_id)
+        await self.ui.pl_post.rebuild(interaction.guild_id, event_id, True)
         changes = event.get_changes(interaction, old_event)
         await feedback_and_log(interaction, f'adjusted run #{str(event_id)}:\n{changes}')
 

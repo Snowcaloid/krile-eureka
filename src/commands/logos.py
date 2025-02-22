@@ -1,4 +1,3 @@
-import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
 from discord import Interaction
@@ -7,65 +6,69 @@ from logger import guild_log_message
 
 
 class LogosCommands(GroupCog, group_name='logos', group_description='Logos action commands.'):
+    from data.ui.ui import UI
+    @UI.bind
+    def ui(self) -> UI: ...
+
     @command(name = "crafting", description = "Guide to crafting logos actions")
     async def crafting(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.logos_crafting(message)
+        await self.ui.help.logos_crafting(message)
 
     @command(name = "wisdoms", description = "Spirit of the remembered + Wisdom explanations")
     async def wisdoms(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.logos_wisdoms(message)
+        await self.ui.help.logos_wisdoms(message)
 
     @command(name = "actions", description = "Logos action detailed explanations")
     async def actions(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.logos_actions(message)
+        await self.ui.help.logos_actions(message)
 
     @command(name = "tank", description = "Tank logos actions")
     async def tank(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.logos_tank(message)
+        await self.ui.help.logos_tank(message)
 
     @command(name = "healer", description = "Healer logos actions")
     async def healer(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.logos_healer(message)
+        await self.ui.help.logos_healer(message)
 
     @command(name = "melee", description = "Melee logos actions")
     async def melee(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.logos_melee(message)
+        await self.ui.help.logos_melee(message)
 
     @command(name = "ranged", description = "Ranged/Mage logos actions")
     async def ranged(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.logos_ranged(message)
+        await self.ui.help.logos_ranged(message)
 
     @command(name = "mage", description = "Ranged/Mage logos actions")
     async def mage(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.logos_ranged(message)
+        await self.ui.help.logos_ranged(message)
 
     @command(name = "utility", description = "Utility logos actions")
     async def utility(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.logos_utility(message)
+        await self.ui.help.logos_utility(message)
 
     @command(name = "website", description = "https://ffxiv-eureka.com/logograms")
     async def website(self, interaction: Interaction):
         await default_defer(interaction, False)
         message = await default_response(interaction, '_ _')
-        await bot.instance.data.ui.help.logos_website(message)
+        await self.ui.help.logos_website(message)
 
     #region error-handling
     @crafting.error
