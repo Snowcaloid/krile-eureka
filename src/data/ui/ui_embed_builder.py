@@ -1,7 +1,7 @@
 from centralized_data import Bindable
 from discord import Embed, Interaction, Message
 
-from data.ui.buttons import buttons_as_text, buttons_from_message
+from data.ui.base_button import buttons_as_text, buttons_from_message
 from external.Obryt.embed import EmbedBuilderView
 from external.Obryt.utils.constants import CONTRAST_COLOR
 

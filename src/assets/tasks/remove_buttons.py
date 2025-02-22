@@ -1,7 +1,7 @@
 from typing import override
 from basic_types import TaskExecutionType
 from data.tasks.task import TaskTemplate
-from data.ui.buttons import delete_buttons
+from data.ui.base_button import delete_buttons
 
 
 class Task_RemoveButtons(TaskTemplate):

@@ -10,7 +10,8 @@ from data.events.event_category import EventCategory
 from basic_types import GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
-from data.ui.buttons import PartyLeaderButton, SendPLGuideButton, delete_buttons, save_buttons
+from data.ui.base_button import BaseButton, delete_buttons, save_buttons
+from data.ui.constants import ButtonType
 from data.ui.views import PersistentView
 
 class UIRecruitmentPost(Bindable):
@@ -50,7 +51,8 @@ class UIRecruitmentPost(Bindable):
             for i in range(1, 8):
                 label = event.pl_button_texts[i-1]
                 if label:
-                    button = PartyLeaderButton(
+                    button = BaseButton(
+                        ButtonType.PL_POST,
                         label=label,
                         custom_id=str(uuid4()),
                         row=1 if i < 4 else 2,
@@ -60,7 +62,8 @@ class UIRecruitmentPost(Bindable):
                     button.event_id = event.id
                     view.add_item(button)
             if event.category == EventCategory.BA:
-                view.add_item(SendPLGuideButton(
+                view.add_item(BaseButton(
+                    ButtonType.SEND_PL_GUIDE,
                     label='How to party lead?',
                     custom_id=str(uuid4()),
                     row=1,

@@ -28,7 +28,7 @@ from discord.ui import TextInput
 from discord import ChannelType, TextChannel
 
 import bot
-from data.ui.buttons import BUTTON_CLASSES, ButtonBase, buttons_as_text, delete_buttons, save_buttons
+from data.ui.base_button import BaseButton, buttons_as_text, delete_buttons, save_buttons
 from data.ui.constants import BUTTON_STYLE_CHOICES, BUTTON_TYPE_CHOICES, ButtonType
 from data.ui.views import PersistentView
 from logger import guild_log_message
@@ -486,7 +486,7 @@ class EditFieldDropdown(discord.ui.Select):
 
 
 class SendToChannelSelect(discord.ui.ChannelSelect):
-    def __init__(self, *, _embed: discord.Embed, _buttons: List[ButtonBase], instance: object):
+    def __init__(self, *, _embed: discord.Embed, _buttons: List[BaseButton], instance: object):
         self.embed = _embed
         self.buttons = _buttons
         self.bot: bot.Krile = instance
@@ -530,7 +530,7 @@ class SendToChannelSelect(discord.ui.ChannelSelect):
 
 
 class ReplaceMessageModal(discord.ui.Modal):
-    def __init__(self, *, _embed: discord.Embed, _buttons: List[ButtonBase], channel: TextChannel, parent_view: discord.ui.View) -> None:
+    def __init__(self, *, _embed: discord.Embed, _buttons: List[BaseButton], channel: TextChannel, parent_view: discord.ui.View) -> None:
         self.embed = _embed
         self.buttons = _buttons
         self.parent_view = parent_view
@@ -575,7 +575,7 @@ class ReplaceMessageModal(discord.ui.Modal):
 
 
 class ReplaceChannelSelect(discord.ui.ChannelSelect):
-    def __init__(self, *, _embed: discord.Embed, _buttons: List[ButtonBase], parent_view: BaseView, instance: object):
+    def __init__(self, *, _embed: discord.Embed, _buttons: List[BaseButton], parent_view: BaseView, instance: object):
         self.embed = _embed
         self.buttons = _buttons
         self.parent_view = parent_view
@@ -598,7 +598,7 @@ class ReplaceChannelSelect(discord.ui.ChannelSelect):
 
 
 class AddButtonModal(discord.ui.Modal):
-    def __init__(self, *, _buttons: List[ButtonBase], parent_view: discord.ui.View) -> None:
+    def __init__(self, *, _buttons: List[BaseButton], parent_view: discord.ui.View) -> None:
         self.buttons = _buttons
         self.parent_view = parent_view
         super().__init__(title="Add Button", timeout=None)
@@ -660,13 +660,14 @@ class AddButtonModal(discord.ui.Modal):
         if not self.button_type.value.lower() in BUTTON_TYPE_CHOICES:
             raise ValueError(f'{self.button_type.value.lower()} is not a valid button type.')
 
-        type = BUTTON_TYPE_CHOICES[self.button_type.value.lower()]
-        if type == ButtonType.ROLE_SELECTION:
+        button_type = BUTTON_TYPE_CHOICES[self.button_type.value.lower()]
+        if button_type == ButtonType.ROLE_SELECTION:
             role = find_nearest_role(interaction.guild, self.role.value)
             if role is None:
                 raise ValueError(f'{self.role.value} is not a valid role name.')
 
-        self.buttons.append(BUTTON_CLASSES[type](
+        self.buttons.append(BaseButton(
+            button_type,
             label=label,
             style=color,
             custom_id=str(uuid4()),
@@ -690,10 +691,10 @@ class AddButtonModal(discord.ui.Modal):
 class DeleteButtonDropdown(discord.ui.Select):
     def __init__(self,
         *,
-        _buttons: List[ButtonBase],
+        _buttons: List[BaseButton],
         parent_view: discord.ui.View,
         original_msg: discord.Message):
-        self.buttons: List[ButtonBase] = _buttons
+        self.buttons: List[BaseButton] = _buttons
         self.parent_view = parent_view
         self.original_msg = original_msg
         options = [
@@ -743,7 +744,7 @@ class EditButtonModal(discord.ui.Modal):
 
     def __init__(self,
         *,
-        _buttons: List[ButtonBase],
+        _buttons: List[BaseButton],
         parent_view: discord.ui.View,
         button_index: int,
         original_msg: discord.Message) -> None:
@@ -757,9 +758,9 @@ class EditButtonModal(discord.ui.Modal):
         button = self.buttons[button_index]
 
         self.button_label.default = button.label
-        self.button_type.default = next(key for key, value in BUTTON_TYPE_CHOICES.items() if value.value == button.button_type().value)
+        self.button_type.default = next(key for key, value in BUTTON_TYPE_CHOICES.items() if value == button.template.button_type())
         self.role.default = button.role.name if button.role.name is not None else ''
-        self.color.default = next(key for key, value in BUTTON_STYLE_CHOICES.items() if value.value == button.style.value)
+        self.color.default = next(key for key, value in BUTTON_STYLE_CHOICES.items() if value == button.style)
         self.emoji.default = str(button.emoji) if button.emoji is not None else ''
 
         super().__init__(title=f"Editing Button {button_index+1}", timeout=None)
@@ -779,13 +780,14 @@ class EditButtonModal(discord.ui.Modal):
         if not self.button_type.value.lower() in BUTTON_TYPE_CHOICES:
             raise ValueError(f'{self.button_type.value.lower()} is not a valid button type.')
 
-        type = BUTTON_TYPE_CHOICES[self.button_type.value.lower()]
-        if type == ButtonType.ROLE_SELECTION:
+        button_type = BUTTON_TYPE_CHOICES[self.button_type.value.lower()]
+        if button_type == ButtonType.ROLE_SELECTION:
             role = find_nearest_role(interaction.guild, self.role.value)
             if role is None:
                 raise ValueError(f'{self.role.value} is not a valid role name.')
 
-        self.buttons[self.button_index] = BUTTON_CLASSES[type](
+        self.buttons[self.button_index] = BaseButton(
+            button_type,
             label=label,
             style=color,
             custom_id=self.buttons[self.button_index].custom_id,
@@ -811,10 +813,10 @@ class EditButtonModal(discord.ui.Modal):
 class EditButtonDropdown(discord.ui.Select):
     def __init__(self,
         *,
-        _buttons: List[ButtonBase],
+        _buttons: List[BaseButton],
         parent_view: discord.ui.View,
         original_msg: discord.Message):
-        self.buttons: List[ButtonBase] = _buttons
+        self.buttons: List[BaseButton] = _buttons
         self.parent_view = parent_view
         self.original_msg = original_msg
         options = [
@@ -899,7 +901,7 @@ class ImportJSONModal(discord.ui.Modal):
 
 
 class EmbedBuilderView(BaseView):
-    def __init__(self, *, timeout: int, target: discord.Interaction, embed: discord.Embed = None, buttons: List[ButtonBase] = []):
+    def __init__(self, *, timeout: int, target: discord.Interaction, embed: discord.Embed = None, buttons: List[BaseButton] = []):
         self.bot = target.client
         super().__init__(timeout=timeout, target=target)
 
