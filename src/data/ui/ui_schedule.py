@@ -6,6 +6,7 @@ from data.cache.message_cache import MessageCache
 import bot
 from basic_types import GuildMessageFunction
 from data.events.schedule import Schedule
+from data.guilds.guild_messages import GuildMessages
 
 class DateSeparatedScheduleData:
     """Helper class for separating Schedule entries by date."""
@@ -18,9 +19,6 @@ class DateSeparatedScheduleData:
 
 class UISchedule:
     """Schedule post."""
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
 
     def events_per_date(self, event_list: List[Event]) -> List[DateSeparatedScheduleData]:
         """Splits the event list by date."""
@@ -35,9 +33,7 @@ class UISchedule:
         return result
 
     async def rebuild(self, guild_id: int) -> None:
-        guild_data = self.guilds.get(guild_id)
-        if guild_data is None: return
-        message_data = guild_data.messages.get(GuildMessageFunction.SCHEDULE_POST)
+        message_data = GuildMessages(guild_id).get(GuildMessageFunction.SCHEDULE_POST)
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return

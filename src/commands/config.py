@@ -13,6 +13,8 @@ from basic_types import GuildMessageFunction
 from basic_types import GuildPingType
 from basic_types import GuildRoleFunction
 from basic_types import NOTORIOUS_MONSTERS
+from data.guilds.guild_channel import GuildChannels
+from data.guilds.guild_messages import GuildMessages
 from data.validation.input_validator import InputValidator
 from utils import default_defer
 from data.validation.permission_validator import PermissionValidator
@@ -28,17 +30,17 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def create_schedule_post(self, interaction: Interaction, channel: TextChannel):
         await default_defer(interaction)
-        guild_data = self.guilds.get(interaction.guild_id)
-        message_data = guild_data.messages.get(GuildMessageFunction.SCHEDULE_POST)
+        messages = GuildMessages(interaction.guild_id)
+        message_data = messages.get(GuildMessageFunction.SCHEDULE_POST)
         if message_data:
             old_channel = bot.instance.get_channel(message_data.channel_id)
             if old_channel:
                 old_message = await MessageCache().get(message_data.message_id, old_channel)
                 if old_message:
                     await old_message.delete()
-            guild_data.messages.remove(message_data.message_id) # TODO: This routine is used multiple times. It could be moved somewhere else
+            messages.remove(message_data.message_id) # TODO: This routine is used multiple times. It could be moved somewhere else
         message = await channel.send(embed=Embed(description='...'))
-        guild_data.messages.add(message.id, channel.id, GuildMessageFunction.SCHEDULE_POST)
+        messages.add(message.id, channel.id, GuildMessageFunction.SCHEDULE_POST)
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         await feedback_and_log(interaction, f'created **schedule post** in {channel.jump_url}')
 
@@ -46,13 +48,13 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def create_eureka_info_post(self, interaction: Interaction, channel: TextChannel):
         await default_defer(interaction)
-        guild_data = self.guilds.get(interaction.guild_id)
-        message_data = guild_data.messages.get(GuildMessageFunction.EUREKA_INFO)
+        messages = GuildMessages(interaction.guild_id)
+        message_data = messages.get(GuildMessageFunction.EUREKA_INFO)
         if message_data:
             await bot.instance.data.ui.eureka_info.remove(interaction.guild_id)
-            guild_data.messages.remove(message_data.message_id)
+            messages.remove(message_data.message_id)
         message = await channel.send(embed=Embed(description='_ _'))
-        guild_data.messages.add(message.id, channel.id, GuildMessageFunction.EUREKA_INFO)
+        messages.add(message.id, channel.id, GuildMessageFunction.EUREKA_INFO)
         await bot.instance.data.ui.eureka_info.create(interaction.guild_id)
         await feedback_and_log(interaction, f'created a **Persistent Eureka Info Post** in {channel.jump_url}')
 
@@ -60,12 +62,11 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                              function: GuildChannelFunction, function_desc: str):
         await default_defer(interaction)
         if not await InputValidator.RAISING.check_valid_event_type_or_category(interaction, event_type): return
-        channels_data = self.guilds.get(interaction.guild_id).channels
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
-            channels_data.set(channel.id, function, event_type)
+            GuildChannels(interaction.guild_id).set(channel.id, function, event_type)
             desc = EventTemplates(interaction.guild_id).get(event_type).short_description()
         else:
-            channels_data.set_category(channel.id, function, EventCategory(event_type))
+            GuildChannels(interaction.guild_id).set_category(channel.id, function, EventCategory(event_type))
             desc = EventCategory(event_type).value
         await feedback_and_log(interaction, f'set {channel.jump_url} as the **{function_desc} channel** for type "{desc}".')
 
@@ -94,8 +95,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def eureka_notification_channel(self, interaction: Interaction, instance: str, channel: TextChannel):
         await default_defer(interaction)
         if not await InputValidator.RAISING.check_valid_eureka_instance(interaction, instance): return
-        channels_data = self.guilds.get(interaction.guild_id).channels
-        channels_data.set(channel.id, GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION, instance)
+        GuildChannels(interaction.guild_id).set(channel.id, GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION, instance)
         await feedback_and_log(interaction, f'set {channel.jump_url} as the **eureka tracker notification channel** for "{EurekaTrackerZone(int(instance)).name}".')
 
     @command(name = "nm_notification_channel", description = "Set the channel for notorious monster notifications.")
@@ -104,8 +104,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         await default_defer(interaction)
         notorious_monster = InputValidator.NORMAL.notorious_monster_name_to_type(notorious_monster)
         if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
-        channels_data = self.guilds.get(interaction.guild_id).channels
-        channels_data.set(channel.id, GuildChannelFunction.NM_PINGS, notorious_monster)
+        GuildChannels(interaction.guild_id).set(channel.id, GuildChannelFunction.NM_PINGS, notorious_monster)
         await feedback_and_log(interaction, f'set {channel.jump_url} as the **NM notification channel** for "{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}".')
 
     @command(name = "set_admin", description = "Set the admin role.")

@@ -7,10 +7,6 @@ from data.tasks.task import TaskTemplate
 
 
 class Task_SendPLPasscodes(TaskTemplate):
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
-
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.SEND_PL_PASSCODES
 

@@ -2,6 +2,7 @@ from discord import ButtonStyle, Embed, Message, TextChannel
 from basic_types import EurekaTrackerZone
 from basic_types import GuildMessageFunction
 import bot
+from data.guilds.guild_messages import GuildMessages
 from data.ui.buttons import AssignTrackerButton, GenerateTrackerButton, save_buttons
 from data.ui.views import PersistentView
 from data.weather.weather import EurekaWeathers, EurekaZones, next_4_weathers, next_weather, weather_emoji
@@ -13,13 +14,8 @@ class UIEurekaInfoPost:
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
 
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
-
     async def create(self, guild_id: int) -> Message:
-        guild_data = self.guilds.get(guild_id)
-        message_data = guild_data.messages.get(GuildMessageFunction.EUREKA_INFO)
+        message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return
@@ -43,8 +39,7 @@ class UIEurekaInfoPost:
         return result
 
     async def rebuild(self, guild_id: int) -> Message:
-        guild_data = self.guilds.get(guild_id)
-        message_data = guild_data.messages.get(GuildMessageFunction.EUREKA_INFO)
+        message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return
@@ -80,12 +75,12 @@ class UIEurekaInfoPost:
         return await message.edit(embed=embed)
 
     async def remove(self, guild_id: int) -> None:
-        guild_data = self.guilds.get(guild_id)
-        message_data = guild_data.messages.get(GuildMessageFunction.EUREKA_INFO)
+        messages = GuildMessages(guild_id)
+        message_data = messages.get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
         channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
         await message.delete()
-        guild_data.messages.remove(message_data.message_id)
+        messages.remove(message_data.message_id)

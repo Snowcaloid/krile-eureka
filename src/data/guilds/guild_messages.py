@@ -1,7 +1,9 @@
 from typing import List
 
+from centralized_data import GlobalCollection
+
 from data.db.sql import SQL, Record
-from basic_types import GuildMessageFunction
+from basic_types import GuildID, GuildMessageFunction
 
 class GuildMessage:
     id: int
@@ -20,16 +22,19 @@ class GuildMessage:
             self.event_type = record['event_type']
             self.function = GuildMessageFunction(record['function'])
 
-class GuildMessages:
-    _list: List[GuildMessage] = []
+class GuildMessages(GlobalCollection[GuildID]):
+    _list: List[GuildMessage]
 
-    guild_id: int
+    def constructor(self, key: GuildID = None) -> None:
+        super().constructor(key)
+        self._list = []
+        self.load()
 
-    def load(self, guild_id: int) -> None:
-        self.guild_id = guild_id
+    def load(self) -> None:
         self._list.clear()
+        if self.key is None: return
         for record in SQL('guild_messages').select(fields=['id'],
-                                                   where=f'guild_id={guild_id}',
+                                                   where=f'guild_id={self.key}',
                                                    all=True):
             channel = GuildMessage()
             channel.load(record['id'])
@@ -48,9 +53,9 @@ class GuildMessages:
         return None
 
     def add(self, message_id: int, channel_id: int, function: GuildMessageFunction, event_type: str = '') -> None:
-        SQL('guild_messages').insert(Record(guild_id=self.guild_id, channel_id=channel_id, function=function.value, event_type=event_type, message_id=message_id))
-        self.load(self.guild_id)
+        SQL('guild_messages').insert(Record(guild_id=self.key, channel_id=channel_id, function=function.value, event_type=event_type, message_id=message_id))
+        self.load()
 
     def remove(self, message_id: int) -> None:
-        SQL('guild_messages').delete(f'guild_id={self.guild_id} and message_id={message_id}')
-        self.load(self.guild_id)
+        SQL('guild_messages').delete(f'guild_id={self.key} and message_id={message_id}')
+        self.load()

@@ -2,8 +2,6 @@ from typing import List
 
 from centralized_data import Bindable
 from data.db.sql import SQL, Record
-from data.guilds.guild_channel import GuildChannels
-from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
 from data.guilds.guild_roles import GuildRoles
 
@@ -12,15 +10,12 @@ class Guild:
     id: int
     _role_developer: int
     _role_admin: int
-    channels: GuildChannels
     pings: GuildPings
     roles: GuildRoles
-    messages: GuildMessages
 
     def __init__(self):
         self.pings = GuildPings()
         self.roles = GuildRoles()
-        self.messages = GuildMessages()
 
     def load(self, guild_id: int, soft_load: bool = False) -> None:
         query = Record() # Prevent multiple connects and disconnects
@@ -33,7 +28,6 @@ class Guild:
         if soft_load: return
         self.pings.load(guild_id)
         self.roles.load(guild_id)
-        self.messages.load(guild_id)
         del query
 
     @property

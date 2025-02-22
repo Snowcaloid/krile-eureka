@@ -7,6 +7,7 @@ from basic_types import GuildPingType
 import bot
 from data.events.event_category import EventCategory
 from basic_types import GuildChannelFunction
+from data.guilds.guild_messages import GuildMessages
 from data.ui.buttons import PartyLeaderButton, SendPLGuideButton, delete_buttons, save_buttons
 from data.ui.views import PersistentView
 
@@ -32,7 +33,7 @@ class UIPLPost:
         message = await channel.send(pings, embed=Embed(description='...'))
         event.pl_post_id = message.id
         message = await self.rebuild(guild_id, id, True)
-        guild_data.messages.add(message.id, channel.id, GuildMessageFunction.PL_POST)
+        GuildMessages(guild_id).add(message.id, channel.id, GuildMessageFunction.PL_POST)
         if event.use_recruitment_post_threads:
             await message.create_thread(name=event.recruitment_post_thread_title)
 

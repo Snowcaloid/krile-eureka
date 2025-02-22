@@ -4,6 +4,7 @@ from data.cache.message_cache import MessageCache
 from basic_types import TaskExecutionType
 from data.events.schedule import Schedule
 from data.guilds.guild_channel import GuildChannels
+from data.guilds.guild_messages import GuildMessages
 from data.ui.ui import UI
 
 class RuntimeData:
@@ -35,6 +36,7 @@ class RuntimeData:
         for guild in bot.instance.guilds:
             Schedule(guild.id).load()
             GuildChannels(guild.id).load()
+            GuildMessages(guild.id).load()
             await self.ui.schedule.rebuild(guild.id)
         self.eureka_info.load()
         self.tasks.load()

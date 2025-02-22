@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import override
 
 import bot
-from basic_types import GuildMessageFunction, TaskExecutionType
+from basic_types import TaskExecutionType
 from data.tasks.task import TaskTemplate
 
 
@@ -36,9 +36,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
         try:
             self.eureka_info.remove_old()
             for guild in self.guilds.all:
-                message_data = guild.messages.get(GuildMessageFunction.EUREKA_INFO)
-                if message_data:
-                    await bot.instance.data.ui.eureka_info.rebuild(guild.id)
+                await bot.instance.data.ui.eureka_info.rebuild(guild.id)
         finally:
             self.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
             self.tasks.add_task(next_exec, TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
