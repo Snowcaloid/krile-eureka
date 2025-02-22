@@ -8,6 +8,7 @@ from data.events.schedule import Schedule
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from basic_types import GuildChannelFunction
 from basic_types import GuildPingType
+from data.guilds.guild_channel import GuildChannels
 from data.validation.input_validator import InputValidator
 from utils import default_defer
 from data.validation.permission_validator import PermissionValidator
@@ -40,12 +41,11 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if event.use_recruitment_posts:
             await bot.instance.data.ui.pl_post.create(interaction.guild_id, event.id)
         guild = self.guilds.get(interaction.guild_id)
-        if guild:
-            notification_channel = guild.channels.get(GuildChannelFunction.RUN_NOTIFICATION, event_type)
-            if notification_channel:
-                channel = interaction.guild.get_channel(notification_channel.id)
-                mentions = await guild.pings.get_mention_string(GuildPingType.RUN_NOTIFICATION, event.type)
-                await channel.send(f'{mentions} {await event.to_string()} has been scheduled.')
+        notification_channel = GuildChannels(interaction.guild_id).get(GuildChannelFunction.RUN_NOTIFICATION, event_type)
+        if notification_channel:
+            channel = interaction.guild.get_channel(notification_channel.id)
+            mentions = await guild.pings.get_mention_string(GuildPingType.RUN_NOTIFICATION, event.type)
+            await channel.send(f'{mentions} {await event.to_string()} has been scheduled.')
         event.create_tasks()
         await feedback_and_log(interaction, f'scheduled a {event_type} run #{event.id} for {event_time} with description: <{event.description}>.')
 

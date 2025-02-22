@@ -12,6 +12,7 @@ from data.generators.event_passcode_generator import EventPasscodeGenerator
 from basic_types import GuildChannelFunction
 from basic_types import TaskExecutionType
 
+from data.guilds.guild_channel import GuildChannels
 from utils import DiscordTimestampType, get_discord_member, get_discord_timestamp
 
 class EventUserData:
@@ -68,10 +69,6 @@ class Event:
     from data.tasks.tasks import Tasks
     @Tasks.bind
     def _tasks(self) -> Tasks: ...
-
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def _guilds(self) -> Guilds: ...
 
     def __init__(self):
         self.users = EventUserData()
@@ -273,7 +270,7 @@ class Event:
     def create_tasks(self) -> None:
         self._tasks.add_task(self.time, TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
         if self.use_recruitment_posts and self.delete_recruitment_posts:
-            channel_data = self._guilds.get(self.guild_id).channels.get(GuildChannelFunction.PL_CHANNEL, self.type)
+            channel_data = GuildChannels(self.guild_id).get(GuildChannelFunction.PL_CHANNEL, self.type)
             if channel_data:
                 self._tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
         if not self.auto_passcode: return

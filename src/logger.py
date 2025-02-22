@@ -17,8 +17,8 @@ async def guild_log_message(guild_id: int, message: str):
             message (str): the message to log
     """
     # Retrieve the log channel id for this guild
-    from data.guilds.guild import Guilds
-    channel_data = Guilds().get(guild_id).channels.get(GuildChannelFunction.LOGGING)
+    from data.guilds.guild_channel import GuildChannels
+    channel_data = GuildChannels(guild_id).get(GuildChannelFunction.LOGGING)
     if channel_data is None: return
     guild = bot.instance.get_guild(guild_id)
     if guild is None: return

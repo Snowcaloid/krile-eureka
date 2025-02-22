@@ -1,7 +1,7 @@
 from uuid import uuid4
 from discord import ButtonStyle, Embed, Message, TextChannel
 from data.events.schedule import Schedule
-from data.guilds.guild_channel import GuildChannel
+from data.guilds.guild_channel import GuildChannel, GuildChannels
 from basic_types import GuildMessageFunction
 from basic_types import GuildPingType
 import bot
@@ -24,7 +24,7 @@ class UIPLPost:
         guild_data = self.guilds.get(guild_id)
         event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
-        channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
+        channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
         if channel is None: return
@@ -38,10 +38,9 @@ class UIPLPost:
 
 
     async def rebuild(self, guild_id: int, id: int, recreate_view: bool = False) -> Message:
-        guild_data = self.guilds.get(guild_id)
         event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
-        channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
+        channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
         message = await self.message_cache.get(event.pl_post_id, channel)
@@ -78,10 +77,9 @@ class UIPLPost:
 
 
     async def remove(self, guild_id: int, event_id: int) -> GuildChannel:
-        guild_data = self.guilds.get(guild_id)
         event = Schedule(guild_id).get(event_id)
         if event is None: return
-        channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
+        channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
         message = await self.message_cache.get(event.pl_post_id, channel)

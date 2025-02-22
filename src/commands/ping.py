@@ -6,6 +6,7 @@ from data.generators.autocomplete_generator import AutoCompleteGenerator
 from basic_types import GuildChannelFunction, NotoriousMonster
 from basic_types import GuildPingType
 from basic_types import NOTORIOUS_MONSTERS
+from data.guilds.guild_channel import GuildChannels
 from data.validation.input_validator import InputValidator
 from logger import guild_log_message
 from utils import default_defer, default_response
@@ -24,7 +25,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
         notorious_monster = InputValidator.NORMAL.notorious_monster_name_to_type(notorious_monster)
         if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
         guild_data = self.guilds.get(interaction.guild_id)
-        channel_data = guild_data.channels.get(GuildChannelFunction.NM_PINGS, notorious_monster)
+        channel_data = GuildChannels(interaction.guild_id).get(GuildChannelFunction.NM_PINGS, notorious_monster)
         if channel_data:
             channel = bot.instance.get_channel(channel_data.id)
             if channel:

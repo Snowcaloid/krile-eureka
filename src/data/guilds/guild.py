@@ -18,7 +18,6 @@ class Guild:
     messages: GuildMessages
 
     def __init__(self):
-        self.channels = GuildChannels()
         self.pings = GuildPings()
         self.roles = GuildRoles()
         self.messages = GuildMessages()
@@ -32,7 +31,6 @@ class Guild:
             self._role_developer = record['role_developer']
             self._role_admin = record['role_admin']
         if soft_load: return
-        self.channels.load(guild_id)
         self.pings.load(guild_id)
         self.roles.load(guild_id)
         self.messages.load(guild_id)

@@ -4,6 +4,7 @@ import bot
 from basic_types import GuildChannelFunction, TaskExecutionType
 from basic_types import GuildPingType
 from data.events.schedule import Schedule
+from data.guilds.guild_channel import GuildChannels
 from data.tasks.task import TaskTemplate
 
 
@@ -19,13 +20,13 @@ class Task_PostMainPasscode(TaskTemplate):
     async def execute(self, obj: object) -> None:
         """Sends the main party passcode embed to the allocated passcode channel."""
         if obj and obj["guild"] and obj["entry_id"]:
-            guild_data = self.guilds.get(["guild"])
+            guild_data = self.guilds.get(obj["guild"])
             if guild_data is None: return
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event is None: return
-            channel_data = guild_data.channels.get(GuildChannelFunction.PASSCODES, event.type)
+            channel_data = GuildChannels(obj["guild"]).get(GuildChannelFunction.PASSCODES, event.type)
             if channel_data is None: return
-            guild = bot.instance.get_guild(guild_data.id)
+            guild = bot.instance.get_guild(obj["guild"])
             channel = guild.get_channel(channel_data.id)
             if channel is None: return
             pings = await guild_data.pings.get_mention_string(GuildPingType.MAIN_PASSCODE, event.type)
