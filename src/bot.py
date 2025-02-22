@@ -10,7 +10,7 @@ from commands.eureka import EurekaCommands
 from commands.logos import LogosCommands
 from commands.ping import PingCommands
 from data.runtime_data import RuntimeData
-from basic_types import TaskExecutionType
+from data.tasks.task import TaskExecutionType
 from commands.embed import EmbedCommands
 from commands.schedule import ScheduleCommands
 from commands.log import LogCommands

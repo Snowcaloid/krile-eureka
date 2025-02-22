@@ -2,6 +2,8 @@ from typing import Type, override
 
 from centralized_data import YamlAsset, YamlAssetLoader
 
+from data.db.sql import Record
+
 class TableDefinition(YamlAsset):
 
     def name(self) -> str:
@@ -38,3 +40,13 @@ class TableDefinitions(YamlAssetLoader[TableDefinition]):
 
     @override
     def asset_class(self) -> Type[TableDefinition]: return TableDefinition
+
+    @override
+    def constructor(self) -> None:
+        super().constructor()
+
+        record = Record()
+        for table in self.loaded_assets:
+            record.DATABASE.query(table.to_sql_create())
+            record.DATABASE.query(table.to_sql_alter())
+        del record

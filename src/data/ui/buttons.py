@@ -4,6 +4,7 @@ from discord.ui import Button, View
 from discord import ButtonStyle, Embed, Emoji, Interaction, Message, PartialEmoji, Role, Member, TextChannel
 from typing import Dict, List, Optional, Tuple, Type, Union
 from data.db.sql import SQL, Record
+from data.events.schedule import Schedule
 from data.ui.constants import BUTTON_STYLE_DESCRIPTIONS, BUTTON_TYPE_DESCRIPTIONS, ButtonType
 from data.ui.selects import EurekaTrackerZoneSelect
 from data.ui.views import TemporaryView
@@ -81,29 +82,24 @@ class PartyLeaderButton(ButtonBase):
     from party leader position of a run."""
     event_id: int
 
-    from data.events.schedule import Schedule
-    @Schedule.bind
-    def schedule(self) -> Schedule: ...
-
     def button_type(self) -> ButtonType: return ButtonType.PL_POST
 
     async def callback(self, interaction: Interaction):
         if interaction.message == self.message:
             await default_defer(interaction)
             id = self.event_id
-            event = self.schedule.get(id)
+            event = Schedule(interaction.guild_id).get(id)
             if event:
-                index = self.pl
-                party_name = event.pl_button_texts[index]
-                current_party_leader = event.users.party_leaders[index]
+                party_name = event.pl_button_texts[self.pl]
+                current_party_leader = event.users.party_leaders[self.pl]
                 if not current_party_leader and not interaction.user.id in event.users._party_leaders:
-                    event.users.party_leaders[index] = interaction.user.id
+                    event.users.party_leaders[self.pl] = interaction.user.id
                     await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event.id)
                     run = await event.to_string()
                     await feedback_and_log(interaction, f'applied as Party Leader for Party {party_name} on {run}')
                 elif current_party_leader and (interaction.user.id == current_party_leader or interaction.user.id == event.users.raid_leader):
                     is_party_leader_removing_self = interaction.user.id == current_party_leader
-                    event.users.party_leaders[index] = 0
+                    event.users.party_leaders[self.pl] = 0
                     await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event.id)
                     await default_response(interaction, f'{interaction.guild.get_member(current_party_leader).display_name} has been removed from party {party_name}')
 

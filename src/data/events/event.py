@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from typing import List, Tuple, Type
 from data.db.sql import SQL, Record
 from data.events.event_template import EventTemplate
+from data.events.event_templates import EventTemplates
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 from basic_types import GuildChannelFunction
 from basic_types import TaskExecutionType
@@ -72,10 +73,6 @@ class Event:
     @Guilds.bind
     def _guilds(self) -> Guilds: ...
 
-    from data.events.event_templates import EventTemplates
-    @EventTemplates.bind
-    def _event_templates(self) -> EventTemplates: ...
-
     def __init__(self):
         self.users = EventUserData()
 
@@ -92,7 +89,7 @@ class Event:
             self.passcode_main = record['pass_main']
             self.passcode_supp = record['pass_supp']
             self.guild_id = record['guild_id']
-            self.template = self._event_templates.get(self.guild_id, record['event_type'])
+            self.template = EventTemplates(self.guild_id).get(record['event_type'])
             self._use_support = self.template.use_support() and record['use_support']
             self.users.load(id)
 

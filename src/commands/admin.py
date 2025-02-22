@@ -5,7 +5,6 @@ import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Interaction
-from data.db.definition import TableDefinitions
 from data.db.sql import Record
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from data.validation.input_validator import InputValidator
@@ -15,6 +14,10 @@ from logger import guild_log_message
 
 
 class AdminCommands(GroupCog, group_name='admin', group_description='Bot administrator commands.'):
+    from data.db.definition import TableDefinitions
+    @TableDefinitions.bind
+    def table_definitions(self) -> TableDefinitions: ...
+
     @command(name = "query", description = "Does a select query over a table.")
     @check(PermissionValidator().is_admin)
     async def query(self, interaction: Interaction, table: str, fields: Optional[str] = '*', filter: Optional[str] = '', order: Optional[str] = ''):
@@ -26,7 +29,7 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
         order_by = f' order by {order}' if order else ''
         if fields == '*':
             column_names = [column["name"] for column in next(
-                (definition for definition in TableDefinitions().loaded_assets if definition.name() == table), None).source["columns"]]
+                (definition for definition in self.table_definitions.loaded_assets if definition.name() == table), None).source["columns"]]
         else:
             column_names = [name.strip() for name in fields.split(',')]
         result = Record().DATABASE.query(f'select {fields} from {table}{where}{order_by} limit 25')

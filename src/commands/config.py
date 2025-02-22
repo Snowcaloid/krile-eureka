@@ -6,6 +6,7 @@ from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
 from basic_types import EurekaTrackerZone, NotoriousMonster
 from data.events.event_category import EventCategory
+from data.events.event_templates import EventTemplates
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from basic_types import GuildChannelFunction
 from basic_types import GuildMessageFunction
@@ -22,14 +23,6 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
-
-    from data.events.event_templates import EventTemplates
-    @EventTemplates.bind
-    def event_templates(self) -> EventTemplates: ...
-
-    from data.events.schedule import Schedule
-    @Schedule.bind
-    def schedule(self) -> Schedule: ...
 
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)
@@ -70,7 +63,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         channels_data = self.guilds.get(interaction.guild_id).channels
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             channels_data.set(channel.id, function, event_type)
-            desc = self.event_templates.get(interaction.guild_id, event_type).short_description()
+            desc = EventTemplates(interaction.guild_id).get(event_type).short_description()
         else:
             channels_data.set_category(channel.id, function, EventCategory(event_type))
             desc = EventCategory(event_type).value
@@ -153,7 +146,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         pings_data = self.guilds.get(interaction.guild_id).pings
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             pings_data.add_ping(GuildPingType(ping_type), event_type, role.id)
-            desc = self.event_templates.get(interaction.guild_id, event_type).short_description()
+            desc = EventTemplates(interaction.guild_id).get(event_type).short_description()
         else:
             pings_data.add_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
             desc = EventCategory(event_type).value
@@ -167,7 +160,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         pings_data = self.guilds.get(interaction.guild_id).pings
         if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
             pings_data.remove_ping(GuildPingType(ping_type), event_type, role.id)
-            desc = self.event_templates.get(interaction.guild_id, event_type).short_description()
+            desc = EventTemplates(interaction.guild_id).get(event_type).short_description()
         else:
             pings_data.remove_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
             desc = EventCategory(event_type).value

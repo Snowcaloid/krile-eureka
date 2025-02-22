@@ -6,21 +6,21 @@ from typing import List
 from discord import Interaction
 from discord.app_commands import Choice
 
-from data.db.definition import TableDefinitions
 from basic_types import NOTORIOUS_MONSTERS, EurekaTrackerZone, NotoriousMonster
 
 from data.events.event_category import EventCategory
 from basic_types import GuildPingType
 from basic_types import GuildRoleFunction
 from basic_types import NM_ALIASES
+from data.events.event_templates import EventTemplates
 from data.ui.constants import ButtonType
 from data.validation.permission_validator import PermissionValidator
 
 
 class AutoCompleteGenerator(Bindable):
-    from data.events.event_templates import EventTemplates
-    @EventTemplates.bind
-    def event_templates(self) -> EventTemplates: ...
+    from data.db.definition import TableDefinitions
+    @TableDefinitions.bind
+    def table_definitions(self) -> TableDefinitions: ...
 
     def filter_by_current(self, list: List[Choice], current: str) -> List[Choice]:
         if current == '':
@@ -31,11 +31,11 @@ class AutoCompleteGenerator(Bindable):
     def event_type(self, interaction: Interaction, current: str) -> List[Choice]:
         allowed_categories = PermissionValidator().get_raid_leader_permissions(interaction.user)
         return self.filter_by_current([
-            event_template.as_choice() for event_template in self.event_templates.get_by_categories(interaction.guild_id, allowed_categories)], current)
+            event_template.as_choice() for event_template in EventTemplates(interaction.guild_id).get_by_categories(allowed_categories)], current)
 
     def event_type_with_categories(self, current: str, guild_id: int) -> List[Choice]:
         return self.filter_by_current(EventCategory.all_category_choices() + [
-            event_template.as_choice() for event_template in self.event_templates.all(guild_id)], current)
+            event_template.as_choice() for event_template in EventTemplates(guild_id).all], current)
 
     def event_categories(self, current: str) -> List[Choice]:
         return self.filter_by_current(EventCategory.all_category_choices(), current)
@@ -137,4 +137,4 @@ class AutoCompleteGenerator(Bindable):
         ]
 
     def table(self, current: str) -> List[Choice]:
-        return self.filter_by_current([Choice(name=definition.name(), value=definition.name()) for definition in TableDefinitions().loaded_assets], current)
+        return self.filter_by_current([Choice(name=definition.name(), value=definition.name()) for definition in self.table_definitions.loaded_assets], current)

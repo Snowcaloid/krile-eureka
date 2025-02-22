@@ -1,8 +1,8 @@
 from datetime import datetime
 import bot
 from data.cache.message_cache import MessageCache
-from data.db.sql import Record
 from basic_types import TaskExecutionType
+from data.events.schedule import Schedule
 from data.ui.ui import UI
 
 class RuntimeData:
@@ -18,28 +18,12 @@ class RuntimeData:
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
-    from data.db.definition import TableDefinitions
-    @TableDefinitions.bind
-    def tables(self) -> TableDefinitions: ...
-
     from data.guilds.guild import Guilds
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
-    from data.events.schedule import Schedule
-    @Schedule.bind
-    def schedule(self) -> Schedule: ...
-
     def __init__(self):
         self.ready = False
-        self.ensure_database_tables()
-
-    def ensure_database_tables(self):
-        """Create the database and update the tables."""
-        record = Record()
-        for table in self.tables.loaded_assets:
-            record.DATABASE.query(table.to_sql_create())
-            record.DATABASE.query(table.to_sql_alter())
 
     async def reset(self):
         """Load general data from the db."""
@@ -47,13 +31,13 @@ class RuntimeData:
             self.ready = False
         await self.ui.load()
         self.guilds.load()
-        self.schedule.load()
+        for guild in bot.instance.guilds:
+            Schedule(guild.id)
+            await self.ui.schedule.rebuild(guild.id)
         self.eureka_info.load()
         self.tasks.load()
         self.ready = True
         MessageCache().clear()
-        for guild in bot.instance.guilds:
-            await self.ui.schedule.rebuild(guild.id)
 
         if not self.tasks.contains(TaskExecutionType.UPDATE_STATUS):
             self.tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)

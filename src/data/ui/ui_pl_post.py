@@ -1,5 +1,6 @@
 from uuid import uuid4
 from discord import ButtonStyle, Embed, Message, TextChannel
+from data.events.schedule import Schedule
 from data.guilds.guild_channel import GuildChannel
 from basic_types import GuildMessageFunction
 from basic_types import GuildPingType
@@ -19,13 +20,9 @@ class UIPLPost:
     @Guilds.bind
     def guilds(self) -> Guilds: ...
 
-    from data.events.schedule import Schedule
-    @Schedule.bind
-    def schedule(self) -> Schedule: ...
-
     async def create(self, guild_id: int, id: int) -> None:
         guild_data = self.guilds.get(guild_id)
-        event = self.schedule.get(id)
+        event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
@@ -42,7 +39,7 @@ class UIPLPost:
 
     async def rebuild(self, guild_id: int, id: int, recreate_view: bool = False) -> Message:
         guild_data = self.guilds.get(guild_id)
-        event = self.schedule.get(id)
+        event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
@@ -82,7 +79,7 @@ class UIPLPost:
 
     async def remove(self, guild_id: int, event_id: int) -> GuildChannel:
         guild_data = self.guilds.get(guild_id)
-        event = self.schedule.get(event_id)
+        event = Schedule(guild_id).get(event_id)
         if event is None: return
         channel_data = guild_data.channels.get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return

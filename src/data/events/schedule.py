@@ -1,4 +1,5 @@
 from centralized_data import GlobalCollection
+from basic_types import GuildID
 from data.db.sql import SQL, Record
 from data.events.event import Event
 from data.generators.event_passcode_generator import EventPasscodeGenerator
@@ -6,32 +7,33 @@ from data.generators.event_passcode_generator import EventPasscodeGenerator
 from datetime import datetime
 from typing import List
 
-class Schedule(GlobalCollection[int]):
+class Schedule(GlobalCollection[GuildID]):
     _list: List[Event]
 
-    def constructor(self) -> None:
-        super().constructor()
+    def constructor(self, key: GuildID = None) -> None:
+        super().constructor(key)
         self._list = []
+        self.load()
 
     def load(self) -> None:
         self._list.clear()
         for record in SQL('events').select(fields=['id'],
-                                           where=f'(not finished or finished is null) and (not canceled or canceled is null)',
+                                           where=f'guild_id = {self.key} and (not finished or finished is null) and (not canceled or canceled is null)',
                                            all=True):
             event = Event()
             event.load(record['id'])
             self._list.append(event)
 
     def get(self, event_id: int) -> Event:
-        return next([event for event in self._list if event.id == event_id])
+        return next(event for event in self._list if event.id == event_id)
 
-    def add(self, guild_id: int, leader: int, event_type: str, time: datetime,
+    def add(self, leader: int, event_type: str, time: datetime,
             description: str = '', auto_passcode: bool = True,
             use_support: bool = True) -> Event:
         description = description.replace('\'', '\'\'')
         pass_main = EventPasscodeGenerator.generate() if auto_passcode else 0
         pass_supp = EventPasscodeGenerator.generate() if auto_passcode else 0
-        id = SQL('events').insert(Record(guild_id=guild_id,
+        id = SQL('events').insert(Record(guild_id=self.key,
                                          raid_leader=leader,
                                          event_type=event_type,
                                          timestamp=time,
@@ -40,7 +42,7 @@ class Schedule(GlobalCollection[int]):
                                          pass_supp=pass_supp,
                                          use_support=use_support),
                                   returning_field='id')
-        self.load(self.guild_id)
+        self.load()
         result = self.get(id)
         return result
 
@@ -72,5 +74,6 @@ class Schedule(GlobalCollection[int]):
     def contains(self, event_id: int) -> bool:
         return not self.get(event_id) is None
 
-    def all(self, guild_id: int) -> List[Event]:
-        return [event for event in self._list if event.guild_id == guild_id]
+    @property
+    def all(self) -> List[Event]:
+        return [event for event in self._list if event.guild_id == self.key]
