@@ -1,26 +1,18 @@
 import os
+
+from centralized_data import Singleton
 from data.cache.message_cache import MessageCache
 from discord import Intents, Member, Object, HTTPException, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, Context, Greedy
-from commands.admin import AdminCommands
-from commands.ba import BACommands
-from commands.config import ConfigCommands
-from commands.copy import CopyCommands
-from commands.eureka import EurekaCommands
-from commands.logos import LogosCommands
-from commands.ping import PingCommands
-from data.runtime_data import RuntimeData
 from data.tasks.task import TaskExecutionType
-from commands.embed import EmbedCommands
-from commands.schedule import ScheduleCommands
-from commands.log import LogCommands
 from datetime import datetime
 from typing import Literal, Optional
+from data.tasks.tasks import Tasks
 from logger import guild_log_message
 from discord.ext import tasks
 
 
-class Krile(Bot):
+class Krile(Bot, Singleton):
     """General bot class.
 
     Properties
@@ -33,8 +25,6 @@ class Krile(Bot):
         To recreate the button's functionality, a view is needed to be added to the
         bot, which includes Buttons with previously existing custom_id's.
     """
-    data: RuntimeData
-
     from data.tasks.tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
@@ -45,14 +35,55 @@ class Krile(Bot):
         intents.emojis = True
         intents.emojis_and_stickers = True
         super().__init__(command_prefix='/', intents=intents)
-        self.data = RuntimeData()
+
+    def _load_singleton(self, singleton: Singleton, initial: bool = False):
+        if not initial: # Constructor of all my data classes calls load() anyway
+            singleton.load()
+
+    async def reload_data_classes(self, initial: bool = False):
+        from data.events.schedule import Schedule
+        from data.guilds.guild_channel import GuildChannels
+        from data.guilds.guild_messages import GuildMessages
+        from data.guilds.guild_pings import GuildPings
+        from data.guilds.guild_roles import GuildRoles
+        from data.ui.button_loader import ButtonLoader
+        from data.eureka_info import EurekaInfo
+
+        MessageCache().clear()
+        self._load_singleton(ButtonLoader(), initial)
+        self._load_singleton(EurekaInfo(), initial)
+        for guild in self.guilds:
+            self._load_singleton(Schedule(guild.id), initial)
+            self._load_singleton(GuildChannels(guild.id), initial)
+            self._load_singleton(GuildMessages(guild.id), initial)
+            self._load_singleton(GuildRoles(guild.id), initial)
+            self._load_singleton(GuildPings(guild.id), initial)
+            await self.ui_schedule.rebuild(guild.id)
+
+        tasks = Tasks()
+        self._load_singleton(tasks, initial)
+
+        if not tasks.contains(TaskExecutionType.UPDATE_STATUS):
+            tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
+        if not tasks.contains(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS):
+            tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
 
     async def setup_hook(self) -> None:
         """A coroutine to be called to setup the bot.
         This method is called after instance.on_ready event.
         """
-        await self.data.reset()
+        await self.reload_data_classes(True)
 
+        from commands.admin import AdminCommands
+        from commands.ba import BACommands
+        from commands.config import ConfigCommands
+        from commands.copy import CopyCommands
+        from commands.eureka import EurekaCommands
+        from commands.logos import LogosCommands
+        from commands.ping import PingCommands
+        from commands.embed import EmbedCommands
+        from commands.schedule import ScheduleCommands
+        from commands.log import LogCommands
         await self.add_cog(EmbedCommands())
         await self.add_cog(ScheduleCommands())
         await self.add_cog(LogCommands())
