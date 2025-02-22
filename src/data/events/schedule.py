@@ -66,11 +66,11 @@ class Schedule(GlobalCollection[GuildID]):
 
     def finish(self, event_id: int):
         SQL('events').update(Record(finished=True), f'id={event_id}')
-        self.load(self.guild_id)
+        self.load()
 
     def cancel(self, event_id: int):
         SQL('events').update(Record(canceled=True), f'id={event_id}')
-        self.load(self.guild_id)
+        self.load()
 
     def contains(self, event_id: int) -> bool:
         return not self.get(event_id) is None
