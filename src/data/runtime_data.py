@@ -22,6 +22,10 @@ class RuntimeData:
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
+    from data.ui.button_loader import ButtonLoader
+    @ButtonLoader.bind
+    def button_loader(self) -> ButtonLoader: ...
+
     def __init__(self):
         self.ready = False
 
@@ -29,7 +33,7 @@ class RuntimeData:
         """Load general data from the db."""
         if self.ready:
             self.ready = False
-        await self.ui.load()
+        await self.button_loader.load()
         for guild in bot.instance.guilds:
             # TODO: move, so that load() isnt ran twice the first time around
             Schedule(guild.id).load()

@@ -48,7 +48,8 @@ class SQL:
                fields: List[str] = SQL_ALL_FIELDS,
                where: str = '',
                all: bool = None,
-               sort_fields: List[str | Tuple[str, bool]] = []) -> Record | Records:
+               sort_fields: List[str | Tuple[str, bool]] = [],
+               group_by: List[str] = []) -> Record | Records:
         if fields == SQL_ALL_FIELDS: fields = self._get_all_fields()
         if all is None: all = where == ''
         sql_statement = f'select {", ".join(fields)} from {self.table_name}'
@@ -56,6 +57,7 @@ class SQL:
         if sort_fields:
             sort_fields = [(sort_field, True) if not isinstance(sort_field, tuple) else sort_field for sort_field in sort_fields]
             sql_statement += f' order by {", ".join([f"{sort[0]} {'asc' if sort[1] else 'desc'}" for sort in sort_fields])}'
+        if group_by: sql_statement += ' group by ' + ', '.join(group_by)
         if not all: sql_statement += ' limit 1'
         if all: records = Records()
         sql_records = Record().DATABASE.query(sql_statement)
