@@ -21,6 +21,7 @@ class EventTemplates(GlobalCollection[GuildID]):
 
     def load(self) -> None:
         self._list.clear()
+        if self.key is None: return
         self._list.extend(self.default_templates.loaded_assets)
         for record in SQL('event_templates').select(fields=['data'], where=f'guild_id={self.key}', all=True):
             event_template = EventTemplate('')

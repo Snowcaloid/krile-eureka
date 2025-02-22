@@ -30,6 +30,7 @@ class GuildChannels(GlobalCollection[GuildID]):
 
     def load(self) -> None:
         self._list.clear()
+        if self.key is None: return
         for record in SQL('channels').select(fields=['id'], where=f'guild_id={self.key}', all=True):
             channel = GuildChannel()
             channel.load(record['id'])

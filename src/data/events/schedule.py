@@ -17,6 +17,7 @@ class Schedule(GlobalCollection[GuildID]):
 
     def load(self) -> None:
         self._list.clear()
+        if self.key is None: return
         for record in SQL('events').select(fields=['id'],
                                            where=f'guild_id = {self.key} and (not finished or finished is null) and (not canceled or canceled is null)',
                                            all=True):
