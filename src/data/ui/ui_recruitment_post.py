@@ -1,4 +1,5 @@
 from uuid import uuid4
+from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
 from data.events.schedule import Schedule
 from data.guilds.guild_channel import GuildChannel, GuildChannels
@@ -12,7 +13,7 @@ from data.guilds.guild_pings import GuildPings
 from data.ui.buttons import PartyLeaderButton, SendPLGuideButton, delete_buttons, save_buttons
 from data.ui.views import PersistentView
 
-class UIPLPost:
+class UIRecruitmentPost(Bindable):
     """Party leader post."""
     from data.cache.message_cache import MessageCache
     @MessageCache.bind

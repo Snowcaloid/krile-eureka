@@ -22,6 +22,10 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     @UISchedule.bind
     def ui_schedule(self) -> UISchedule: ...
 
+    from data.ui.ui_recruitment_post import UIRecruitmentPost
+    @UIRecruitmentPost.bind
+    def ui_recruitment_post(self) -> UIRecruitmentPost: ...
+
     @command(name = "add", description = "Add an entry to the schedule.")
     @check(PermissionValidator().is_raid_leader)
     async def add(self, interaction: Interaction, event_type: str,
@@ -39,7 +43,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         event = Schedule(interaction.guild_id).add(interaction.user.id, event_type, event_datetime, description, auto_passcode, use_support)
         await self.ui_schedule.rebuild(interaction.guild_id)
         if event.use_recruitment_posts:
-            await self.ui.pl_post.create(interaction.guild_id, event.id)
+            await self.ui_recruitment_post.create(interaction.guild_id, event.id)
         notification_channel = GuildChannels(interaction.guild_id).get(GuildChannelFunction.RUN_NOTIFICATION, event_type)
         if notification_channel:
             channel = interaction.guild.get_channel(notification_channel.id)
@@ -55,7 +59,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if not await InputValidator.RAISING.check_run_exists(interaction, event_id): return
         if not await InputValidator.RAISING.check_allowed_to_change_run(interaction, event_id): return
         Schedule(interaction.guild_id).cancel(event_id)
-        await self.ui.pl_post.remove(interaction.guild_id, event_id)
+        await self.ui_recruitment_post.remove(interaction.guild_id, event_id)
         await self.ui_schedule.rebuild(interaction.guild_id)
         await feedback_and_log(interaction, f'canceled the run #{event_id}.')
 
@@ -83,16 +87,16 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         is_time_change = old_event.time != event_datetime
         is_support_change = not use_support is None and old_event.use_support != use_support
         if is_type_change:
-            await self.ui.pl_post.remove(interaction.guild_id, event_id)
+            await self.ui_recruitment_post.remove(interaction.guild_id, event_id)
         old_event = copy.deepcopy(old_event)
         event = Schedule(interaction.guild_id).edit(event_id, raid_leader, event_type, event_datetime,
                          InputValidator.NORMAL.escape_event_description(description), auto_passcode, use_support)
         if is_type_change:
-            await self.ui.pl_post.create(interaction.guild_id, event_id)
+            await self.ui_recruitment_post.create(interaction.guild_id, event_id)
         if is_time_change or is_passcode_change or is_support_change:
             event.recreate_tasks()
         await self.ui_schedule.rebuild(interaction.guild_id)
-        await self.ui.pl_post.rebuild(interaction.guild_id, event_id, True)
+        await self.ui_recruitment_post.rebuild(interaction.guild_id, event_id, True)
         changes = event.get_changes(interaction, old_event)
         await feedback_and_log(interaction, f'adjusted run #{str(event_id)}:\n{changes}')
 

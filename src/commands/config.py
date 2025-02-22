@@ -28,6 +28,10 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @UISchedule.bind
     def ui_schedule(self) -> UISchedule: ...
 
+    from data.ui.ui_eureka_info import UIEurekaInfoPost
+    @UIEurekaInfoPost.bind
+    def ui_eureka_info(self) -> UIEurekaInfoPost: ...
+
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)
     async def create_schedule_post(self, interaction: Interaction, channel: TextChannel):
@@ -53,11 +57,11 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         messages = GuildMessages(interaction.guild_id)
         message_data = messages.get(GuildMessageFunction.EUREKA_INFO)
         if message_data:
-            await self.ui.eureka_info.remove(interaction.guild_id)
+            await self.ui_eureka_info.remove(interaction.guild_id)
             messages.remove(message_data.message_id)
         message = await channel.send(embed=Embed(description='_ _'))
         messages.add(message.id, channel.id, GuildMessageFunction.EUREKA_INFO)
-        await self.ui.eureka_info.create(interaction.guild_id)
+        await self.ui_eureka_info.create(interaction.guild_id)
         await feedback_and_log(interaction, f'created a **Persistent Eureka Info Post** in {channel.jump_url}')
 
     async def config_channel(self, interaction: Interaction, event_type: str, channel: TextChannel,

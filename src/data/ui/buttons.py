@@ -82,9 +82,9 @@ class PartyLeaderButton(ButtonBase):
     from party leader position of a run."""
     event_id: int
 
-    from data.ui.ui import UI
-    @UI.bind
-    def ui(self) -> UI: ...
+    from data.ui.ui_recruitment_post import UIRecruitmentPost
+    @UIRecruitmentPost.bind
+    def ui_recruitment_post(self) -> UIRecruitmentPost: ...
 
     def button_type(self) -> ButtonType: return ButtonType.PL_POST
 
@@ -98,13 +98,13 @@ class PartyLeaderButton(ButtonBase):
                 current_party_leader = event.users.party_leaders[self.pl]
                 if not current_party_leader and not interaction.user.id in event.users._party_leaders:
                     event.users.party_leaders[self.pl] = interaction.user.id
-                    await self.ui.pl_post.rebuild(interaction.guild_id, event.id)
+                    await self.ui_recruitment_post.rebuild(interaction.guild_id, event.id)
                     run = await event.to_string()
                     await feedback_and_log(interaction, f'applied as Party Leader for Party {party_name} on {run}')
                 elif current_party_leader and (interaction.user.id == current_party_leader or interaction.user.id == event.users.raid_leader):
                     is_party_leader_removing_self = interaction.user.id == current_party_leader
                     event.users.party_leaders[self.pl] = 0
-                    await self.ui.pl_post.rebuild(interaction.guild_id, event.id)
+                    await self.ui_recruitment_post.rebuild(interaction.guild_id, event.id)
                     await default_response(interaction, f'{interaction.guild.get_member(current_party_leader).display_name} has been removed from party {party_name}')
 
                     run = await event.to_string()

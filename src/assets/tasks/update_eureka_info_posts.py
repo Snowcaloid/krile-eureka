@@ -15,9 +15,9 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
-    from data.ui.ui import UI
-    @UI.bind
-    def ui(self) -> UI: ...
+    from data.ui.ui_eureka_info import UIEurekaInfoPost
+    @UIEurekaInfoPost.bind
+    def ui_eureka_info(self) -> UIEurekaInfoPost: ...
 
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.UPDATE_EUREKA_INFO_POSTS
@@ -36,7 +36,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
         try:
             self.eureka_info.remove_old()
             for guild in bot.instance.guilds:
-                await self.ui.eureka_info.rebuild(guild.id)
+                await self.ui_eureka_info.rebuild(guild.id)
         finally:
             self.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
             self.tasks.add_task(next_exec, TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)

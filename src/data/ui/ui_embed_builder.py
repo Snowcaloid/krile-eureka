@@ -1,10 +1,11 @@
+from centralized_data import Bindable
 from discord import Embed, Interaction, Message
 
 from data.ui.buttons import buttons_as_text, buttons_from_message
 from external.Obryt.embed import EmbedBuilderView
 from external.Obryt.utils.constants import CONTRAST_COLOR
 
-class UI_Embed_Builder:
+class UI_Embed_Builder(Bindable):
     def _generate_help_embed(self) -> Embed:
         emb = Embed(title="Title",
             url="http://example.com/students-of-baldesion",

@@ -1,4 +1,5 @@
 from datetime import datetime
+from centralized_data import Bindable
 from discord import Embed, Message, TextChannel
 from basic_types import GuildMessageFunction
 import bot
@@ -6,7 +7,7 @@ from data.guilds.guild_messages import GuildMessages
 from data.weather.weather import EurekaWeathers, EurekaZones, current_weather, next_day, next_night, next_weather, to_eorzea_time, weather_emoji
 from utils import DiscordTimestampType, get_discord_timestamp
 
-class UIWeatherPost:
+class UIWeatherPost(Bindable):
     """Eureka Weather Info post."""
     from data.cache.message_cache import MessageCache
     @MessageCache.bind

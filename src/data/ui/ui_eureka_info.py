@@ -1,3 +1,4 @@
+from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
 from basic_types import EurekaTrackerZone
 from basic_types import GuildMessageFunction
@@ -8,7 +9,7 @@ from data.ui.views import PersistentView
 from data.weather.weather import EurekaWeathers, EurekaZones, next_4_weathers, next_weather, weather_emoji
 from utils import DiscordTimestampType, get_discord_timestamp
 
-class UIEurekaInfoPost:
+class UIEurekaInfoPost(Bindable):
     """Eureka Info post."""
     from data.cache.message_cache import MessageCache
     @MessageCache.bind
