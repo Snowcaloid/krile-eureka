@@ -28,8 +28,7 @@ async def on_ready():
     while not bot.instance.data.ready:
         print('Waiting for data to be ready...')
         await asyncio.sleep(500)
-    from data.guilds.guild import Guilds
-    for guild in Guilds().all:
+    for guild in bot.instance.guilds:
         from logger import guild_log_message
         message = (
             f'{bot.instance.user.mention} has successfully started.\n'

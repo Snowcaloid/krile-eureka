@@ -42,11 +42,15 @@ class GuildMessageFunction(Enum):
 
 class GuildRoleFunction(Enum):
     NONE = 0
+    DEVELOPER = 1
+    ADMIN = 2
     RAID_LEADER = 3
 
     @classmethod
     def all_function_choices(cl) -> List[Choice]:
         return [
+            Choice(name='', value=GuildRoleFunction.DEVELOPER.value),
+            Choice(name='Admin', value=GuildRoleFunction.ADMIN.value),
             Choice(name='Raid Leader', value=GuildRoleFunction.RAID_LEADER.value)
         ]
 

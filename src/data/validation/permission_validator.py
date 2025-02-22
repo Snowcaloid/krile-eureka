@@ -9,10 +9,6 @@ from data.guilds.guild_roles import GuildRoles
 
 
 class PermissionValidator(Bindable):
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
-
     def is_in_guild(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
         return not interaction.guild is None
 
@@ -21,14 +17,14 @@ class PermissionValidator(Bindable):
 
     def is_developer(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
         if self.is_in_guild(interaction):
-            role_id = self.guilds.get(interaction.guild_id).role_developer
+            role_id = GuildRoles(interaction.guild_id).get(GuildRoleFunction.DEVELOPER)
             if not role_id: return self.is_owner(interaction)
             return not interaction.user.get_role(role_id) is None or self.is_owner(interaction)
         return False
 
     def is_admin(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
         if self.is_in_guild(interaction):
-            role_id = self.guilds.get(interaction.guild_id).role_admin
+            role_id = GuildRoles(interaction.guild_id).get(GuildRoleFunction.ADMIN)
             if not role_id: return self.is_developer(interaction)
             return not interaction.user.get_role(role_id) is None or self.is_developer(interaction)
         return False
@@ -44,7 +40,7 @@ class PermissionValidator(Bindable):
 
     def get_raid_leader_permissions(self, member: Member) -> List[EventCategory]:
         guild_roles = GuildRoles(member.guild.id)
-        admin_role_id = self.guilds.get(member.guild.id).role_admin
+        admin_role_id = guild_roles.get(GuildRoleFunction.ADMIN)
         categories: List[EventCategory] = []
         for role in member.roles:
             if role.id == admin_role_id:

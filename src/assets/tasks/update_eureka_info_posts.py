@@ -15,10 +15,6 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
-
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.UPDATE_EUREKA_INFO_POSTS
 
@@ -35,7 +31,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
         next_exec = datetime.utcnow() + timedelta(minutes=1)
         try:
             self.eureka_info.remove_old()
-            for guild in self.guilds.all:
+            for guild in bot.instance.guilds:
                 await bot.instance.data.ui.eureka_info.rebuild(guild.id)
         finally:
             self.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)

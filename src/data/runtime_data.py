@@ -22,10 +22,6 @@ class RuntimeData:
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
-
     def __init__(self):
         self.ready = False
 
@@ -34,7 +30,6 @@ class RuntimeData:
         if self.ready:
             self.ready = False
         await self.ui.load()
-        self.guilds.load()
         for guild in bot.instance.guilds:
             # TODO: move, so that load() isnt ran twice the first time around
             Schedule(guild.id).load()

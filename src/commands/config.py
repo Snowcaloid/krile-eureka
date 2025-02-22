@@ -24,10 +24,6 @@ from logger import feedback_and_log, guild_log_message
 
 
 class ConfigCommands(GroupCog, group_name='config', group_description='Config commands.'):
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
-
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)
     async def create_schedule_post(self, interaction: Interaction, channel: TextChannel):
@@ -113,14 +109,14 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def set_admin(self, interaction: Interaction, role: Role):
         await default_defer(interaction)
-        self.guilds.get(interaction.guild_id).role_admin = role.id
+        GuildRoles(interaction.guild_id).add(role.id, GuildRoleFunction.ADMIN)
         await feedback_and_log(interaction, f'set {role.mention} as **admin** role for **{interaction.guild.name}**.')
 
     @command(name = "set_developer", description = "Set the developer role.")
     @check(PermissionValidator().is_admin)
     async def set_developer(self, interaction: Interaction, role: Role):
         await default_defer(interaction)
-        self.guilds.get(interaction.guild_id).role_developer = role.id
+        GuildRoles(interaction.guild_id).add(role.id, GuildRoleFunction.DEVELOPER)
         await feedback_and_log(interaction, f'set {role.mention} as **developer** role for **{interaction.guild.name}**.')
 
     @command(name = "add_raid_leader_role", description = "Add the Raid Leader role.")
