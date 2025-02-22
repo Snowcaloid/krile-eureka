@@ -3,7 +3,6 @@ import aiohttp
 from discord import ButtonStyle, Interaction, Message, SelectOption
 from discord.ui import Button, Select
 
-import bot
 from basic_types import EurekaTrackerZone
 from basic_types import GuildChannelFunction
 from basic_types import GuildPingType

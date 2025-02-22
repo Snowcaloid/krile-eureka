@@ -1,4 +1,3 @@
-import bot
 from data.cache.message_cache import MessageCache
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command

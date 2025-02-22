@@ -1,5 +1,4 @@
 from centralized_data import Bindable
-import bot
 from calendar import month_abbr, monthrange
 from datetime import date
 from typing import List

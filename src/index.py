@@ -1,4 +1,3 @@
-import asyncio
 import debugpy
 
 debugpy.listen(("0.0.0.0", 5678))

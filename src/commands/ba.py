@@ -1,4 +1,3 @@
-import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
 from discord import Interaction

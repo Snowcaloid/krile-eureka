@@ -1,4 +1,3 @@
-from typing import List
 
 from centralized_data import Bindable
 
