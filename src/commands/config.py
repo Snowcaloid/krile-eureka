@@ -15,6 +15,7 @@ from basic_types import GuildRoleFunction
 from basic_types import NOTORIOUS_MONSTERS
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_messages import GuildMessages
+from data.guilds.guild_roles import GuildRoles
 from data.validation.input_validator import InputValidator
 from utils import default_defer
 from data.validation.permission_validator import PermissionValidator
@@ -126,7 +127,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def add_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
         if not await InputValidator.RAISING.check_valid_event_category(interaction, event_category): return
-        self.guilds.get(interaction.guild_id).roles.add(role.id, GuildRoleFunction.RAID_LEADER, event_category)
+        GuildRoles(interaction.guild_id).add(role.id, GuildRoleFunction.RAID_LEADER, event_category)
         await feedback_and_log(interaction, f'added {role.mention} as **raid leader role** for {EventCategory(event_category).value}.')
 
     @command(name = "remove_raid_leader_role", description = "Remove the Raid Leader role.")
@@ -134,7 +135,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def remove_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
         if not await InputValidator.RAISING.check_valid_event_category(interaction, event_category): return
-        self.guilds.get(interaction.guild_id).roles.remove(role.id, GuildRoleFunction.RAID_LEADER, event_category)
+        GuildRoles(interaction.guild_id).remove(role.id, GuildRoleFunction.RAID_LEADER, event_category)
         await feedback_and_log(interaction, f'removed {role.mention} from **raid leader roles** for {EventCategory(event_category).value}.')
 
     @command(name='ping_add_role', description='Add a ping.')

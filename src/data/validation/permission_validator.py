@@ -5,6 +5,7 @@ from centralized_data import Bindable
 from discord import Interaction, InteractionResponse, Member
 from data.events.event_category import EventCategory
 from basic_types import GuildRoleFunction
+from data.guilds.guild_roles import GuildRoles
 
 
 class PermissionValidator(Bindable):
@@ -34,7 +35,7 @@ class PermissionValidator(Bindable):
 
     def is_raid_leader(self, interaction: Union[Interaction, InteractionResponse]) -> bool:
         if self.is_in_guild(interaction):
-            raid_leader_roles = self.guilds.get(interaction.guild_id).roles.get(GuildRoleFunction.RAID_LEADER)
+            raid_leader_roles = GuildRoles(interaction.guild_id).get(GuildRoleFunction.RAID_LEADER)
             for role in raid_leader_roles:
                 if not interaction.user.get_role(role.role_id) is None:
                     return True
@@ -42,7 +43,7 @@ class PermissionValidator(Bindable):
         return False
 
     def get_raid_leader_permissions(self, member: Member) -> List[EventCategory]:
-        guild_roles = self.guilds.get(member.guild.id).roles
+        guild_roles = GuildRoles(member.guild.id)
         admin_role_id = self.guilds.get(member.guild.id).role_admin
         categories: List[EventCategory] = []
         for role in member.roles:

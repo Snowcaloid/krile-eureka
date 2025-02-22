@@ -1,7 +1,9 @@
 from typing import List
 
+from centralized_data import GlobalCollection
+
 from data.db.sql import SQL, Record
-from basic_types import GuildRoleFunction
+from basic_types import GuildID, GuildRoleFunction
 
 class GuildRole:
     id: int
@@ -18,16 +20,19 @@ class GuildRole:
             self.event_category = record['event_category']
             self.function = GuildRoleFunction(record['function'])
 
-class GuildRoles:
-    _list: List[GuildRole] = []
+class GuildRoles(GlobalCollection[GuildID]):
+    _list: List[GuildRole]
 
-    guild_id: int
+    def constructor(self, key: GuildID = None) -> None:
+        super().constructor(key)
+        self._list = []
+        self.load()
 
-    def load(self, guild_id: int) -> None:
-        self.guild_id = guild_id
+    def load(self) -> None:
         self._list.clear()
+        if self.key is None: return
         for record in SQL('guild_roles').select(fields=['id'],
-                                                where=f'guild_id={guild_id}',
+                                                where=f'guild_id={self.key}',
                                                 all=True):
             channel = GuildRole()
             channel.load(record['id'])
@@ -40,10 +45,10 @@ class GuildRoles:
         return [role for role in self._list if role.role_id == role_id]
 
     def add(self, role_id: int, function: GuildRoleFunction, event_category: str = '') -> None:
-        SQL('guild_roles').insert(Record(guild_id=self.guild_id, role_id=role_id, function=function.value, event_category=event_category))
-        self.load(self.guild_id)
+        SQL('guild_roles').insert(Record(guild_id=self.key, role_id=role_id, function=function.value, event_category=event_category))
+        self.load()
 
     def remove(self, role_id: int, function: GuildRoleFunction, event_category: str = '') -> None:
         event_category_part = f'and event_category=\'{event_category}\'' if event_category else ''
-        SQL('guild_roles').delete(f'guild_id={self.guild_id} and role_id={role_id} and function={function.value} {event_category_part}')
-        self.load(self.guild_id)
+        SQL('guild_roles').delete(f'guild_id={self.key} and role_id={role_id} and function={function.value} {event_category_part}')
+        self.load()
