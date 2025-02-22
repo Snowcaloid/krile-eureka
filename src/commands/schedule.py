@@ -9,6 +9,7 @@ from data.generators.autocomplete_generator import AutoCompleteGenerator
 from basic_types import GuildChannelFunction
 from basic_types import GuildPingType
 from data.guilds.guild_channel import GuildChannels
+from data.guilds.guild_pings import GuildPings
 from data.validation.input_validator import InputValidator
 from utils import default_defer
 from data.validation.permission_validator import PermissionValidator
@@ -18,10 +19,6 @@ from logger import feedback_and_log, guild_log_message
 # schedule
 ###################################################################################
 class ScheduleCommands(GroupCog, group_name='schedule', group_description='Commands regarding scheduling runs.'):
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
-
     @command(name = "add", description = "Add an entry to the schedule.")
     @check(PermissionValidator().is_raid_leader)
     async def add(self, interaction: Interaction, event_type: str,
@@ -40,11 +37,10 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
         if event.use_recruitment_posts:
             await bot.instance.data.ui.pl_post.create(interaction.guild_id, event.id)
-        guild = self.guilds.get(interaction.guild_id)
         notification_channel = GuildChannels(interaction.guild_id).get(GuildChannelFunction.RUN_NOTIFICATION, event_type)
         if notification_channel:
             channel = interaction.guild.get_channel(notification_channel.id)
-            mentions = await guild.pings.get_mention_string(GuildPingType.RUN_NOTIFICATION, event.type)
+            mentions = await GuildPings(interaction.guild_id).get_mention_string(GuildPingType.RUN_NOTIFICATION, event.type)
             await channel.send(f'{mentions} {await event.to_string()} has been scheduled.')
         event.create_tasks()
         await feedback_and_log(interaction, f'scheduled a {event_type} run #{event.id} for {event_time} with description: <{event.description}>.')

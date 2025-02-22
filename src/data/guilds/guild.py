@@ -2,17 +2,12 @@ from typing import List
 
 from centralized_data import Bindable
 from data.db.sql import SQL, Record
-from data.guilds.guild_pings import GuildPings
 
 
 class Guild:
     id: int
     _role_developer: int
     _role_admin: int
-    pings: GuildPings
-
-    def __init__(self):
-        self.pings = GuildPings()
 
     def load(self, guild_id: int, soft_load: bool = False) -> None:
         query = Record() # Prevent multiple connects and disconnects
@@ -23,7 +18,6 @@ class Guild:
             self._role_developer = record['role_developer']
             self._role_admin = record['role_admin']
         if soft_load: return
-        self.pings.load(guild_id)
         del query
 
     @property

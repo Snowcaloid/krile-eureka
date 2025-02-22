@@ -8,6 +8,7 @@ from basic_types import EurekaTrackerZone
 from basic_types import GuildChannelFunction
 from basic_types import GuildPingType
 from data.guilds.guild_channel import GuildChannels
+from data.guilds.guild_pings import GuildPings
 from data.ui.views import TemporaryView
 from logger import guild_log_message
 
@@ -15,10 +16,6 @@ class EurekaTrackerModal(Modal):
     from data.eureka_info import EurekaInfo
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
-
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
 
     def __init__(self, *, zone: EurekaTrackerZone = None) -> None:
         self.zone = zone
@@ -48,11 +45,10 @@ class EurekaTrackerModal(Modal):
         await interaction.response.edit_message(content='Successfully assigned tracker.', view=view)
         await guild_log_message(interaction.guild_id, f'{interaction.user.display_name} has added a tracker for {self.zone.name} - `{url}`.')
 
-        guild = self.guilds.get(interaction.guild_id)
         notification_channel = GuildChannels(interaction.guild_id).get(GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION, str(self.zone.value))
         if notification_channel:
             channel = interaction.guild.get_channel(notification_channel.id)
-            mentions = await guild.pings.get_mention_string(GuildPingType.EUREKA_TRACKER_NOTIFICATION, str(self.zone.value))
+            mentions = await GuildPings(interaction.guild_id).get_mention_string(GuildPingType.EUREKA_TRACKER_NOTIFICATION, str(self.zone.value))
             await channel.send(f'{mentions} Tracker {url} has been added for {self.zone.name} by {interaction.user.mention}.')
 
     async def on_error(self, interaction: Interaction, error: Exception) -> None:

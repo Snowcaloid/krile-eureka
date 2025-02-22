@@ -8,6 +8,7 @@ import bot
 from data.events.event_category import EventCategory
 from basic_types import GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
+from data.guilds.guild_pings import GuildPings
 from data.ui.buttons import PartyLeaderButton, SendPLGuideButton, delete_buttons, save_buttons
 from data.ui.views import PersistentView
 
@@ -17,26 +18,20 @@ class UIPLPost:
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
 
-    from data.guilds.guild import Guilds
-    @Guilds.bind
-    def guilds(self) -> Guilds: ...
-
     async def create(self, guild_id: int, id: int) -> None:
-        guild_data = self.guilds.get(guild_id)
         event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = bot.instance.get_channel(channel_data.id)
         if channel is None: return
-        pings = await guild_data.pings.get_mention_string(GuildPingType.PL_POST, event.type)
+        pings = await GuildPings(guild_id).get_mention_string(GuildPingType.PL_POST, event.type)
         message = await channel.send(pings, embed=Embed(description='...'))
         event.pl_post_id = message.id
         message = await self.rebuild(guild_id, id, True)
         GuildMessages(guild_id).add(message.id, channel.id, GuildMessageFunction.PL_POST)
         if event.use_recruitment_post_threads:
             await message.create_thread(name=event.recruitment_post_thread_title)
-
 
     async def rebuild(self, guild_id: int, id: int, recreate_view: bool = False) -> Message:
         event = Schedule(guild_id).get(id)
@@ -75,7 +70,6 @@ class UIPLPost:
         else:
             message = await message.edit(embed=embed)
         return message
-
 
     async def remove(self, guild_id: int, event_id: int) -> GuildChannel:
         event = Schedule(guild_id).get(event_id)

@@ -1,6 +1,7 @@
-from basic_types import GuildPingType
+from centralized_data import GlobalCollection
+from basic_types import GuildID, GuildPingType
 import bot
-from typing import List
+from typing import List, override
 
 from data.db.sql import SQL, Record
 from data.events.event_category import EventCategory
@@ -23,15 +24,20 @@ class GuildPing:
             self.event_type = record['schedule_type']
             self.tag = record['tag']
 
-class GuildPings:
-    _list: List[GuildPing] = []
-    guild_id: int
+class GuildPings(GlobalCollection[GuildID]):
+    _list: List[GuildPing]
 
-    def load(self, guild_id: int) -> None:
-        self.guild_id = guild_id
+    @override
+    def constructor(self, key: GuildID = None) -> None:
+        super().constructor(key)
+        self._list = []
+        self.load()
+
+    def load(self) -> None:
         self._list.clear()
+        if self.key is None: return
         for record in SQL('pings').select(fields=['id'],
-                                          where=f'guild_id={guild_id}',
+                                          where=f'guild_id={self.key}',
                                           all=True):
             ping = GuildPing()
             ping.load(record['id'])
@@ -46,27 +52,27 @@ class GuildPings:
 
     def add_ping_category(self, ping_type: GuildPingType, event_category: EventCategory, tag: int):
         query = Record() # Prevent multiple connects and disconnects
-        for event_template in EventTemplates(self.guild_id).get_by_categories([event_category]):
+        for event_template in EventTemplates(self.key).get_by_categories([event_category]):
             self.add_ping(ping_type, event_template.type(), tag)
         del query
 
     def add_ping(self, ping_type: GuildPingType, event_type: str, tag: int):
-        SQL('pings').insert(Record(guild_id=self.guild_id, ping_type=ping_type.value, schedule_type=event_type, tag=tag))
-        self.load(self.guild_id)
+        SQL('pings').insert(Record(guild_id=self.key, ping_type=ping_type.value, schedule_type=event_type, tag=tag))
+        self.load()
 
     def remove_ping_category(self, ping_type: GuildPingType, event_category: EventCategory, tag: int):
         query = Record() # Prevent multiple connects and disconnects
-        for event_template in EventTemplates(self.guild_id).get_by_categories([event_category]):
+        for event_template in EventTemplates(self.key).get_by_categories([event_category]):
             self.remove_ping(ping_type, event_template.type(), tag)
         del query
 
     def remove_ping(self, ping_type: GuildPingType, event_type: str, tag: int):
-        SQL('pings').delete(f'guild_id={self.guild_id} and ping_type={ping_type.value} and schedule_type=\'{event_type}\' and tag={tag}')
-        self.load(self.guild_id)
+        SQL('pings').delete(f'guild_id={self.key} and ping_type={ping_type.value} and schedule_type=\'{event_type}\' and tag={tag}')
+        self.load()
 
     async def get_mention_string(self, ping_type: GuildPingType, event_type: str) -> str:
         result = ''
-        guild = bot.instance.get_guild(self.guild_id)
+        guild = bot.instance.get_guild(self.key)
         if guild is None: return ''
         await guild.fetch_roles()
         for ping in self.get(ping_type, event_type):
