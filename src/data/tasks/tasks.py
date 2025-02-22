@@ -3,9 +3,10 @@ from json import dumps
 from typing import List, override
 from datetime import datetime
 
+from basic_types import TaskExecutionType
 from data.db.sql import SQL, Record
-from data.tasks.task import Task, TaskExecutionType, TaskTemplate
-from asset_loader import PythonAssetLoader
+from data.tasks.task import Task, TaskTemplate
+from centralized_data import PythonAssetLoader
 
 class Tasks(PythonAssetLoader[TaskTemplate]):
     @override

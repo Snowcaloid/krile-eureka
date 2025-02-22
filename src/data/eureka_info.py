@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import List
 
-from bindable import Bindable
+from centralized_data import Bindable
 
-from data.eureka_tracker_zone import EurekaTrackerZone
+from basic_types import EurekaTrackerZone
 from data.db.database import pg_timestamp
 from data.db.sql import SQL, Record
 

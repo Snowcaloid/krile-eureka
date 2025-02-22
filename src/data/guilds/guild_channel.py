@@ -2,7 +2,7 @@ from typing import List
 
 from data.db.sql import SQL, Record
 from data.events.event_category import EventCategory
-from data.guilds.guild_channel_functions import GuildChannelFunction
+from basic_types import GuildChannelFunction
 
 class GuildChannel:
     id: int = -1

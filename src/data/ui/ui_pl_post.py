@@ -1,11 +1,11 @@
 from uuid import uuid4
 from discord import ButtonStyle, Embed, Message, TextChannel
 from data.guilds.guild_channel import GuildChannel
-from data.guilds.guild_message_functions import GuildMessageFunction
-from data.guilds.guild_pings import GuildPingType
+from basic_types import GuildMessageFunction
+from basic_types import GuildPingType
 import bot
 from data.events.event_category import EventCategory
-from data.guilds.guild_channel_functions import GuildChannelFunction
+from basic_types import GuildChannelFunction
 from data.ui.buttons import PartyLeaderButton, SendPLGuideButton, delete_buttons, save_buttons
 from data.ui.views import PersistentView
 

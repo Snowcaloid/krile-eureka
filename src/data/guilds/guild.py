@@ -1,6 +1,6 @@
 from typing import List
 
-from bindable import Bindable
+from centralized_data import Bindable
 from data.db.sql import SQL, Record
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_messages import GuildMessages

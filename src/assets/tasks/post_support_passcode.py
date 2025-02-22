@@ -1,9 +1,9 @@
 from typing import override
 from discord import Embed
 import bot
-from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.guilds.guild_pings import GuildPingType
-from data.tasks.task import TaskExecutionType, TaskTemplate
+from basic_types import GuildChannelFunction, TaskExecutionType
+from basic_types import GuildPingType
+from data.tasks.task import TaskTemplate
 
 
 class Task_PostSupportPasscode(TaskTemplate):

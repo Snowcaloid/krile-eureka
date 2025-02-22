@@ -1,7 +1,8 @@
 from typing import override
+from basic_types import TaskExecutionType
 import bot
 from data.cache.message_cache import MessageCache
-from data.tasks.task import TaskExecutionType, TaskTemplate
+from data.tasks.task import TaskTemplate
 
 
 class Task_RemoveOldMessage(TaskTemplate):

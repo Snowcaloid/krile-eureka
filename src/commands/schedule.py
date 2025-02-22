@@ -5,8 +5,8 @@ from discord.app_commands import check, command
 from discord import Interaction
 from typing import Optional
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.guilds.guild_pings import GuildPingType
+from basic_types import GuildChannelFunction
+from basic_types import GuildPingType
 from data.validation.input_validator import InputValidator
 from utils import default_defer
 from data.validation.permission_validator import PermissionValidator

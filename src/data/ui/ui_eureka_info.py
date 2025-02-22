@@ -1,6 +1,6 @@
 from discord import ButtonStyle, Embed, Message, TextChannel
-from data.eureka_tracker_zone import EurekaTrackerZone
-from data.guilds.guild_message_functions import GuildMessageFunction
+from basic_types import EurekaTrackerZone
+from basic_types import GuildMessageFunction
 import bot
 from data.ui.buttons import AssignTrackerButton, GenerateTrackerButton, save_buttons
 from data.ui.views import PersistentView

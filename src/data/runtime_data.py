@@ -2,7 +2,7 @@ from datetime import datetime
 import bot
 from data.cache.message_cache import MessageCache
 from data.db.sql import Record
-from data.tasks.task import TaskExecutionType
+from basic_types import TaskExecutionType
 from data.ui.ui import UI
 
 class RuntimeData:

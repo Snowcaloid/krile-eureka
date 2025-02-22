@@ -4,9 +4,9 @@ from discord import ButtonStyle, Interaction, Message, SelectOption
 from discord.ui import Button, Select
 
 import bot
-from data.eureka_tracker_zone import EurekaTrackerZone
-from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.guilds.guild_pings import GuildPingType
+from basic_types import EurekaTrackerZone
+from basic_types import GuildChannelFunction
+from basic_types import GuildPingType
 from data.ui.modals import EurekaTrackerModal
 from data.ui.views import TemporaryView
 from logger import guild_log_message

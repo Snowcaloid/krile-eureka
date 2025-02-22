@@ -3,9 +3,9 @@ import re
 from datetime import datetime
 from discord import Interaction, Member, TextChannel
 
-from data.eureka_tracker_zone import EurekaTrackerZone
+from basic_types import EurekaTrackerZone, NotoriousMonster
 from data.events.event_category import EventCategory
-from data.notorious_monsters import NOTORIOUS_MONSTERS, NotoriousMonster
+from basic_types import NOTORIOUS_MONSTERS
 from logger import feedback_and_log
 from data.validation.permission_validator import PermissionValidator
 

@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 from json import dumps
 from typing import Dict, Tuple
-from asset_loader import YamlAsset
+from centralized_data import YamlAsset
 from data.events.event_category import EventCategory
 from discord.app_commands import Choice
 

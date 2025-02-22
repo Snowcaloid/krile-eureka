@@ -2,7 +2,7 @@ from discord import Interaction
 from discord.ext.commands import GroupCog
 from discord.channel import TextChannel
 from discord.app_commands import check, command
-from data.guilds.guild_channel_functions import GuildChannelFunction
+from basic_types import GuildChannelFunction
 from logger import feedback_and_log, guild_log_message
 from utils import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator

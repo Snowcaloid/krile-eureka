@@ -2,11 +2,12 @@ from datetime import datetime, timedelta
 from typing import override
 
 from discord import Activity, ActivityType, Status
+from basic_types import TaskExecutionType
 import bot
 from data.db.sql import SQL
 from data.events.event import Event
 from data.events.event_category import EventCategory
-from data.tasks.task import TaskExecutionType, TaskTemplate
+from data.tasks.task import TaskTemplate
 
 
 class Task_UpdateStatus(TaskTemplate):

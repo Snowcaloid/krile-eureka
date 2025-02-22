@@ -1,4 +1,4 @@
-from asset_loader import YamlAssetLoader
+from centralized_data import YamlAssetLoader
 from data.events.event_template import EventTemplate
 
 

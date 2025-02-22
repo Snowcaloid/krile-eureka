@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 from typing import override
 
 import bot
-from data.guilds.guild_message_functions import GuildMessageFunction
-from data.tasks.task import TaskExecutionType, TaskTemplate
+from basic_types import GuildMessageFunction, TaskExecutionType
+from data.tasks.task import TaskTemplate
 
 
 class Task_UpdateEurekaInfoPosts(TaskTemplate):

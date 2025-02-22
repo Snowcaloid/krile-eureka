@@ -1,20 +1,11 @@
+from basic_types import GuildPingType
 import bot
-from enum import Enum
 from typing import List
 
 from data.db.sql import SQL, Record
 from data.events.event_category import EventCategory
 
 # TODO: technically, this could be united with guild_roles
-
-class GuildPingType(Enum):
-    NONE = 0
-    MAIN_PASSCODE = 1
-    SUPPORT_PASSCODE = 2
-    PL_POST = 3
-    RUN_NOTIFICATION = 4
-    EUREKA_TRACKER_NOTIFICATION = 5
-    NM_PING = 6
 
 class GuildPing:
     id: int

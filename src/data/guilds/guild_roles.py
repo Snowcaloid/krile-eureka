@@ -1,7 +1,7 @@
 from typing import List
 
 from data.db.sql import SQL, Record
-from data.guilds.guild_role_functions import GuildRoleFunction
+from basic_types import GuildRoleFunction
 
 class GuildRole:
     id: int

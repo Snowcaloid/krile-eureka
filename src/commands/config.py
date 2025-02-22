@@ -4,14 +4,14 @@ from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
-from data.eureka_tracker_zone import EurekaTrackerZone
+from basic_types import EurekaTrackerZone, NotoriousMonster
 from data.events.event_category import EventCategory
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.guilds.guild_message_functions import GuildMessageFunction
-from data.guilds.guild_pings import GuildPingType
-from data.guilds.guild_role_functions import GuildRoleFunction
-from data.notorious_monsters import NOTORIOUS_MONSTERS, NotoriousMonster
+from basic_types import GuildChannelFunction
+from basic_types import GuildMessageFunction
+from basic_types import GuildPingType
+from basic_types import GuildRoleFunction
+from basic_types import NOTORIOUS_MONSTERS
 from data.validation.input_validator import InputValidator
 from utils import default_defer
 from data.validation.permission_validator import PermissionValidator

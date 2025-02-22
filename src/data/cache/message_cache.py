@@ -1,5 +1,5 @@
 from typing import Dict, override
-from bindable import Bindable
+from centralized_data import Bindable
 from discord import Message, NotFound, TextChannel
 
 

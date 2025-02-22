@@ -1,4 +1,4 @@
-from bindable import Bindable
+from centralized_data import Bindable
 from data.db.sql import SQL, Record
 from data.events.event_category import EventCategory
 from data.events.event_template import CustomEventTamplate, EventTemplate

@@ -4,9 +4,9 @@ from discord import ButtonStyle, HTTPException, Interaction, TextStyle
 from discord.ui import Modal, TextInput, Button
 
 import bot
-from data.eureka_tracker_zone import EurekaTrackerZone
-from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.guilds.guild_pings import GuildPingType
+from basic_types import EurekaTrackerZone
+from basic_types import GuildChannelFunction
+from basic_types import GuildPingType
 from data.ui.views import TemporaryView
 from logger import guild_log_message
 

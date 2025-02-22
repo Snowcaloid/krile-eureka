@@ -1,7 +1,8 @@
 from typing import override
 from discord import Embed
+from basic_types import TaskExecutionType
 import bot
-from data.tasks.task import TaskExecutionType, TaskTemplate
+from data.tasks.task import TaskTemplate
 
 
 class Task_SendPLPasscodes(TaskTemplate):

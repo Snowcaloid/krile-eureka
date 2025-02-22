@@ -1,7 +1,7 @@
 from typing import List
 
 from data.db.sql import SQL, Record
-from data.guilds.guild_message_functions import GuildMessageFunction
+from basic_types import GuildMessageFunction
 
 class GuildMessage:
     id: int

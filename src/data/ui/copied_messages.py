@@ -1,7 +1,7 @@
 
 from typing import Dict
 
-from bindable import Bindable
+from centralized_data import Bindable
 from discord import Message
 
 

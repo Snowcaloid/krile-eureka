@@ -2,23 +2,12 @@ from __future__ import annotations
 from typing import List
 from datetime import datetime
 
+from basic_types import TaskExecutionType
 from data.db.sql import SQL
-from asset_loader import PythonAsset
+from centralized_data import PythonAsset
 from abc import abstractmethod
-from enum import Enum
 
 from logger import guild_log_message
-
-class TaskExecutionType(Enum):
-    NONE = 0
-    UPDATE_STATUS = 1
-    SEND_PL_PASSCODES = 2
-    REMOVE_OLD_RUNS = 3
-    REMOVE_OLD_MESSAGE = 4
-    POST_MAIN_PASSCODE = 5
-    POST_SUPPORT_PASSCODE = 6
-    REMOVE_BUTTONS = 8
-    UPDATE_EUREKA_INFO_POSTS = 9
 
 class TaskTemplate(PythonAsset):
     @classmethod

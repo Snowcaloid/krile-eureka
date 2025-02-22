@@ -1,4 +1,4 @@
-from bindable import Bindable
+from centralized_data import GlobalCollection
 from data.db.sql import SQL, Record
 from data.events.event import Event
 from data.generators.event_passcode_generator import EventPasscodeGenerator
@@ -6,7 +6,7 @@ from data.generators.event_passcode_generator import EventPasscodeGenerator
 from datetime import datetime
 from typing import List
 
-class Schedule(Bindable):
+class Schedule(GlobalCollection[int]):
     _list: List[Event]
 
     def constructor(self) -> None:

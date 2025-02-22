@@ -1,6 +1,6 @@
 from typing import Type, override
 
-from asset_loader import YamlAsset, YamlAssetLoader
+from centralized_data import YamlAsset, YamlAssetLoader
 
 class TableDefinition(YamlAsset):
 

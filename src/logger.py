@@ -5,7 +5,7 @@ from typing import Coroutine
 from discord import Interaction
 
 import bot
-from data.guilds.guild_channel_functions import GuildChannelFunction
+from basic_types import GuildChannelFunction
 from utils import default_response, get_discord_timestamp
 
 

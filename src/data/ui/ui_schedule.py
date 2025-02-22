@@ -4,7 +4,7 @@ from discord import TextChannel
 from data.events.event import Event
 from data.cache.message_cache import MessageCache
 import bot
-from data.guilds.guild_message_functions import GuildMessageFunction
+from basic_types import GuildMessageFunction
 
 class DateSeparatedScheduleData:
     """Helper class for separating Schedule entries by date."""

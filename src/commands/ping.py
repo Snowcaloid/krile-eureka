@@ -3,9 +3,9 @@ from discord import Interaction
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.guilds.guild_channel_functions import GuildChannelFunction
-from data.guilds.guild_pings import GuildPingType
-from data.notorious_monsters import NOTORIOUS_MONSTERS, NotoriousMonster
+from basic_types import GuildChannelFunction, NotoriousMonster
+from basic_types import GuildPingType
+from basic_types import NOTORIOUS_MONSTERS
 from data.validation.input_validator import InputValidator
 from logger import guild_log_message
 from utils import default_defer, default_response

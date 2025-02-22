@@ -1,10 +1,10 @@
 from __future__ import annotations
 import os
 from typing import List, Union
-from bindable import Bindable
+from centralized_data import Bindable
 from discord import Interaction, InteractionResponse, Member
 from data.events.event_category import EventCategory
-from data.guilds.guild_role_functions import GuildRoleFunction
+from basic_types import GuildRoleFunction
 
 
 class PermissionValidator(Bindable):
