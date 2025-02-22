@@ -16,6 +16,10 @@ class UIEurekaInfoPost(Bindable):
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
 
+    from data.eureka_info import EurekaInfo
+    @EurekaInfo.bind
+    def eureka_info(self) -> EurekaInfo: ...
+
     async def create(self, guild_id: int) -> Message:
         message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
@@ -32,7 +36,7 @@ class UIEurekaInfoPost(Bindable):
 
     def get_trackers_text(self, zone: EurekaTrackerZone) -> str:
         result = ''
-        trackers = bot.instance.data.eureka_info.get(zone)
+        trackers = self.eureka_info.get(zone)
         if trackers:
             for tracker in trackers:
                 result = result + f'* {tracker.url} [{get_discord_timestamp(tracker.timestamp, DiscordTimestampType.RELATIVE)}]\n'

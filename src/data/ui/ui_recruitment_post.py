@@ -47,7 +47,6 @@ class UIRecruitmentPost(Bindable):
         if recreate_view:
             delete_buttons(event.pl_post_id)
             view = PersistentView()
-            bot.instance.data.ui.view.view_list.append(view)
             for i in range(1, 8):
                 label = event.pl_button_texts[i-1]
                 if label:
