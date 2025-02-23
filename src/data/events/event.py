@@ -1,7 +1,8 @@
 
+from centralized_data import Singleton
 from data.events.event_category import EventCategory
 from discord import Interaction, Member
-import bot
+from discord.ext.commands import Bot
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
 from typing import List, Tuple, Type
@@ -72,6 +73,7 @@ class Event:
 
     def __init__(self):
         self.users = EventUserData()
+        self.client: Bot = Singleton.get_instance(Bot)
 
     def load(self, id: int) -> None:
         record = SQL('events').select(fields=['event_type', 'pl_post_id', 'timestamp',
@@ -172,7 +174,7 @@ class Event:
 
     @property
     def schedule_entry_text(self) -> str:
-        user = bot.instance.get_guild(self.guild_id).get_member(self.users.raid_leader)
+        user = self.client.get_guild(self.guild_id).get_member(self.users.raid_leader)
         return self.template.schedule_entry_text(user.mention, self.time, self.real_description, self._use_support)
 
     @property
@@ -199,12 +201,12 @@ class Event:
 
     @property
     def main_passcode_text(self) -> str:
-        user = bot.instance.get_guild(self.guild_id).get_member(self.users.raid_leader)
+        user = self.client.get_guild(self.guild_id).get_member(self.users.raid_leader)
         return self.template.main_passcode_text(user.mention, self.passcode_main)
 
     @property
     def support_passcode_text(self) -> str:
-        user = bot.instance.get_guild(self.guild_id).get_member(self.users.raid_leader)
+        user = self.client.get_guild(self.guild_id).get_member(self.users.raid_leader)
         return self.template.support_passcode_text(user.mention, self.passcode_supp)
 
     @property
@@ -241,7 +243,7 @@ class Event:
 
     @property
     def recruitment_post_text(self) -> str:
-        guild = bot.instance.get_guild(self.guild_id)
+        guild = self.client.get_guild(self.guild_id)
         rl = guild.get_member(self.users.raid_leader)
         pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.template.pl_button_texts()[0] else ''
         pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1])) if self.template.pl_button_texts()[1] else ''

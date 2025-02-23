@@ -9,8 +9,6 @@ from datetime import datetime
 from typing import Literal, Optional
 from data.tasks.tasks import Tasks
 from logger import guild_log_message
-from discord.ext import tasks
-
 
 class Krile(Bot, Singleton):
     """General bot class.
@@ -48,7 +46,9 @@ class Krile(Bot, Singleton):
         from data.guilds.guild_roles import GuildRoles
         from data.ui.button_loader import ButtonLoader
         from data.eureka_info import EurekaInfo
+        from data.ui.ui_schedule import UISchedule
 
+        ui_schedule = UISchedule()
         MessageCache().clear()
         self._load_singleton(ButtonLoader(), initial)
         self._load_singleton(EurekaInfo(), initial)
@@ -58,7 +58,7 @@ class Krile(Bot, Singleton):
             self._load_singleton(GuildMessages(guild.id), initial)
             self._load_singleton(GuildRoles(guild.id), initial)
             self._load_singleton(GuildPings(guild.id), initial)
-            await self.ui_schedule.rebuild(guild.id)
+            await ui_schedule.rebuild(guild.id)
 
         tasks = Tasks()
         self._load_singleton(tasks, initial)
@@ -72,8 +72,6 @@ class Krile(Bot, Singleton):
         """A coroutine to be called to setup the bot.
         This method is called after instance.on_ready event.
         """
-        await self.reload_data_classes(True)
-
         from commands.admin import AdminCommands
         from commands.ba import BACommands
         from commands.config import ConfigCommands
@@ -94,38 +92,19 @@ class Krile(Bot, Singleton):
         await self.add_cog(BACommands())
         await self.add_cog(LogosCommands())
         await self.add_cog(AdminCommands())
-        if not task_loop.is_running():
-            task_loop.start()
 
-
-instance = Krile()
-
-@tasks.loop(seconds=1) # The delay is calculated from the end of execution of the last task.
-async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
-    """Main loop, which runs required tasks at required times. await is necessery."""
-    if instance.ws:
-        task = instance.tasks.get_next()
-        if task is None: return
-        if instance.tasks.executing: return
-        instance.tasks.executing = True
-        try:
-            await task.execute()
-        finally:
-            instance.tasks.remove_task(task)
-            instance.tasks.executing = False
-
-@instance.event
+@Krile().event
 async def on_member_join(member: Member):
     await guild_log_message(member.guild.id, f'{member.mention} joined the server.')
 
-@instance.event
+@Krile().event
 async def on_raw_message_delete(payload: RawMessageDeleteEvent):
-    instance.tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
+    Krile().tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
     message_cache = MessageCache()
     if message_cache.get(payload.message_id, None) is None: return
     message_cache.remove(payload.message_id)
 
-@instance.command()
+@Krile().command()
 @guild_only()
 async def sync(ctx: Context, guilds: Greedy[Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
     if ctx.author.id != int(os.getenv('OWNER_ID')) and not ctx.author.guild_permissions.administrator: return

@@ -23,11 +23,12 @@ import re
 import json
 import copy
 
+from centralized_data import Singleton
+from discord.ext.commands import Bot
 import discord
 from discord.ui import TextInput
 from discord import ChannelType, TextChannel
 
-import bot
 from data.ui.base_button import BaseButton, buttons_as_text, delete_buttons, save_buttons
 from data.ui.constants import BUTTON_STYLE_CHOICES, BUTTON_TYPE_CHOICES, ButtonType
 from data.ui.views import PersistentView
@@ -486,10 +487,10 @@ class EditFieldDropdown(discord.ui.Select):
 
 
 class SendToChannelSelect(discord.ui.ChannelSelect):
-    def __init__(self, *, _embed: discord.Embed, _buttons: List[BaseButton], instance: object):
+    def __init__(self, *, _embed: discord.Embed, _buttons: List[BaseButton]):
         self.embed = _embed
         self.buttons = _buttons
-        self.bot: bot.Krile = instance
+        self.bot = Singleton.get_instance(Bot)
 
         super().__init__(placeholder="Select a channel.",
             channel_types=[
@@ -575,11 +576,11 @@ class ReplaceMessageModal(discord.ui.Modal):
 
 
 class ReplaceChannelSelect(discord.ui.ChannelSelect):
-    def __init__(self, *, _embed: discord.Embed, _buttons: List[BaseButton], parent_view: BaseView, instance: object):
+    def __init__(self, *, _embed: discord.Embed, _buttons: List[BaseButton], parent_view: BaseView):
         self.embed = _embed
         self.buttons = _buttons
         self.parent_view = parent_view
-        self.bot: bot.Krile = instance
+        self.bot = Singleton.get_instance(Bot)
 
         super().__init__(placeholder="Select a channel.",
             channel_types=[
@@ -1034,7 +1035,7 @@ class EmbedBuilderView(BaseView):
             return await interaction.response.send_message(f"{EMOJIS['no']} - Embed is empty!", ephemeral=True)
 
         view = BaseView(timeout=180, target=interaction)
-        view.add_item(SendToChannelSelect(_embed=self.embed, _buttons=self.buttons, instance=self.bot))
+        view.add_item(SendToChannelSelect(_embed=self.embed, _buttons=self.buttons))
         await interaction.response.send_message(f"{EMOJIS['channel_text']} - Choose a channel to send the embed to:",
             view=view,
             ephemeral=True)
@@ -1045,7 +1046,7 @@ class EmbedBuilderView(BaseView):
             return await interaction.response.send_message(f"{EMOJIS['no']} - Embed is empty!", ephemeral=True)
 
         view = BaseView(timeout=180, target=interaction)
-        view.add_item(ReplaceChannelSelect(_embed=self.embed, _buttons=self.buttons, instance=self.bot, parent_view=self))
+        view.add_item(ReplaceChannelSelect(_embed=self.embed, _buttons=self.buttons, parent_view=self))
         await interaction.response.send_message(f"{EMOJIS['channel_text']} - Choose a channel to send the embed to:",
             view=view,
             ephemeral=True)

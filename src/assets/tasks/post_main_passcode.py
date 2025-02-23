@@ -1,6 +1,7 @@
 from typing import override
+from centralized_data import Singleton
 from discord import Embed
-import bot
+from discord.ext.commands import Bot
 from basic_types import GuildChannelFunction, TaskExecutionType
 from basic_types import GuildPingType
 from data.events.schedule import Schedule
@@ -21,7 +22,7 @@ class Task_PostMainPasscode(TaskTemplate):
             if event is None: return
             channel_data = GuildChannels(obj["guild"]).get(GuildChannelFunction.PASSCODES, event.type)
             if channel_data is None: return
-            guild = bot.instance.get_guild(obj["guild"])
+            guild = Singleton.get_instance(Bot).get_guild(obj["guild"])
             channel = guild.get_channel(channel_data.id)
             if channel is None: return
             pings = await GuildPings(obj["guild"]).get_mention_string(GuildPingType.MAIN_PASSCODE, event.type)

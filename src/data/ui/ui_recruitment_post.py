@@ -1,11 +1,11 @@
 from uuid import uuid4
-from centralized_data import Bindable
+from centralized_data import Bindable, Singleton
 from discord import ButtonStyle, Embed, Message, TextChannel
 from data.events.schedule import Schedule
 from data.guilds.guild_channel import GuildChannel, GuildChannels
 from basic_types import GuildMessageFunction
 from basic_types import GuildPingType
-import bot
+from discord.ext.commands import Bot
 from data.events.event_category import EventCategory
 from basic_types import GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
@@ -25,7 +25,7 @@ class UIRecruitmentPost(Bindable):
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
-        channel: TextChannel = bot.instance.get_channel(channel_data.id)
+        channel: TextChannel = Singleton.get_instance(Bot).get_channel(channel_data.id)
         if channel is None: return
         pings = await GuildPings(guild_id).get_mention_string(GuildPingType.PL_POST, event.type)
         message = await channel.send(pings, embed=Embed(description='...'))
@@ -40,7 +40,7 @@ class UIRecruitmentPost(Bindable):
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
-        channel: TextChannel = bot.instance.get_channel(channel_data.id)
+        channel: TextChannel = Singleton.get_instance(Bot).get_channel(channel_data.id)
         message = await self.message_cache.get(event.pl_post_id, channel)
         if message is None: return
         embed = Embed(title=event.recruitment_post_title, description=event.recruitment_post_text)
@@ -79,7 +79,7 @@ class UIRecruitmentPost(Bindable):
         if event is None: return
         channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
-        channel: TextChannel = bot.instance.get_channel(channel_data.id)
+        channel: TextChannel = Singleton.get_instance(Bot).get_channel(channel_data.id)
         message = await self.message_cache.get(event.pl_post_id, channel)
         if message is None: return
         await message.delete()

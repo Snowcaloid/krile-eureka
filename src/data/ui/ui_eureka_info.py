@@ -1,8 +1,8 @@
-from centralized_data import Bindable
+from centralized_data import Bindable, Singleton
 from discord import ButtonStyle, Embed, Message, TextChannel
 from basic_types import EurekaTrackerZone
 from basic_types import GuildMessageFunction
-import bot
+from discord.ext.commands import Bot
 from data.guilds.guild_messages import GuildMessages
 from data.ui.base_button import BaseButton, save_buttons
 from data.ui.constants import ButtonType
@@ -23,7 +23,7 @@ class UIEurekaInfoPost(Bindable):
     async def create(self, guild_id: int) -> Message:
         message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
-        channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
+        channel: TextChannel = Singleton.get_instance(Bot).get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
@@ -47,7 +47,7 @@ class UIEurekaInfoPost(Bindable):
     async def rebuild(self, guild_id: int) -> Message:
         message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
-        channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
+        channel: TextChannel = Singleton.get_instance(Bot).get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
@@ -84,7 +84,7 @@ class UIEurekaInfoPost(Bindable):
         messages = GuildMessages(guild_id)
         message_data = messages.get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
-        channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
+        channel: TextChannel = Singleton.get_instance(Bot).get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return

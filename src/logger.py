@@ -2,9 +2,9 @@ import os
 from datetime import datetime
 from typing import Coroutine
 
+from centralized_data import Singleton
 from discord import Interaction
-
-import bot
+from discord.ext.commands import Bot
 from basic_types import GuildChannelFunction
 from utils import default_response, get_discord_timestamp
 
@@ -20,9 +20,10 @@ async def guild_log_message(guild_id: int, message: str):
     from data.guilds.guild_channel import GuildChannels
     channel_data = GuildChannels(guild_id).get(GuildChannelFunction.LOGGING)
     if channel_data is None: return
-    guild = bot.instance.get_guild(guild_id)
+    client = Singleton.get_instance(Bot)
+    guild = client.get_guild(guild_id)
     if guild is None: return
-    channel = bot.instance.get_channel(channel_data.id)
+    channel = client.get_channel(channel_data.id)
     if channel is None: return
     # Print the log message with a timestamp
     await channel.send(f'{get_discord_timestamp(datetime.utcnow())} {message}')

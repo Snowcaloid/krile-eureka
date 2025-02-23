@@ -1,8 +1,8 @@
 from datetime import datetime
-from centralized_data import Bindable
+from centralized_data import Bindable, Singleton
 from discord import Embed, Message, TextChannel
 from basic_types import GuildMessageFunction
-import bot
+from discord.ext.commands import Bot
 from data.guilds.guild_messages import GuildMessages
 from data.weather.weather import EurekaWeathers, EurekaZones, current_weather, next_day, next_night, next_weather, to_eorzea_time, weather_emoji
 from utils import DiscordTimestampType, get_discord_timestamp
@@ -17,7 +17,7 @@ class UIWeatherPost(Bindable):
         if message is None:
             message_data = GuildMessages(guild_id).get(GuildMessageFunction.WEATHER_POST)
             if message_data is None: return
-            channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
+            channel: TextChannel = Singleton.get_instance(Bot).get_channel(message_data.channel_id)
             if channel is None: return
             message = await self.message_cache.get(message_data.message_id, channel)
 
@@ -54,7 +54,7 @@ class UIWeatherPost(Bindable):
         messages = GuildMessages(guild_id)
         message_data = messages.get(GuildMessageFunction.WEATHER_POST)
         if message_data is None: return
-        channel: TextChannel = bot.instance.get_channel(message_data.channel_id)
+        channel: TextChannel = Singleton.get_instance(Bot).get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return

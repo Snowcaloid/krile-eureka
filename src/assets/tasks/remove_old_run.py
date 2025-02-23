@@ -1,6 +1,8 @@
 from typing import override
+
+from centralized_data import Singleton
 from basic_types import TaskExecutionType
-import bot
+from discord.ext.commands import Bot
 from data.events.schedule import Schedule
 from data.tasks.task import TaskTemplate
 
@@ -17,7 +19,7 @@ class Task_RemoveOldRun(TaskTemplate):
     async def execute(self, obj: object) -> None:
         if obj and obj["id"]:
             Schedule().finish(obj["id"])
-            for guild in bot.instance.guilds:
+            for guild in Singleton.get_instance(Bot).guilds:
                 await self.ui_schedule.rebuild(guild.id)
 
 

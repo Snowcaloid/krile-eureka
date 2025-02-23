@@ -1,4 +1,5 @@
-import bot
+from centralized_data import Singleton
+from discord.ext.commands import Bot
 from data.cache.message_cache import MessageCache
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
@@ -8,11 +9,7 @@ from basic_types import EurekaTrackerZone, NotoriousMonster
 from data.events.event_category import EventCategory
 from data.events.event_templates import EventTemplates
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from basic_types import GuildChannelFunction
-from basic_types import GuildMessageFunction
-from basic_types import GuildPingType
-from basic_types import GuildRoleFunction
-from basic_types import NOTORIOUS_MONSTERS
+from basic_types import GuildChannelFunction, GuildMessageFunction, GuildPingType, GuildRoleFunction, NOTORIOUS_MONSTERS
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
@@ -39,7 +36,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         messages = GuildMessages(interaction.guild_id)
         message_data = messages.get(GuildMessageFunction.SCHEDULE_POST)
         if message_data:
-            old_channel = bot.instance.get_channel(message_data.channel_id)
+            old_channel = Singleton.get_instance(Bot).get_channel(message_data.channel_id)
             if old_channel:
                 old_message = await MessageCache().get(message_data.message_id, old_channel)
                 if old_message:

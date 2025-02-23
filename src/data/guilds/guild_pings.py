@@ -1,6 +1,6 @@
-from centralized_data import GlobalCollection
+from centralized_data import GlobalCollection, Singleton
 from basic_types import GuildID, GuildPingType
-import bot
+from discord.ext.commands import Bot
 from typing import List, override
 
 from data.db.sql import SQL, Record
@@ -72,7 +72,7 @@ class GuildPings(GlobalCollection[GuildID]):
 
     async def get_mention_string(self, ping_type: GuildPingType, event_type: str) -> str:
         result = ''
-        guild = bot.instance.get_guild(self.key)
+        guild = Singleton.get_instance(Bot).get_guild(self.key)
         if guild is None: return ''
         await guild.fetch_roles()
         for ping in self.get(ping_type, event_type):

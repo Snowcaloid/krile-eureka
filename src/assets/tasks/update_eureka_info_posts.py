@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
 from typing import override
 
-import bot
+from centralized_data import Singleton
+
+from discord.ext.commands import Bot
 from basic_types import TaskExecutionType
 from data.tasks.task import TaskTemplate
 
@@ -35,7 +37,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
         next_exec = datetime.utcnow() + timedelta(minutes=1)
         try:
             self.eureka_info.remove_old()
-            for guild in bot.instance.guilds:
+            for guild in Singleton.get_instance(Bot).guilds:
                 await self.ui_eureka_info.rebuild(guild.id)
         finally:
             self.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)

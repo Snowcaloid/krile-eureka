@@ -1,7 +1,6 @@
 from typing import Optional
 
 import pandas
-import bot
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Interaction
@@ -44,7 +43,8 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
     @check(PermissionValidator().is_owner)
     async def reload(self, interaction: Interaction):
         await default_defer(interaction)
-        await bot.instance.reload_data_classes()
+        from bot import Krile
+        await Krile().reload_data_classes()
         await default_response(interaction, 'Successfully reloaded.')
 
 

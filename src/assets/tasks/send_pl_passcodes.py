@@ -1,7 +1,8 @@
 from typing import override
+from centralized_data import Singleton
 from discord import Embed
 from basic_types import TaskExecutionType
-import bot
+from discord.ext.commands import Bot
 from data.events.schedule import Schedule
 from data.tasks.task import TaskTemplate
 
@@ -15,7 +16,7 @@ class Task_SendPLPasscodes(TaskTemplate):
         if obj and obj["guild"] and obj["entry_id"]:
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event:
-                guild = bot.instance.get_guild(event.guild_id)
+                guild = Singleton.get_instance(Bot).get_guild(event.guild_id)
                 member = guild.get_member(event.users.raid_leader)
                 if member:
                     await member.send(embed=Embed(
