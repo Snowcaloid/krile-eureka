@@ -116,6 +116,7 @@ NM_ALIASES: Dict[NotoriousMonster, List[str]] = {
 
 
 class ButtonType(Enum):
+    PICK_BUTTON = 0
     ROLE_SELECTION = 1
     ROLE_DISPLAY = 2
     PL_POST = 3

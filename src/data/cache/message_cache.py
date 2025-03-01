@@ -6,19 +6,16 @@ from discord import Message, NotFound, TextChannel
 class MessageCache(Bindable):
     _cache: Dict[int, Message]
 
-    @classmethod
-    def provider_name(cl) -> str:
-        return 'message_cache'
-
     @override
     def constructor(self) -> None:
+        super().constructor()
         self._cache = {}
 
     async def get(self, id: int, channel: TextChannel) -> Message:
         message = self._cache.get(id, None)
         if message: return message
         try:
-            message = await channel.fetch_message(id)
+            message = None if channel is None else await channel.fetch_message(id)
         except NotFound:
             message = None
 

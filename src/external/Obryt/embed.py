@@ -15,8 +15,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from __future__ import annotations
+from abc import abstractmethod
 from io import BytesIO
-from typing import List
+from typing import List, override
 from uuid import uuid4
 import aiohttp
 import re
@@ -30,9 +32,9 @@ from discord.ui import TextInput
 from discord import ChannelType, TextChannel
 
 from basic_types import BUTTON_TYPE_CHOICES, ButtonType
-from data.ui.base_button import BaseButton, buttons_as_text, delete_buttons, save_buttons
+from data.ui.base_button import BaseButton, ButtonMatrix, delete_buttons, save_buttons
 from basic_types import BUTTON_STYLE_CHOICES
-from data.ui.views import PersistentView
+from data.ui.views import TemporaryView
 from logger import guild_log_message
 from utils import find_nearest_role
 from .utils.views import BaseView, message_jump_button
@@ -41,7 +43,7 @@ from .utils.text_format import truncate
 
 
 class EmbedModal(discord.ui.Modal):
-    def __init__(self, *, _embed: discord.Embed, parent_view: discord.ui.View) -> None:
+    def __init__(self, *, _embed: discord.Embed, parent_view: EmbedBuilderView) -> None:
         self.embed = _embed
 
         self.parent_view = parent_view
@@ -111,7 +113,8 @@ class EmbedModal(discord.ui.Modal):
             return
 
         self.parent_view.update_counters()
-        await interaction.response.edit_message(embed=self.embed, view=self.parent_view)
+        self.parent_view.message = await self.parent_view.message.edit(embed=self.embed)
+        await interaction.response.defer()
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, ValueError) or isinstance(error, discord.errors.HTTPException):
@@ -122,7 +125,7 @@ class EmbedModal(discord.ui.Modal):
 
 
 class AuthorModal(discord.ui.Modal):
-    def __init__(self, *, _embed: discord.Embed, parent_view: discord.ui.View) -> None:
+    def __init__(self, *, _embed: discord.Embed, parent_view: EmbedBuilderView) -> None:
         self.embed = _embed
         self.parent_view = parent_view
 
@@ -162,7 +165,8 @@ class AuthorModal(discord.ui.Modal):
             return
 
         self.parent_view.update_counters()
-        await interaction.response.edit_message(embed=self.embed, view=self.parent_view)
+        self.parent_view.message = await self.parent_view.message.edit(embed=self.embed)
+        await interaction.response.defer()
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, ValueError) or isinstance(error, discord.errors.HTTPException):
@@ -173,7 +177,7 @@ class AuthorModal(discord.ui.Modal):
 
 
 class FooterModal(discord.ui.Modal):
-    def __init__(self, *, _embed: discord.Embed, parent_view: discord.ui.View) -> None:
+    def __init__(self, *, _embed: discord.Embed, parent_view: EmbedBuilderView) -> None:
         self.embed = _embed
         self.parent_view = parent_view
 
@@ -205,7 +209,8 @@ class FooterModal(discord.ui.Modal):
                 ephemeral=True)
             return
         self.parent_view.update_counters()
-        await interaction.response.edit_message(embed=self.embed, view=self.parent_view)
+        self.parent_view.message = await self.parent_view.message.edit(embed=self.embed)
+        await interaction.response.defer()
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, ValueError) or isinstance(error, discord.errors.HTTPException):
@@ -216,7 +221,7 @@ class FooterModal(discord.ui.Modal):
 
 
 class URLModal(discord.ui.Modal):
-    def __init__(self, *, _embed: discord.Embed, parent_view: discord.ui.View) -> None:
+    def __init__(self, *, _embed: discord.Embed, parent_view: EmbedBuilderView) -> None:
         self.embed = _embed
 
         self.parent_view = parent_view
@@ -245,7 +250,8 @@ class URLModal(discord.ui.Modal):
             return
 
         self.parent_view.update_counters()
-        await interaction.response.edit_message(embed=self.embed, view=self.parent_view)
+        self.parent_view.message = await self.parent_view.message.edit(embed=self.embed)
+        await interaction.response.defer()
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, ValueError) or isinstance(error, discord.errors.HTTPException):
@@ -256,7 +262,7 @@ class URLModal(discord.ui.Modal):
 
 
 class AddFieldModal(discord.ui.Modal):
-    def __init__(self, *, _embed: discord.Embed, parent_view: discord.ui.View) -> None:
+    def __init__(self, *, _embed: discord.Embed, parent_view: EmbedBuilderView) -> None:
         self.embed = _embed
         self.parent_view = parent_view
 
@@ -320,7 +326,8 @@ class AddFieldModal(discord.ui.Modal):
             return
 
         self.parent_view.update_counters()
-        await interaction.response.edit_message(embed=self.embed, view=self.parent_view)
+        self.parent_view.message = await self.parent_view.message.edit(embed=self.embed)
+        await interaction.response.defer()
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, ValueError) or isinstance(error, discord.errors.HTTPException):
@@ -335,13 +342,10 @@ class DeleteFieldDropdown(discord.ui.Select):
     def __init__(self,
         *,
         _embed: discord.Embed,
-        parent_view: discord.ui.View,
-        original_msg: discord.Message):
+        parent_view: EmbedBuilderView):
         self.embed = _embed
 
         self.parent_view = parent_view
-
-        self.original_msg = original_msg
 
         options = [
             discord.SelectOption(label=truncate(f"{i+1}. {field.name}"),
@@ -357,7 +361,7 @@ class DeleteFieldDropdown(discord.ui.Select):
             self.embed.description = "Lorem ipsum dolor sit amet."
 
         self.parent_view.update_counters()
-        await self.original_msg.edit(embed=self.embed, view=self.parent_view)
+        self.parent_view.message = await self.parent_view.message.edit(embed=self.embed)
         await interaction.response.edit_message(content=f"{EMOJIS['yes']} - Field deleted.", view=None)
 
 
@@ -390,15 +394,12 @@ class EditFieldModal(discord.ui.Modal):
     def __init__(self,
         *,
         _embed: discord.Embed,
-        parent_view: discord.ui.View,
-        field_index: int,
-        original_msg: discord.Message) -> None:
+        parent_view: EmbedBuilderView,
+        field_index: int) -> None:
         self.embed = _embed
 
         self.parent_view = parent_view
         self._old_index = int(field_index)
-
-        self.original_msg = original_msg
 
         field = self.embed.fields[field_index]
 
@@ -446,16 +447,17 @@ class EditFieldModal(discord.ui.Modal):
             return
 
         self.parent_view.update_counters()
-        await self.original_msg.edit(embed=self.embed, view=self.parent_view)
-
+        self.parent_view.message = await self.parent_view.message.edit(embed=self.embed)
         await interaction.response.edit_message(content=f"{EMOJIS['yes']} - Field edited.", view=None)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, ValueError) or isinstance(error, discord.errors.HTTPException):
-            await interaction.response.edit_message(content=f"{EMOJIS['no']} - Invalid Input: {str(error)}",
+            await interaction.response.edit_message(
+                content=f"{EMOJIS['no']} - Invalid Input: {str(error)}",
                 view=None)
         elif isinstance(error, IndexError):
-            await interaction.response.edit_message(content=f"{EMOJIS['no']} - Invalid Index: {str(error)}",
+            await interaction.response.edit_message(
+                content=f"{EMOJIS['no']} - Invalid Index: {str(error)}",
                 view=None)
         else:
             raise error
@@ -465,11 +467,9 @@ class EditFieldDropdown(discord.ui.Select):
     def __init__(self,
         *,
         _embed: discord.Embed,
-        parent_view: discord.ui.View,
-        original_msg: discord.Message):
+        parent_view: EmbedBuilderView):
         self.embed = _embed
         self.parent_view = parent_view
-        self.original_msg = original_msg
 
         options = [
             discord.SelectOption(label=truncate(f"{i+1}. {field.name}", 100),
@@ -482,15 +482,14 @@ class EditFieldDropdown(discord.ui.Select):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_modal(EditFieldModal(_embed=self.embed,
                 field_index=int(self.values[0]),
-                original_msg=self.original_msg,
                 parent_view=self.parent_view))
         await interaction.edit_original_response(view=None, content="Editing Field...")
 
 
 class SendToChannelSelect(discord.ui.ChannelSelect):
-    def __init__(self, *, _embed: discord.Embed, _buttons: List[BaseButton]):
+    def __init__(self, *, _embed: discord.Embed, buttons: ButtonMatrix):
         self.embed = _embed
-        self.buttons = _buttons
+        self.buttons = buttons
         self.bot = Singleton.get_instance(Bot)
 
         super().__init__(placeholder="Select a channel.",
@@ -510,11 +509,7 @@ class SendToChannelSelect(discord.ui.ChannelSelect):
 
         user_perms = channel.permissions_for(interaction.user)
 
-        self.buttons.sort(key=lambda btn: btn.row * 10 + btn.index)
-        view = PersistentView()
-        for button in self.buttons:
-            button.custom_id = str(uuid4())
-            view.add_item(button)
+        view = self.buttons.as_view(True)
         try:
             if user_perms.send_messages and user_perms.embed_links:
                 msg = await channel.send(embed=self.embed, view=view)
@@ -532,9 +527,9 @@ class SendToChannelSelect(discord.ui.ChannelSelect):
 
 
 class ReplaceMessageModal(discord.ui.Modal):
-    def __init__(self, *, _embed: discord.Embed, _buttons: List[BaseButton], channel: TextChannel, parent_view: discord.ui.View) -> None:
+    def __init__(self, *, _embed: discord.Embed, buttons: ButtonMatrix, channel: TextChannel, parent_view: EmbedBuilderView) -> None:
         self.embed = _embed
-        self.buttons = _buttons
+        self.buttons = buttons
         self.parent_view = parent_view
         self.channel = channel
 
@@ -552,12 +547,9 @@ class ReplaceMessageModal(discord.ui.Modal):
         if message is None:
             raise ValueError('Invalid message ID')
 
-        self.buttons.sort(key=lambda btn: btn.row * 10 + btn.index)
-        view = PersistentView()
-        for button in self.buttons:
-            view.add_item(button)
         try:
             delete_buttons(message.id)
+            view=self.buttons.as_view(True)
             msg = await message.edit(embed=self.embed, view=view)
             save_buttons(msg, view)
 
@@ -577,9 +569,9 @@ class ReplaceMessageModal(discord.ui.Modal):
 
 
 class ReplaceChannelSelect(discord.ui.ChannelSelect):
-    def __init__(self, *, _embed: discord.Embed, _buttons: List[BaseButton], parent_view: BaseView):
+    def __init__(self, *, _embed: discord.Embed, buttons: ButtonMatrix, parent_view: BaseView):
         self.embed = _embed
-        self.buttons = _buttons
+        self.buttons = buttons
         self.parent_view = parent_view
         self.bot = Singleton.get_instance(Bot)
 
@@ -596,12 +588,13 @@ class ReplaceChannelSelect(discord.ui.ChannelSelect):
         # check if user has access to send messages to channel
         channel_id = self.values[0].id
         channel = self.bot.get_channel(channel_id)
-        await interaction.response.send_modal(ReplaceMessageModal(_embed=self.embed, _buttons=self.buttons, channel=channel, parent_view=self.parent_view))
+        await interaction.response.send_modal(ReplaceMessageModal(_embed=self.embed, buttons=self.buttons, channel=channel, parent_view=self.parent_view))
 
 
 class AddButtonModal(discord.ui.Modal):
-    def __init__(self, *, _buttons: List[BaseButton], parent_view: discord.ui.View) -> None:
-        self.buttons = _buttons
+    def __init__(self, *, buttons: ButtonMatrix, parent_view: EmbedBuilderView, button: BaseButton) -> None:
+        self.buttons = buttons
+        self.button = button
         self.parent_view = parent_view
         super().__init__(title="Add Button", timeout=None)
 
@@ -636,18 +629,7 @@ class AddButtonModal(discord.ui.Modal):
         max_length=5,
         required=False)
 
-    def max_row(self) -> int:
-        row = min(max((button.row for button in self.buttons), default=0), 4)
-        if len(list(filter(lambda button: button.row == row, self.buttons))) >= 4 and row < 4:
-            row = row + 1
-        return row
-
-    def max_index(self, row: int) -> int:
-        return len(list(filter(lambda button: button.row == row, self.buttons)))
-
     async def on_submit(self, interaction: discord.Interaction) -> None:
-        row = self.max_row()
-        index = self.max_index(row)
         label = self.button_label.value
         emoji = self.emoji.value if len(self.emoji.value) > 0 else None
         role = None
@@ -668,18 +650,18 @@ class AddButtonModal(discord.ui.Modal):
             if role is None:
                 raise ValueError(f'{self.role.value} is not a valid role name.')
 
-        self.buttons.append(BaseButton(
-            button_type,
-            label=label,
-            style=color,
-            custom_id=str(uuid4()),
-            emoji=emoji,
-            row=row,
-            index=index,
-            role=role))
+        self.button.emoji = emoji
+        self.button.role = role
+        self.button.label = label
+        self.button.style = color
+        self.button.custom_id = str(uuid4())
+        self.button.template = self.button.button_templates.get(button_type)
+        self.button.disabled = True
+        self.buttons[self.button.row][self.button.index] = self.button
 
         self.parent_view.update_counters()
-        await interaction.response.edit_message(content=buttons_as_text(self.buttons), view=self.parent_view)
+        self.parent_view.message = await self.parent_view.message.edit(view=self.buttons.as_view())
+        await interaction.response.edit_message(content=f"{EMOJIS['yes']} - Button added successfully.", view=None)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, ValueError) or isinstance(error, discord.errors.HTTPException):
@@ -688,29 +670,6 @@ class AddButtonModal(discord.ui.Modal):
         else:
             await guild_log_message(interaction.guild_id,f"{error} {type(error)} {isinstance(error, discord.HTTPException)}")
             raise error
-
-
-class DeleteButtonDropdown(discord.ui.Select):
-    def __init__(self,
-        *,
-        _buttons: List[BaseButton],
-        parent_view: discord.ui.View,
-        original_msg: discord.Message):
-        self.buttons: List[BaseButton] = _buttons
-        self.parent_view = parent_view
-        self.original_msg = original_msg
-        options = [
-            discord.SelectOption(label=truncate(f"{str(button.row)} - {str(button.index)} {button.label}"), value=self.buttons.index(button))
-            for button in self.buttons
-        ]
-        super().__init__(placeholder="Select a button to remove", min_values=1, max_values=1, options=options)
-
-    async def callback(self, interaction: discord.Interaction):
-        self.buttons.remove(self.buttons[int(self.values[0])])
-        self.parent_view.update_counters()
-        await self.original_msg.edit(content=buttons_as_text(self.buttons), view=self.parent_view)
-        await interaction.response.edit_message(content=f"{EMOJIS['yes']} - Button deleted.", view=None)
-
 
 class EditButtonModal(discord.ui.Modal):
     button_label = TextInput(
@@ -746,18 +705,13 @@ class EditButtonModal(discord.ui.Modal):
 
     def __init__(self,
         *,
-        _buttons: List[BaseButton],
-        parent_view: discord.ui.View,
-        button_index: int,
-        original_msg: discord.Message) -> None:
-        self.buttons = _buttons
+        buttons: ButtonMatrix,
+        parent_view: EmbedBuilderView,
+        button: BaseButton) -> None:
+        self.buttons = buttons
 
         self.parent_view = parent_view
-        self.button_index = int(button_index)
-
-        self.original_msg = original_msg
-
-        button = self.buttons[button_index]
+        self.button = button
 
         self.button_label.default = button.label
         self.button_type.default = next(key for key, value in BUTTON_TYPE_CHOICES.items() if value == button.template.button_type())
@@ -765,7 +719,7 @@ class EditButtonModal(discord.ui.Modal):
         self.color.default = next(key for key, value in BUTTON_STYLE_CHOICES.items() if value == button.style)
         self.emoji.default = str(button.emoji) if button.emoji is not None else ''
 
-        super().__init__(title=f"Editing Button {button_index+1}", timeout=None)
+        super().__init__(title=f"Editing Button <{button.label}>", timeout=None)
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         label = self.button_label.value
@@ -787,19 +741,14 @@ class EditButtonModal(discord.ui.Modal):
             role = find_nearest_role(interaction.guild, self.role.value)
             if role is None:
                 raise ValueError(f'{self.role.value} is not a valid role name.')
-
-        self.buttons[self.button_index] = BaseButton(
-            button_type,
-            label=label,
-            style=color,
-            custom_id=self.buttons[self.button_index].custom_id,
-            emoji=emoji,
-            row=self.buttons[self.button_index].row,
-            index=self.buttons[self.button_index].index,
-            role=role)
-
-        self.parent_view.update_counters()
-        await interaction.response.edit_message(content=buttons_as_text(self.buttons), view=None)
+        self.button.label = label
+        self.button.emoji = emoji
+        self.button.role = role
+        self.button.style = color
+        self.button.template = self.button.button_templates.get(button_type)
+        self.button.disabled = True
+        self.parent_view.message = await self.parent_view.message.edit(view=self.buttons.as_view())
+        await interaction.response.defer()
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, ValueError) or isinstance(error, discord.errors.HTTPException):
@@ -811,32 +760,64 @@ class EditButtonModal(discord.ui.Modal):
         else:
             raise error
 
+class ChooseButtonDropdown(discord.ui.Select):
+    @abstractmethod
+    def function(self) -> str: ...
+    @abstractmethod
+    async def confirmed(self, interaction: discord.Interaction) -> None: ...
 
-class EditButtonDropdown(discord.ui.Select):
     def __init__(self,
         *,
-        _buttons: List[BaseButton],
-        parent_view: discord.ui.View,
-        original_msg: discord.Message):
-        self.buttons: List[BaseButton] = _buttons
+        buttons: ButtonMatrix,
+        parent_view: EmbedBuilderView):
+        self.buttons = buttons
         self.parent_view = parent_view
-        self.original_msg = original_msg
         options = [
-            discord.SelectOption(label=truncate(f"{str(button.row)} - {str(button.index)} {button.label}"), value=self.buttons.index(button))
-            for button in self.buttons
+            discord.SelectOption(label=truncate(f"R {str(button.row + 1)} C {str(button.index + 1)} - {button.label}"), value=self.buttons.index(button))
+            for button in self.buttons if not button is None
         ]
-        super().__init__(placeholder="Select a button to edit", min_values=1, max_values=1, options=options)
+        super().__init__(placeholder=f"Select a button to {self.function()}", min_values=1, max_values=1, options=options)
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(EditButtonModal(_buttons=self.buttons,
-            button_index=int(self.values[0]),
-            original_msg=self.original_msg,
-            parent_view=self.parent_view))
-        await interaction.edit_original_response(view=None, content="Editing Button...")
+        await self.confirmed(interaction)
 
+class DeleteButtonDropdown(ChooseButtonDropdown):
+    @override
+    def function(self) -> str: return "remove"
+    @override
+    async def confirmed(self, interaction: discord.Interaction) -> None:
+        index = int(self.values[0])
+        if index >= 0:
+            button = [button for button in self.buttons][index]
+            self.buttons[button.row][button.index] = None
+            del button
+        else:
+            return await interaction.response.edit_message(content=f"{EMOJIS['no']} - Invalid Index.")
+
+        self.parent_view.update_counters()
+        self.parent_view.message = await self.parent_view.message.edit(view=self.buttons.as_view())
+        await interaction.response.edit_message(content=f"{EMOJIS['yes']} - Button deleted.", view=None)
+
+class EditButtonDropdown(ChooseButtonDropdown):
+    @override
+    def function(self) -> str: return "edit"
+    @override
+    async def confirmed(self, interaction: discord.Interaction) -> None:
+        await interaction.response.send_modal(EditButtonModal(buttons=self.buttons,
+            button=[button for button in self.buttons][int(self.values[0])],
+            parent_view=self.parent_view))
+
+class MoveButtonDropdown(ChooseButtonDropdown):
+    @override
+    def function(self) -> str: return "move"
+    @override
+    async def confirmed(self, interaction: discord.Interaction) -> None:
+        await interaction.response.edit_message(view=ButtonMatrixView(self.buttons, self.parent_view,
+                                                              [button for button in self.buttons][int(self.values[0])]),
+                                        content="Select where to move the button to.")
 
 class ImportJSONModal(discord.ui.Modal):
-    def __init__(self, *, _embed: discord.Embed, parent_view: discord.ui.View):
+    def __init__(self, *, _embed: discord.Embed, parent_view: EmbedBuilderView):
         self.embed = _embed
         self.parent_view = parent_view
 
@@ -902,16 +883,39 @@ class ImportJSONModal(discord.ui.Modal):
             raise error
 
 
+class ButtonMatrixView(TemporaryView):
+    def __init__(self, buttons: ButtonMatrix, parent_view: EmbedBuilderView, original_button: BaseButton = None):
+        super().__init__()
+        for i, button in enumerate([button for button in buttons]):
+            if button is None:
+                button = BaseButton(button_type=ButtonType.PICK_BUTTON,
+                                    row=i // 5,
+                                    index=i % 5,
+                                    label=f"R {i // 5 + 1} C {i % 5 + 1}",
+                                    style=discord.ButtonStyle.primary)
+                button.parent_view = parent_view
+                button.original_button = original_button
+                button.matrix = buttons
+            else:
+                button.disabled = True
+            self.add_item(button)
+
 class EmbedBuilderView(BaseView):
-    def __init__(self, *, timeout: int, target: discord.Interaction, embed: discord.Embed = None, buttons: List[BaseButton] = []):
+    def __init__(self, *,
+                 timeout: int,
+                 target: discord.Interaction,
+                 message: discord.Message,
+                 embed: discord.Embed = None,
+                 buttons: ButtonMatrix = []):
         self.bot = target.client
+        self.message = message
         super().__init__(timeout=timeout, target=target)
 
         if embed is None:
             self.embed = discord.Embed()
         else:
             self.embed = embed
-        self.buttons: List[discord.ui.Button] = buttons
+        self.buttons = buttons
 
     def update_counters(self):
         self.character_counter.label = f"{len(self.embed)}/6000 Characters"
@@ -960,7 +964,7 @@ class EmbedBuilderView(BaseView):
         if len(self.embed.fields) == 0:
             return await interaction.response.send_message(f"{EMOJIS['no']} - There are no fields to delete.", ephemeral=True)
         view = BaseView(timeout=180, target=interaction)
-        view.add_item(DeleteFieldDropdown(_embed=self.embed, original_msg=interaction.message, parent_view=self))
+        view.add_item(DeleteFieldDropdown(_embed=self.embed, parent_view=self))
         await interaction.response.send_message(f"{EMOJIS['white_minus']} - Choose a field to delete:",
             view=view,
             ephemeral=True)
@@ -973,8 +977,7 @@ class EmbedBuilderView(BaseView):
 
         view = BaseView(timeout=180, target=interaction)
         view.add_item(EditFieldDropdown(_embed=self.embed,
-                parent_view=self,
-                original_msg=interaction.message))
+                                        parent_view=self))
         await interaction.response.send_message(f"{EMOJIS['white_pencil']} - Choose a field to edit:",
             view=view,
             ephemeral=True)
@@ -990,14 +993,16 @@ class EmbedBuilderView(BaseView):
             await interaction.response.send_message(f"{EMOJIS['no']} - Embed reached maximum of 25 buttons.", ephemeral=True)
             return
 
-        await interaction.response.send_modal(AddButtonModal(_buttons=self.buttons, parent_view=self))
+        await interaction.response.send_message('Choose the button you\'d like to add',
+                                                view=ButtonMatrixView(self.buttons, self),
+                                                ephemeral=True)
 
     @discord.ui.button(emoji=EMOJIS["white_minus"], style=discord.ButtonStyle.red, row=2)
     async def remove_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         if len(self.buttons) == 0:
             return await interaction.response.send_message(f"{EMOJIS['no']} - There are no buttons to delete.", ephemeral=True)
         view = BaseView(timeout=180, target=interaction)
-        view.add_item(DeleteButtonDropdown(_buttons=self.buttons, original_msg=interaction.message, parent_view=self))
+        view.add_item(DeleteButtonDropdown(buttons=self.buttons, parent_view=self))
         await interaction.response.send_message(f"{EMOJIS['white_minus']} - Choose a button to delete:",
             view=view,
             ephemeral=True)
@@ -1009,10 +1014,22 @@ class EmbedBuilderView(BaseView):
 
         view = BaseView(timeout=180, target=interaction)
         view.add_item(EditButtonDropdown(
-            _buttons=self.buttons,
-            parent_view=self,
-            original_msg=interaction.message))
+            buttons=self.buttons,
+            parent_view=self))
         await interaction.response.send_message(f"{EMOJIS['white_pencil']} - Choose a button to edit:",
+            view=view,
+            ephemeral=True)
+
+    @discord.ui.button(emoji=EMOJIS["up_down_arrow"], style=discord.ButtonStyle.primary, row=2)
+    async def move_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if len(self.buttons) == 0:
+            return await interaction.response.send_message(f"{EMOJIS['no']} - There are no buttons to move.", ephemeral=True)
+
+        view = BaseView(timeout=180, target=interaction)
+        view.add_item(MoveButtonDropdown(
+            buttons=self.buttons,
+            parent_view=self))
+        await interaction.response.send_message(f"{EMOJIS['white_pencil']} - Choose a button to move:",
             view=view,
             ephemeral=True)
 
@@ -1036,7 +1053,7 @@ class EmbedBuilderView(BaseView):
             return await interaction.response.send_message(f"{EMOJIS['no']} - Embed is empty!", ephemeral=True)
 
         view = BaseView(timeout=180, target=interaction)
-        view.add_item(SendToChannelSelect(_embed=self.embed, _buttons=self.buttons))
+        view.add_item(SendToChannelSelect(_embed=self.embed, buttons=self.buttons))
         await interaction.response.send_message(f"{EMOJIS['channel_text']} - Choose a channel to send the embed to:",
             view=view,
             ephemeral=True)
@@ -1047,7 +1064,7 @@ class EmbedBuilderView(BaseView):
             return await interaction.response.send_message(f"{EMOJIS['no']} - Embed is empty!", ephemeral=True)
 
         view = BaseView(timeout=180, target=interaction)
-        view.add_item(ReplaceChannelSelect(_embed=self.embed, _buttons=self.buttons, parent_view=self))
+        view.add_item(ReplaceChannelSelect(_embed=self.embed, buttons=self.buttons, parent_view=self))
         await interaction.response.send_message(f"{EMOJIS['channel_text']} - Choose a channel to send the embed to:",
             view=view,
             ephemeral=True)

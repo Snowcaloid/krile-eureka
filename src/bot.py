@@ -1,5 +1,6 @@
 import os
 
+from discord.ext import tasks
 from centralized_data import Singleton
 from data.cache.message_cache import MessageCache
 from discord import Intents, Member, Object, HTTPException, RawMessageDeleteEvent
@@ -92,19 +93,35 @@ class Krile(Bot, Singleton):
         await self.add_cog(BACommands())
         await self.add_cog(LogosCommands())
         await self.add_cog(AdminCommands())
+        if not task_loop.is_running():
+            task_loop.start()
 
-@Krile().event
+client = Krile()
+
+# What the bot does upon connecting to discord for the first time
+@client.event
+async def on_ready():
+    print(f'{client.user} has connected to Discord!')
+    await client.reload_data_classes(True)
+    for guild in client.guilds:
+        from logger import guild_log_message
+        message = (
+            f'{client.user.mention} has successfully started.\n'
+        )
+        await guild_log_message(guild.id, message)
+
+@client.event
 async def on_member_join(member: Member):
     await guild_log_message(member.guild.id, f'{member.mention} joined the server.')
 
-@Krile().event
+@client.event
 async def on_raw_message_delete(payload: RawMessageDeleteEvent):
-    Krile().tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
+    client.tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
     message_cache = MessageCache()
-    if message_cache.get(payload.message_id, None) is None: return
+    if await message_cache.get(payload.message_id, None) is None: return
     message_cache.remove(payload.message_id)
 
-@Krile().command()
+@client.command()
 @guild_only()
 async def sync(ctx: Context, guilds: Greedy[Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
     if ctx.author.id != int(os.getenv('OWNER_ID')) and not ctx.author.guild_permissions.administrator: return
@@ -137,3 +154,16 @@ async def sync(ctx: Context, guilds: Greedy[Object], spec: Optional[Literal["~",
 
     await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
+@tasks.loop(seconds=1) # The delay is calculated from the end of execution of the last task.
+async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
+    """Main loop, which runs required tasks at required times. await is necessery."""
+    if client.ws:
+        task = client.tasks.get_next()
+        if task is None: return
+        if client.tasks.executing: return
+        client.tasks.executing = True
+        try:
+            await task.execute()
+        finally:
+            client.tasks.remove_task(task)
+            client.tasks.executing = False

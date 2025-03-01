@@ -1,7 +1,6 @@
 
 from random import randint
 
-
 class EventPasscodeGenerator:
     @classmethod
     def generate(cl) -> int:

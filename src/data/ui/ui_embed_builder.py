@@ -1,7 +1,7 @@
 from centralized_data import Bindable
 from discord import Embed, Interaction, Message
 
-from data.ui.base_button import buttons_as_text, buttons_from_message
+from data.ui.base_button import ButtonMatrix
 from external.Obryt.embed import EmbedBuilderView
 from external.Obryt.utils.constants import CONTRAST_COLOR
 
@@ -29,15 +29,18 @@ class UI_Embed_Builder(Bindable):
 
     async def create(self, interaction: Interaction):
         """Interactive Embed builder"""
-        await interaction.response.send_message(embed=self._generate_help_embed(),
-            view=EmbedBuilderView(timeout=600, target=interaction))
+        message = await interaction.channel.send(embed=self._generate_help_embed())
+        await interaction.response.send_message(
+            view=EmbedBuilderView(timeout=None, target=interaction, message=message, buttons=ButtonMatrix([])))
 
-    async def load(self, interaction: Interaction, message: Message):
+    async def load(self, interaction: Interaction, original_message: Message):
         """Interactive Embed builder"""
-        buttons = await buttons_from_message(message)
-        if buttons:
-            content = buttons_as_text(buttons)
-        else:
-            content = None
-        await interaction.response.send_message(content, embed=message.embeds[0],
-            view=EmbedBuilderView(timeout=600, target=interaction, buttons=buttons, embed=message.embeds[0]))
+        buttons = await ButtonMatrix.from_message(original_message)
+        buttons.disabled = True
+        message = await interaction.channel.send(embed=original_message.embeds[0], view=buttons.as_view())
+        await interaction.response.send_message(
+            view=EmbedBuilderView(timeout=None,
+                                  target=interaction,
+                                  buttons=buttons,
+                                  embed=original_message.embeds[0],
+                                  message=message))

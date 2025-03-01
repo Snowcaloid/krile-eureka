@@ -51,8 +51,9 @@ EMOJIS: Dict[str, str] = {
     "fall": "<a:fall:1192827407191773266>",
     "white_minus": "<:white_minus:1193218998079324200>",
     "white_plus": "<:white_plus:1193219000570761308>",
-    "white_pencil": "<:white_pencil:1193231256939397193>",
+    "white_pencil": "✏️",
     "white_json": "<:white_json:1193937212736294992>",
+    "up_down_arrow": "↕️"
 }
 
 SECONDARY_COLOR = Color.from_str("#1f87a7")

@@ -1,15 +1,17 @@
 from __future__ import annotations
 from abc import abstractmethod
+import sys
+from uuid import uuid4
 
 from centralized_data import PythonAsset, PythonAssetLoader, Singleton
 from discord.ext.commands import Bot
 from discord.ui import Button, View
 from discord import ButtonStyle, Emoji, Interaction, Message, PartialEmoji, Role, TextChannel
-from typing import List, Optional, Tuple, Union, override
-from basic_types import BUTTON_STYLE_DESCRIPTIONS, ButtonType
+from typing import List, Optional, Self, SupportsIndex, Tuple, Union, override
+from basic_types import ButtonType
 from data.db.sql import SQL, Record
-from basic_types import BUTTON_TYPE_DESCRIPTIONS
 from data.cache.message_cache import MessageCache
+from data.ui.views import PersistentView, TemporaryView
 
 class ButtonTemplate(PythonAsset):
     @classmethod
@@ -58,22 +60,62 @@ class BaseButton(Button):
 
     @override
     async def callback(self, interaction: Interaction):
-        if interaction.message == self.message:
+        if self.message is None or interaction.message == self.message:
             await self.template.callback(interaction, self)
 
+class ButtonMatrix(list[BaseButton]):
+    def __init__(self, buttons: List[BaseButton]):
+        super().__init__([[None] * 5 for _ in range(5)]) # 5x5 matrix
+        for button in buttons:
+            self[button.row][button.index] = button
 
-def buttons_as_text(buttons: List[BaseButton]) -> str:
-    buttons.sort(key=lambda btn: btn.row * 10 + btn.index)
-    result = ''
-    last_row = 0
-    for button in buttons:
-        newline = '\n' if last_row < button.row else ''
-        color = BUTTON_STYLE_DESCRIPTIONS[button.style]
-        type = BUTTON_TYPE_DESCRIPTIONS[button.template.button_type()]
-        result = result + f'[ Button {button.emoji} "{button.label}" Color: "{color}" Type: "{type}" ]{newline}'
-        last_row = button.row
-    return result
+    def __len__(self):
+        return sum(1 for elem in self if elem is not None)
 
+    def __iter__(self):
+        for row in super().__iter__():
+            yield from row # Flatten
+
+    @override
+    def index(self, value: BaseButton) -> int:
+        for button in self:
+            if button == value:
+                return button.row * 5 + button.index
+        return -1
+
+    @classmethod
+    async def from_message(cls, message: Message) -> Self:
+        result = []
+        query = Record() # Prevent multiple connects and disconnects
+        for record in SQL('buttons').select(fields=['button_id'],
+                                            where=f'message_id={message.id}',
+                                            all=True):
+            result.append(await load_button(record["button_id"]))
+        del query
+        return cls(result)
+
+    @property
+    def disabled(self) -> bool:
+        return all(button is None or button.disabled for button in self)
+
+    @disabled.setter
+    def disabled(self, value: bool):
+        for button in self:
+            if button is not None:
+                button.disabled = value
+
+    def as_view(self, persistent: bool = False) -> View:
+        if persistent:
+            view = PersistentView()
+            self.disabled = False
+        else:
+            view = TemporaryView()
+        for button in self:
+            if button is not None:
+                if button.custom_id is None:
+                    button.custom_id = str(uuid4())
+                view.add_item(button)
+        return view
 
 def save_buttons(message: Message, view: View):
     query = Record() # Prevent multiple connects and disconnects
@@ -150,13 +192,3 @@ async def load_button(button_id: str) -> BaseButton:
         )
         return button
     return None
-
-async def buttons_from_message(message: Message) -> List[BaseButton]:
-    result = []
-    query = Record() # Prevent multiple connects and disconnects
-    for record in SQL('buttons').select(fields=['button_id'],
-                                        where=f'message_id={message.id}',
-                                        all=True):
-        result.append(await load_button(record[0]))
-    del query
-    return result
