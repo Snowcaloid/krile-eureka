@@ -1,7 +1,7 @@
 from typing import override
 from data.events.schedule import Schedule
 from data.ui.base_button import BaseButton, ButtonTemplate
-from data.ui.constants import ButtonType
+from basic_types import ButtonType
 from logger import feedback_and_log, guild_log_message
 from utils import default_defer, default_response
 

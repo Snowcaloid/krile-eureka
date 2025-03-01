@@ -1,6 +1,6 @@
 from typing import override
 from data.ui.base_button import BaseButton, ButtonTemplate
-from data.ui.constants import ButtonType
+from basic_types import ButtonType
 from data.ui.selects import EurekaTrackerZoneSelect
 from data.ui.views import TemporaryView
 

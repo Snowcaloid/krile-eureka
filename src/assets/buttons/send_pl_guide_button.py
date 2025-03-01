@@ -1,5 +1,5 @@
 from data.ui.base_button import BaseButton, ButtonTemplate
-from data.ui.constants import ButtonType
+from basic_types import ButtonType
 from utils import default_defer, default_response
 
 

@@ -12,7 +12,7 @@ from basic_types import GuildPingType
 from basic_types import GuildRoleFunction
 from basic_types import NM_ALIASES
 from data.events.event_templates import EventTemplates
-from data.ui.constants import ButtonType
+from basic_types import ButtonType
 from data.validation.permission_validator import PermissionValidator
 
 

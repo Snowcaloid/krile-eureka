@@ -29,8 +29,9 @@ import discord
 from discord.ui import TextInput
 from discord import ChannelType, TextChannel
 
+from basic_types import BUTTON_TYPE_CHOICES, ButtonType
 from data.ui.base_button import BaseButton, buttons_as_text, delete_buttons, save_buttons
-from data.ui.constants import BUTTON_STYLE_CHOICES, BUTTON_TYPE_CHOICES, ButtonType
+from basic_types import BUTTON_STYLE_CHOICES
 from data.ui.views import PersistentView
 from logger import guild_log_message
 from utils import find_nearest_role

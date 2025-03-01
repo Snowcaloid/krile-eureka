@@ -6,8 +6,9 @@ from discord.ext.commands import Bot
 from discord.ui import Button, View
 from discord import ButtonStyle, Emoji, Interaction, Message, PartialEmoji, Role, TextChannel
 from typing import List, Optional, Tuple, Union, override
+from basic_types import BUTTON_STYLE_DESCRIPTIONS, ButtonType
 from data.db.sql import SQL, Record
-from data.ui.constants import BUTTON_STYLE_DESCRIPTIONS, BUTTON_TYPE_DESCRIPTIONS, ButtonType
+from basic_types import BUTTON_TYPE_DESCRIPTIONS
 from data.cache.message_cache import MessageCache
 
 class ButtonTemplate(PythonAsset):

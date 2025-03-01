@@ -5,7 +5,7 @@ from basic_types import GuildMessageFunction
 from discord.ext.commands import Bot
 from data.guilds.guild_messages import GuildMessages
 from data.ui.base_button import BaseButton, save_buttons
-from data.ui.constants import ButtonType
+from basic_types import ButtonType
 from data.ui.views import PersistentView
 from data.weather.weather import EurekaWeathers, EurekaZones, next_4_weathers, next_weather, weather_emoji
 from utils import DiscordTimestampType, get_discord_timestamp
