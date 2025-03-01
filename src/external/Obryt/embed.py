@@ -1097,3 +1097,4 @@ class EmbedBuilderView(BaseView):
     async def cancel_btn(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         await self.stop(interaction)
+        await self.message.delete()
