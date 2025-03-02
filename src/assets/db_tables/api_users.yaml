@@ -1,0 +1,10 @@
+name: api_users
+columns:
+- name: id
+  type: BIGINT
+  unique: true
+  primary_key: true
+- name: name
+  type: VARCHAR(50)
+- name: token
+  type: TEXT

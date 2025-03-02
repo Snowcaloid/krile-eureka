@@ -3,27 +3,28 @@ from typing import List, override
 from centralized_data import GlobalCollection, Singleton
 from discord.ext.commands import Bot
 
-from api_server.login_manager import LoginManager
-from basic_types import UserUUID
 
 class SimpleGuild:
     def __init__(self, id: int, name: str) -> None:
         self.id = id
         self.name = name
 
-class GuildManager(GlobalCollection[UserUUID]):
-    @LoginManager.bind
-    def login_manager(self) -> LoginManager: ...
-
+class GuildManager(GlobalCollection[int]):
     @override
-    def constructor(self, key: UserUUID) -> None:
+    def constructor(self, key: int) -> None:
         super().constructor(key)
         self._guilds: List[SimpleGuild] = []
+        self.load()
 
     def load(self) -> None:
         self._guilds.clear()
-        user = self.login_manager.get_user(self.key)
-        if user is None: return
         client: Bot = Singleton.get_instance(Bot)
-        for guild in client.guilds:
+        #user = synchronize(client.fetch_user(self.key), client.loop)
+        user = client.get_user(self.key)
+        if user is None: return
+        for guild in client.get_user(self.key).mutual_guilds:
             self._guilds.append(SimpleGuild(guild.id, guild.name))
+
+    @property
+    def all(self) -> List[SimpleGuild]:
+        return self._guilds

@@ -6,8 +6,6 @@ from typing import Dict, List
 
 type GuildID = int
 
-type UserUUID = str
-
 class GuildChannelFunction(Enum):
     NONE = 0
     PASSCODES = 1

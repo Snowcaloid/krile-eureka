@@ -2,6 +2,7 @@ import os
 
 from discord.ext import tasks
 from centralized_data import Singleton
+from api_server import ApiServer
 from data.cache.message_cache import MessageCache
 from discord import Intents, Member, Object, HTTPException, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, Context, Greedy
@@ -28,15 +29,12 @@ class Krile(Bot, Singleton):
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 
-    from api_server import ApiServer
-    @ApiServer.bind
-    def api_server(self) -> ApiServer: ...
-
     def __init__(self):
         intents = Intents.all()
         intents.message_content = True
         intents.emojis = True
         intents.emojis_and_stickers = True
+        intents.members = True
         super().__init__(command_prefix='/', intents=intents)
 
     def _load_singleton(self, singleton: Singleton, initial: bool = False):
@@ -99,7 +97,6 @@ class Krile(Bot, Singleton):
         await self.add_cog(AdminCommands())
         if not task_loop.is_running():
             task_loop.start()
-        self.api_server.run(host='0.0.0.0', port=6066, debug=True, use_reloader=False)
 
 client = Krile()
 
@@ -114,6 +111,8 @@ async def on_ready():
             f'{client.user.mention} has successfully started.\n'
         )
         await guild_log_message(guild.id, message)
+
+    ApiServer().start()
 
 @client.event
 async def on_member_join(member: Member):
