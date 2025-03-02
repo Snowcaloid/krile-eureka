@@ -44,6 +44,7 @@ services:
       - db_production
     ports:
       - 5678:5678
+      - 6066:6066
     build:
       context: .
       dockerfile: Dockerfile

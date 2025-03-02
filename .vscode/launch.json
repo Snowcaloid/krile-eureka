@@ -15,8 +15,12 @@
             "preLaunchTask": "start-debug-compose",
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}",
-                    "remoteRoot": "."
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "/src"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/env/Lib/site-packages",
+                    "remoteRoot": "/usr/local/lib/python3.13/site-packages"
                 }
             ]
         }

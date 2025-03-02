@@ -28,6 +28,10 @@ class Krile(Bot, Singleton):
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 
+    from api_server import ApiServer
+    @ApiServer.bind
+    def api_server(self) -> ApiServer: ...
+
     def __init__(self):
         intents = Intents.all()
         intents.message_content = True
@@ -95,6 +99,7 @@ class Krile(Bot, Singleton):
         await self.add_cog(AdminCommands())
         if not task_loop.is_running():
             task_loop.start()
+        self.api_server.run(host='0.0.0.0', port=6066, debug=True, use_reloader=False)
 
 client = Krile()
 
