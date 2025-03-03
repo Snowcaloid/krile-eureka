@@ -16,7 +16,7 @@ class ApiServer(Bindable, Flask):
         super(Flask, self).__init__(__name__)
         self._blueprint = Blueprint('api', __name__, url_prefix='/api')
         self.config["JWT_SECRET_KEY"] = getenv("JWT_SECRET_KEY")
-        self.config["JWT_ACCESS_TOKEN_EXPIRES"] = False # literally inaccessible without a VPN - who cares
+        self.config["PROPAGATE_EXCEPTIONS"] = True
         ApiEndpoint()
         self.register_blueprint(self._blueprint)
         self.thread = Thread(target=serve, args=[self], kwargs={"port": 6066})
@@ -42,7 +42,7 @@ class ApiNamespace(PythonAsset, Singleton):
         self.namespace = Namespace(
             self.get_name(),
             description=self.get_description(),
-            path=self.get_path(),
+            path='/' + self.get_path(),
             authorizations=auth)
         ApiEndpoint().api.add_namespace(self.namespace)
 

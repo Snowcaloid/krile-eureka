@@ -19,10 +19,9 @@ class GuildManager(GlobalCollection[int]):
     def load(self) -> None:
         self._guilds.clear()
         client: Bot = Singleton.get_instance(Bot)
-        #user = synchronize(client.fetch_user(self.key), client.loop)
         user = client.get_user(self.key)
         if user is None: return
-        for guild in client.get_user(self.key).mutual_guilds:
+        for guild in user.mutual_guilds:
             self._guilds.append(SimpleGuild(guild.id, guild.name))
 
     @property

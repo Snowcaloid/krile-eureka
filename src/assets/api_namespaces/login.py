@@ -4,7 +4,7 @@ import requests
 from api_server import ApiNamespace
 from flask_restx import Resource, fields
 
-from api_server.login_manager import LoginManager
+from api_server.session_manager import SessionManager
 
 class LoginNamespace(ApiNamespace):
     @override
@@ -22,39 +22,39 @@ class LoginNamespace(ApiNamespace):
 api = LoginNamespace()
 
 LoginRequest = api.namespace.model('Login Request', {
-    'code': fields.String(required=False, description='The discord application code.'),
-    'token': fields.String(required=False, description='JWT Token for renewal.')
+    'code': fields.String(required=False, description='The discord application code.')
 })
 
 LoginResponse = api.namespace.model('Login Response', {
     'token': fields.String(required=True, description='JWT token.'),
+    'id': fields.Integer(required=True, description='User ID.'),
     'name': fields.String(required=False, description='Username.')
 })
 
 @api.namespace.route('/')
 class LoginRoute(Resource):
-    @LoginManager.bind
-    def login_manager(self) -> LoginManager: ...
+    @SessionManager.bind
+    def session_manager(self) -> SessionManager: ...
 
     @api.namespace.expect(LoginRequest)
     @api.namespace.marshal_with(LoginResponse)
     def post(self):
         code = api.namespace.payload.get('code')
-        if code is None:
-            token = api.namespace.payload.get('token')
-            if token is None:
-                api.namespace.abort(400, 'code or token are required.')
-            token = self.login_manager.refresh_user_token(token)
-            return {'token': token }
-
-        code, message = self.discord_authenticate(code)
+        code, message = self.discord_identify(code)
         if code < 1000:
             api.namespace.abort(code, message)
         user_id, user_name = code, message
-        token = self.login_manager.set_user(user_id, user_name)
-        return {'token': token, 'name': user_name}
+        user = self.session_manager.get_user_by_id(user_id)
+        if user is None:
+            user = self.session_manager.add_user(user_id, user_name)
+        self.session_manager.login(user)
+        return {
+            'token': user.user_token,
+            'id': user.id,
+            'name': user.name
+        }
 
-    def discord_authenticate(self, code: str) -> Tuple[int, str]:
+    def discord_identify(self, code: str) -> Tuple[int, str]:
         """Authenticate the user with the Discord API."""
         req = requests.post('https://discord.com/api/oauth2/token',
                             headers={'Content-Type': 'application/x-www-form-urlencoded'},

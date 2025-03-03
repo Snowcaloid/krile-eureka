@@ -6,5 +6,7 @@ columns:
   primary_key: true
 - name: name
   type: VARCHAR(50)
-- name: token
+- name: user_token
+  type: TEXT
+- name: session_token
   type: TEXT

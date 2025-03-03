@@ -1,6 +1,5 @@
 from typing import override
-from flask import Response
-from flask_jwt_extended import current_user, jwt_required
+from flask_jwt_extended import current_user
 from api_server import ApiNamespace
 from flask_restx import Resource, fields
 
@@ -32,14 +31,13 @@ Guild = api.namespace.model('Discord Guild simplified', {
 
 @api.namespace.route('/')
 class GuildsRoute(Resource):
-    method_decorators = [jwt_required()]
-
-    from api_server.login_manager import LoginManager
-    @LoginManager.bind
-    def login_manager(self) -> LoginManager: ...
+    from api_server.session_manager import SessionManager
+    @SessionManager.bind
+    def session_manager(self) -> SessionManager: ...
 
     @api.namespace.doc(security="jsonWebToken")
     @api.namespace.marshal_list_with(Guild)
     def get(self):
+        self.session_manager.verify(api)
         if current_user.id is None or current_user.id < 1: return []
         return [{ "id": guild.id, "name": guild.name } for guild in GuildManager(current_user.id).all]

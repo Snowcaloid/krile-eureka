@@ -84,7 +84,6 @@ class PermissionManager(GlobalCollection[int]):
             self.calculate_modules(permission, guild.id)
             permission.apiRequests = permission.any
             permissions.append(permission)
-
         return permissions
 
     def calculate_categories(self, permission: Permission, guild_id: int) -> None:
