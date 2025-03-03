@@ -77,4 +77,4 @@ class Schedule(GlobalCollection[GuildID]):
 
     @property
     def all(self) -> List[Event]:
-        return [event for event in self._list if event.guild_id == self.key]
+       return self._list
