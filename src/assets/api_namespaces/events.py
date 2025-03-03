@@ -5,6 +5,7 @@ from api_server import ApiNamespace
 from flask_restx import Resource, fields
 from discord.ext.commands import Bot
 
+from api_server.permission_manager import PermissionManager
 from data.events.event import Event
 from api_server.guild_manager import GuildManager
 from data.events.schedule import Schedule
@@ -47,9 +48,12 @@ EventModel = api.namespace.model('Krile Event', {
 })
 
 def _fetch_all_events() -> Generator[Event, None, None]:
+    permissions = PermissionManager(current_user.id).calculate()
     for guild in GuildManager(current_user.id).all:
+        allowed_categories = permissions[guild.id].raid_leading.categories
         for event in Schedule(guild.id).all:
-            yield event
+            if event.category.value in allowed_categories:
+                yield event
 
 client = Singleton.get_instance(Bot)
 
