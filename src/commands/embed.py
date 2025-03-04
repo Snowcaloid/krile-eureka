@@ -1,8 +1,7 @@
-from data.cache.message_cache import MessageCache
+
 from discord.ext.commands import GroupCog
 from discord import Interaction, TextChannel
 from discord.app_commands import check, command
-from data.validation.input_validator import InputValidator
 from utils.logger import guild_log_message
 
 from data.validation.permission_validator import PermissionValidator
@@ -15,6 +14,14 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
     @UI_Embed_Builder.bind
     def ui_embed_builder(self) -> UI_Embed_Builder: ...
 
+    from data.validation.user_input import UserInput
+    @UserInput.bind
+    def user_input(self) -> UserInput: ...
+
+    from data.cache.message_cache import MessageCache
+    @MessageCache.bind
+    def message_cache(self) -> MessageCache: ...
+
     @command(name = "create", description = "Initialize creation process of an embed.")
     @check(PermissionValidator().is_admin)
     async def create(self, interaction: Interaction):
@@ -23,9 +30,9 @@ class EmbedCommands(GroupCog, group_name='embed', group_description='Commands fo
     @command(name = "load", description = "Load an embed for editing/creation process.")
     @check(PermissionValidator().is_admin)
     async def load(self, interaction: Interaction, channel: TextChannel, message_id: str):
-        if not await InputValidator.RAISING.check_message_exists(interaction, channel, message_id): return
-        if not await InputValidator.RAISING.check_message_contains_an_embed(interaction, channel, message_id): return
-        message = await MessageCache().get(int(message_id), channel)
+        if await self.user_input.fail.message_not_found(interaction, channel, message_id): return
+        if await self.user_input.fail.message_doesnt_contain_embeds(interaction, channel, message_id): return
+        message = await self.message_cache.get(int(message_id), channel)
         await self.ui_embed_builder.load(interaction, message)
 
     #region error-handling

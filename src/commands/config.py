@@ -12,7 +12,6 @@ from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
 from data.guilds.guild_roles import GuildRoles
-from data.validation.input_validator import InputValidator
 from utils.functions import default_defer
 from data.validation.permission_validator import PermissionValidator
 from utils.logger import feedback_and_log, guild_log_message
@@ -30,6 +29,10 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     from data.ui.ui_eureka_info import UIEurekaInfoPost
     @UIEurekaInfoPost.bind
     def ui_eureka_info(self) -> UIEurekaInfoPost: ...
+
+    from data.validation.user_input import UserInput
+    @UserInput.bind
+    def user_input(self) -> UserInput: ...
 
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)
@@ -66,8 +69,8 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def config_channel(self, interaction: Interaction, event_type: str, channel: TextChannel,
                              function: GuildChannelFunction, function_desc: str):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_valid_event_type_or_category(interaction, event_type): return
-        if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
+        if await self.user_input.fail.is_not_event_type_or_category(interaction, event_type): return
+        if self.user_input.check.is_event_type(interaction.guild_id, event_type):
             GuildChannels(interaction.guild_id).set(channel.id, function, event_type)
             desc = EventTemplates(interaction.guild_id).get(event_type).short_description()
         else:
@@ -99,7 +102,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def eureka_notification_channel(self, interaction: Interaction, instance: str, channel: TextChannel):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_valid_eureka_instance(interaction, instance): return
+        if await self.user_input.fail.is_not_eureka_instance(interaction, instance): return
         GuildChannels(interaction.guild_id).set(channel.id, GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION, instance)
         await feedback_and_log(interaction, f'set {channel.jump_url} as the **eureka tracker notification channel** for "{EurekaTrackerZone(int(instance)).name}".')
 
@@ -107,8 +110,8 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def nm_notification_channel(self, interaction: Interaction, notorious_monster: str, channel: TextChannel):
         await default_defer(interaction)
-        notorious_monster = InputValidator.NORMAL.notorious_monster_name_to_type(notorious_monster)
-        if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
+        notorious_monster = self.user_input.correction.notorious_monster_name_to_type(notorious_monster)
+        if await self.user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
         GuildChannels(interaction.guild_id).set(channel.id, GuildChannelFunction.NM_PINGS, notorious_monster)
         await feedback_and_log(interaction, f'set {channel.jump_url} as the **NM notification channel** for "{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}".')
 
@@ -130,7 +133,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def add_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_valid_event_category(interaction, event_category): return
+        if await self.user_input.fail.is_not_event_category(interaction, event_category): return
         GuildRoles(interaction.guild_id).add(role.id, GuildRoleFunction.RAID_LEADER, event_category)
         await feedback_and_log(interaction, f'added {role.mention} as **raid leader role** for {EventCategory(event_category).value}.')
 
@@ -138,7 +141,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def remove_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_valid_event_category(interaction, event_category): return
+        if await self.user_input.fail.is_not_event_category(interaction, event_category): return
         GuildRoles(interaction.guild_id).remove(role.id, GuildRoleFunction.RAID_LEADER, event_category)
         await feedback_and_log(interaction, f'removed {role.mention} from **raid leader roles** for {EventCategory(event_category).value}.')
 
@@ -146,8 +149,8 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_add_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_valid_event_type_or_category(interaction, event_type): return
-        if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
+        if await self.user_input.fail.is_not_event_type_or_category(interaction, event_type): return
+        if self.user_input.check.is_event_type(interaction.guild_id, event_type):
             GuildPings(interaction.guild_id).add_ping(GuildPingType(ping_type), event_type, role.id)
             desc = EventTemplates(interaction.guild_id).get(event_type).short_description()
         else:
@@ -159,8 +162,8 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_remove_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_valid_event_type_or_category(interaction, event_type): return
-        if await InputValidator.NORMAL.check_valid_event_type(interaction, event_type):
+        if await self.user_input.fail.is_not_event_type_or_category(interaction, event_type): return
+        if self.user_input.check.is_event_type(interaction.guild_id, event_type):
             GuildPings(interaction.guild_id).remove_ping(GuildPingType(ping_type), event_type, role.id)
             desc = EventTemplates(interaction.guild_id).get(event_type).short_description()
         else:
@@ -172,7 +175,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_add_eureka_role(self, interaction: Interaction, instance: str, role: Role):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_valid_eureka_instance(interaction, instance): return
+        if await self.user_input.fail.is_not_eureka_instance(interaction, instance): return
         GuildPings(interaction.guild_id).add_ping(GuildPingType.EUREKA_TRACKER_NOTIFICATION, instance, role.id)
         await feedback_and_log(interaction, f'added {role.mention} as a ping for tracker notifications in **{EurekaTrackerZone(int(instance)).name}**.')
 
@@ -180,7 +183,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_remove_eureka_role(self, interaction: Interaction, instance: str, role: Role):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_valid_eureka_instance(interaction, instance): return
+        if await self.user_input.fail.is_not_eureka_instance(interaction, instance): return
         GuildPings(interaction.guild_id).remove_ping(GuildPingType.EUREKA_TRACKER_NOTIFICATION, instance, role.id)
         await feedback_and_log(interaction, f'removed {role.mention} from pings for tracker notifications in **{EurekaTrackerZone(int(instance)).name}**.')
 
@@ -188,8 +191,8 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_add_nm_role(self, interaction: Interaction, notorious_monster: str, role: Role):
         await default_defer(interaction)
-        notorious_monster = InputValidator.NORMAL.notorious_monster_name_to_type(notorious_monster)
-        if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
+        notorious_monster = self.user_input.correction.notorious_monster_name_to_type(notorious_monster)
+        if await self.user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
         GuildPings(interaction.guild_id).add_ping(GuildPingType.NM_PING, notorious_monster, role.id)
         await feedback_and_log(interaction, f'added a role {role.mention} ping for **{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}**.')
 
@@ -197,8 +200,8 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_remove_nm_role(self, interaction: Interaction, notorious_monster: str, role: Role):
         await default_defer(interaction)
-        notorious_monster = InputValidator.NORMAL.notorious_monster_name_to_type(notorious_monster)
-        if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
+        notorious_monster = self.user_input.correction.notorious_monster_name_to_type(notorious_monster)
+        if await self.user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
         GuildPings(interaction.guild_id).remove_ping(GuildPingType.NM_PING, notorious_monster, role.id)
         await feedback_and_log(interaction,  f'removed role {role.mention} ping for **{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}**.')
 

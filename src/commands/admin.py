@@ -6,7 +6,6 @@ from discord.app_commands import check, command
 from discord import Interaction
 from data.db.sql import Record
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from data.validation.input_validator import InputValidator
 from utils.functions import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
 from utils.logger import guild_log_message
@@ -17,13 +16,17 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
     @TableDefinitions.bind
     def table_definitions(self) -> TableDefinitions: ...
 
+    from data.validation.user_input import UserInput
+    @UserInput.bind
+    def user_input(self) -> UserInput: ...
+
     @command(name = "query", description = "Does a select query over a table.")
     @check(PermissionValidator().is_admin)
     async def query(self, interaction: Interaction, table: str, fields: Optional[str] = '*', filter: Optional[str] = '', order: Optional[str] = ''):
         await default_defer(interaction)
-        if not await InputValidator.RAISING.check_for_sql_identifiers(interaction, filter): return
-        if not await InputValidator.RAISING.check_for_sql_identifiers(interaction, order): return
-        if not await InputValidator.RAISING.check_for_sql_identifiers(interaction, fields): return
+        if await self.user_input.fail.sql_identifiers(interaction, filter): return
+        if await self.user_input.fail.sql_identifiers(interaction, order): return
+        if await self.user_input.fail.sql_identifiers(interaction, fields): return
         where = f' where {filter}' if filter else ''
         order_by = f' order by {order}' if order else ''
         if fields == '*':

@@ -7,7 +7,6 @@ from utils.basic_types import GuildPingType
 from utils.basic_types import NOTORIOUS_MONSTERS
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_pings import GuildPings
-from data.validation.input_validator import InputValidator
 from utils.logger import guild_log_message
 from utils.functions import default_defer, default_response
 
@@ -19,11 +18,15 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
     @Bot.bind
     def bot(self) -> Bot: ...
 
+    from data.validation.user_input import UserInput
+    @UserInput.bind
+    def user_input(self) -> UserInput: ...
+
     @command(name = "spawn", description = "Ping a Eureka NM.")
     async def spawn(self, interaction: Interaction, notorious_monster: str, text: str):
         await default_defer(interaction)
-        notorious_monster = InputValidator.NORMAL.notorious_monster_name_to_type(notorious_monster)
-        if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
+        notorious_monster = self.user_input.correction.notorious_monster_name_to_type(notorious_monster)
+        if await self.user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
         channel_data = GuildChannels(interaction.guild_id).get(GuildChannelFunction.NM_PINGS, notorious_monster)
         if channel_data:
             channel = self.bot.client.get_channel(channel_data.id)
