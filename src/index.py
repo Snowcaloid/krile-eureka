@@ -26,9 +26,9 @@ if (
     # this way the order of loading of any global data class is irrelevant
     TableDefinitions()
 
-    import bot
+    import bot_init
 
-    client = bot.Krile()
+    client = bot_init.client
 
     async def main():
         await client.start(os.getenv('DISCORD_TOKEN'))
