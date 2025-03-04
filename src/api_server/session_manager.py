@@ -1,7 +1,7 @@
 from dataclasses import asdict, dataclass
 from datetime import timedelta
 from flask import Response, request
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt, verify_jwt_in_request
+from flask_jwt_extended import JWTManager, create_access_token, current_user, get_jwt, verify_jwt_in_request
 from flask_jwt_extended.exceptions import UserClaimsVerificationError, NoAuthorizationError
 from api_server import ApiNamespace, ApiServer
 from data.db.sql import SQL, Record
@@ -82,6 +82,8 @@ class SessionManager(Bindable):
             verify_jwt_in_request()
         except UserClaimsVerificationError:
             api.namespace.abort(403, session_manager.last_error)
+        if current_user.id is None or current_user.id < 1:
+            api.namespace.abort(403)
 
 
 session_manager = SessionManager()

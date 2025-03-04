@@ -39,5 +39,4 @@ class GuildsRoute(Resource):
     @api.namespace.marshal_list_with(Guild)
     def get(self):
         self.session_manager.verify(api)
-        if current_user.id is None or current_user.id < 1: return []
         return [{ "id": guild.id, "name": guild.name } for guild in GuildManager(current_user.id).all]

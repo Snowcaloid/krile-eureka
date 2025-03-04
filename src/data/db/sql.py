@@ -1,5 +1,7 @@
 from datetime import datetime
-from typing import Dict, List, Tuple
+from functools import wraps
+from sys import exc_info
+from typing import Callable, Dict, List, Tuple
 
 from data.db.database import Database, PgColumnValue, pg_timestamp
 
@@ -14,6 +16,17 @@ class Record(Dict[str, PgColumnValue]):
 
     def __del__(self):
         self.DATABASE.disconnect()
+
+class Transaction(Record):
+    def __del__(self):
+        self.DATABASE.disconnect(exc_info() is None)
+
+def in_transaction(func: Callable) -> Callable:
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        Transaction()
+        return func(*args, **kwargs)
+    return wrapper
 
 class Records(List[Record]):
     def __init__(self, *args, **kwargs):

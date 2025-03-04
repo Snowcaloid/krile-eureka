@@ -56,7 +56,7 @@ class Database:
 
         self._connection_counter += 1
 
-    def disconnect(self):
+    def disconnect(self, commit: bool = True):
         """Disconnect from Postgres and save the changes. If multiple
         `connect()`'s were called, the _connection_counter is decremented."""
         if not self._connection_counter:
@@ -64,7 +64,10 @@ class Database:
 
         self._connection_counter -= 1
         if not self._connection_counter:
-            self._connection.commit()
+            if commit:
+                self._connection.commit()
+            else:
+                self._connection.rollback()
             self._connection.close()
 
     def query(self, query: str) -> List[PgColumnValue]:
