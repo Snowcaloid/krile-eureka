@@ -5,12 +5,8 @@ from discord import Intents
 from discord.ext.commands import Bot
 from typing import Callable, Coroutine
 
-class Krile(Bot, Bindable):
+class DiscordClient(Bot, Bindable):
     """General bot class."""
-    from data.tasks.tasks import Tasks
-    @Tasks.bind
-    def tasks(self) -> Tasks: ...
-
     def __init__(self):
         self.krile_setup_hook: Callable[[Bot], Coroutine[None, None, None]] = None
         self.krile_reload_hook: Callable[[Bot, bool], Coroutine[None, None, None]] = None

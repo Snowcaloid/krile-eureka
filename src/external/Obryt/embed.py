@@ -18,25 +18,24 @@
 from __future__ import annotations
 from abc import abstractmethod
 from io import BytesIO
-from typing import List, override
+from typing import override
 from uuid import uuid4
 import aiohttp
 import re
 import json
 import copy
 
-from centralized_data import Singleton
-from discord.ext.commands import Bot
 import discord
 from discord.ui import TextInput
 from discord import ChannelType, TextChannel
 
-from basic_types import BUTTON_TYPE_CHOICES, ButtonType
+from bot import DiscordClient
+from utils.basic_types import BUTTON_TYPE_CHOICES, ButtonType
 from data.ui.base_button import BaseButton, ButtonMatrix, delete_buttons, save_buttons
-from basic_types import BUTTON_STYLE_CHOICES
+from utils.basic_types import BUTTON_STYLE_CHOICES
 from data.ui.views import TemporaryView
-from logger import guild_log_message
-from utils import find_nearest_role
+from utils.logger import guild_log_message
+from utils.functions import find_nearest_role
 from .utils.views import BaseView, message_jump_button
 from .utils.constants import EMOJIS, HTTP_URL_REGEX
 from .utils.text_format import truncate
@@ -487,10 +486,12 @@ class EditFieldDropdown(discord.ui.Select):
 
 
 class SendToChannelSelect(discord.ui.ChannelSelect):
+    @DiscordClient.bind
+    def client(self) -> DiscordClient: ...
+
     def __init__(self, *, _embed: discord.Embed, buttons: ButtonMatrix):
         self.embed = _embed
         self.buttons = buttons
-        self.bot = Singleton.get_instance(Bot)
 
         super().__init__(placeholder="Select a channel.",
             channel_types=[
@@ -505,7 +506,7 @@ class SendToChannelSelect(discord.ui.ChannelSelect):
         # check if user has access to send messages to channel
         channel_id = self.values[0].id
 
-        channel = self.bot.get_channel(channel_id)
+        channel = self.client.get_channel(channel_id)
 
         user_perms = channel.permissions_for(interaction.user)
 
@@ -569,11 +570,13 @@ class ReplaceMessageModal(discord.ui.Modal):
 
 
 class ReplaceChannelSelect(discord.ui.ChannelSelect):
+    @DiscordClient.bind
+    def client(self) -> DiscordClient: ...
+
     def __init__(self, *, _embed: discord.Embed, buttons: ButtonMatrix, parent_view: BaseView):
         self.embed = _embed
         self.buttons = buttons
         self.parent_view = parent_view
-        self.bot = Singleton.get_instance(Bot)
 
         super().__init__(placeholder="Select a channel.",
             channel_types=[
@@ -587,7 +590,7 @@ class ReplaceChannelSelect(discord.ui.ChannelSelect):
     async def callback(self, interaction: discord.Interaction):
         # check if user has access to send messages to channel
         channel_id = self.values[0].id
-        channel = self.bot.get_channel(channel_id)
+        channel = self.client.get_channel(channel_id)
         await interaction.response.send_modal(ReplaceMessageModal(_embed=self.embed, buttons=self.buttons, channel=channel, parent_view=self.parent_view))
 
 
@@ -907,7 +910,6 @@ class EmbedBuilderView(BaseView):
                  message: discord.Message,
                  embed: discord.Embed = None,
                  buttons: ButtonMatrix = []):
-        self.bot = target.client
         self.message = message
         super().__init__(timeout=timeout, target=target)
 

@@ -1,5 +1,5 @@
 from centralized_data import GlobalCollection
-from basic_types import GuildID
+from utils.basic_types import GuildID
 from data.db.sql import SQL, Record
 from data.events.event_category import EventCategory
 from data.events.event_template import EventTemplate

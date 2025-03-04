@@ -1,5 +1,5 @@
 from typing import override
-from basic_types import TaskExecutionType
+from utils.basic_types import TaskExecutionType
 from data.tasks.task import TaskTemplate
 from data.ui.base_button import delete_buttons
 

@@ -5,14 +5,14 @@ from discord import Interaction
 from typing import Optional
 from data.events.schedule import Schedule
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from basic_types import GuildChannelFunction
-from basic_types import GuildPingType
+from utils.basic_types import GuildChannelFunction
+from utils.basic_types import GuildPingType
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_pings import GuildPings
 from data.validation.input_validator import InputValidator
-from utils import default_defer
+from utils.functions import default_defer
 from data.validation.permission_validator import PermissionValidator
-from logger import feedback_and_log, guild_log_message
+from utils.logger import feedback_and_log, guild_log_message
 
 ###################################################################################
 # schedule

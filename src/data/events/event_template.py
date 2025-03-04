@@ -6,7 +6,7 @@ from centralized_data import YamlAsset
 from data.events.event_category import EventCategory
 from discord.app_commands import Choice
 
-from utils import get_discord_timestamp
+from utils.functions import get_discord_timestamp
 
 
 class EventTemplate(YamlAsset):

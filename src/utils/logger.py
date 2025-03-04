@@ -2,12 +2,10 @@ import os
 from datetime import datetime
 from typing import Coroutine
 
-from centralized_data import Singleton
 from discord import Interaction
-from discord.ext.commands import Bot
-from basic_types import GuildChannelFunction
-from utils import default_response, get_discord_timestamp
-
+from utils.basic_types import GuildChannelFunction
+from bot import DiscordClient
+from utils.functions import default_response, get_discord_timestamp
 
 async def guild_log_message(guild_id: int, message: str):
     """Send a log message to the specified guild if it has a log channel set.
@@ -20,7 +18,7 @@ async def guild_log_message(guild_id: int, message: str):
     from data.guilds.guild_channel import GuildChannels
     channel_data = GuildChannels(guild_id).get(GuildChannelFunction.LOGGING)
     if channel_data is None: return
-    client = Singleton.get_instance(Bot)
+    client = DiscordClient()
     guild = client.get_guild(guild_id)
     if guild is None: return
     channel = client.get_channel(channel_data.id)

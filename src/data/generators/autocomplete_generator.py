@@ -5,14 +5,14 @@ from typing import List
 from discord import Interaction
 from discord.app_commands import Choice
 
-from basic_types import NOTORIOUS_MONSTERS, EurekaTrackerZone, NotoriousMonster
+from utils.basic_types import NOTORIOUS_MONSTERS, EurekaTrackerZone, NotoriousMonster
 
 from data.events.event_category import EventCategory
-from basic_types import GuildPingType
-from basic_types import GuildRoleFunction
-from basic_types import NM_ALIASES
+from utils.basic_types import GuildPingType
+from utils.basic_types import GuildRoleFunction
+from utils.basic_types import NM_ALIASES
 from data.events.event_templates import EventTemplates
-from basic_types import ButtonType
+from utils.basic_types import ButtonType
 from data.validation.permission_validator import PermissionValidator
 
 

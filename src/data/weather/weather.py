@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Dict, Optional
-from utils import DiscordTimestampType, get_discord_timestamp
+from utils.functions import DiscordTimestampType, get_discord_timestamp
 from data.weather.zone_info import data as ZoneInfo
 from data.weather.weather_rates import data as WeatherRate
 

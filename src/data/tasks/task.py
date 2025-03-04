@@ -2,12 +2,12 @@ from __future__ import annotations
 from typing import List
 from datetime import datetime
 
-from basic_types import TaskExecutionType
+from utils.basic_types import TaskExecutionType
 from data.db.sql import SQL
 from centralized_data import PythonAsset
 from abc import abstractmethod
 
-from logger import guild_log_message
+from utils.logger import guild_log_message
 
 class TaskTemplate(PythonAsset):
     @classmethod

@@ -1,11 +1,9 @@
 
 from enum import Enum
-from centralized_data import Singleton
-from discord import ButtonStyle, Interaction, InteractionResponse
+from discord import ButtonStyle
 from discord.app_commands import Choice
-from typing import Dict, List, Union
+from typing import Dict, List
 
-from discord.ext.commands import Bot
 
 type GuildID = int
 
@@ -153,13 +151,3 @@ BUTTON_STYLE_CHOICES: Dict[str, ButtonStyle] = {
     'red': ButtonStyle.danger,
     'link': ButtonStyle.link
 }
-
-class API_Interaction:
-    def __init__(self, user_id: int, guild_id: int) -> None:
-        client: Bot = Singleton.get_instance(Bot)
-        self.guild = client.get_guild(guild_id)
-        self.guild_id = guild_id
-        if self.guild is None: return
-        self.user = self.guild.get_member(user_id)
-
-InteractionLike = Union[Interaction, InteractionResponse, API_Interaction]

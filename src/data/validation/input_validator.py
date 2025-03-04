@@ -3,12 +3,12 @@ import re
 from datetime import datetime
 from discord import Interaction, Member, TextChannel
 
-from basic_types import EurekaTrackerZone, NotoriousMonster
+from utils.basic_types import EurekaTrackerZone, NotoriousMonster
 from data.events.event_category import EventCategory
-from basic_types import NOTORIOUS_MONSTERS
+from utils.basic_types import NOTORIOUS_MONSTERS
 from data.events.event_templates import EventTemplates
 from data.events.schedule import Schedule
-from logger import feedback_and_log
+from utils.logger import feedback_and_log
 from data.validation.permission_validator import PermissionValidator
 
 

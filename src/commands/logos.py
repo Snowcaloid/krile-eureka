@@ -1,8 +1,8 @@
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
 from discord import Interaction
-from utils import default_defer, default_response
-from logger import guild_log_message
+from utils.functions import default_defer, default_response
+from utils.logger import guild_log_message
 
 
 class LogosCommands(GroupCog, group_name='logos', group_description='Logos action commands.'):

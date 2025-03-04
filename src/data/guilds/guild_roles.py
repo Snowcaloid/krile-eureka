@@ -3,7 +3,7 @@ from typing import List
 from centralized_data import GlobalCollection
 
 from data.db.sql import SQL, Record
-from basic_types import GuildID, GuildRoleFunction
+from utils.basic_types import GuildID, GuildRoleFunction
 
 class GuildRole:
     id: int

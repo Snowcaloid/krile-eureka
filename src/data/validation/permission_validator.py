@@ -3,9 +3,9 @@ import os
 from typing import List
 from centralized_data import Bindable
 from discord import Member
-from basic_types import InteractionLike
+from utils.discord_types import InteractionLike
 from data.events.event_category import EventCategory
-from basic_types import GuildRoleFunction
+from utils.basic_types import GuildRoleFunction
 from data.guilds.guild_roles import GuildRoles
 
 class PermissionValidator(Bindable):

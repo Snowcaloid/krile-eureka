@@ -1,14 +1,13 @@
 from __future__ import annotations
 from abc import abstractmethod
-import sys
 from uuid import uuid4
 
-from centralized_data import PythonAsset, PythonAssetLoader, Singleton
-from discord.ext.commands import Bot
+from centralized_data import PythonAsset, PythonAssetLoader
 from discord.ui import Button, View
 from discord import ButtonStyle, Emoji, Interaction, Message, PartialEmoji, Role, TextChannel
-from typing import List, Optional, Self, SupportsIndex, Tuple, Union, override
-from basic_types import ButtonType
+from typing import List, Optional, Self, Tuple, Union, override
+from utils.basic_types import ButtonType
+from bot import DiscordClient
 from data.db.sql import SQL, Record
 from data.cache.message_cache import MessageCache
 from data.ui.views import PersistentView, TemporaryView
@@ -148,7 +147,7 @@ def delete_buttons(message_id: str) -> None:
 
 
 async def get_guild_button_data(button_id: str, channel_id: int, message_id: int, role_id: int) -> Tuple[Message, Role]:
-    client = Singleton.get_instance(Bot)
+    client = DiscordClient()
     channel: TextChannel = client.get_channel(channel_id)
     if channel is None: channel = await client.fetch_channel(channel_id)
     if channel:

@@ -3,13 +3,13 @@ from re import search
 from discord import ButtonStyle, HTTPException, Interaction, TextStyle
 from discord.ui import Modal, TextInput, Button
 
-from basic_types import EurekaTrackerZone
-from basic_types import GuildChannelFunction
-from basic_types import GuildPingType
+from utils.basic_types import EurekaTrackerZone
+from utils.basic_types import GuildChannelFunction
+from utils.basic_types import GuildPingType
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_pings import GuildPings
 from data.ui.views import TemporaryView
-from logger import guild_log_message
+from utils.logger import guild_log_message
 
 class EurekaTrackerModal(Modal):
     from data.eureka_info import EurekaInfo

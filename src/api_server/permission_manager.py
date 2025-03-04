@@ -4,7 +4,7 @@ from typing import List
 from centralized_data import GlobalCollection
 
 from api_server.guild_manager import GuildManager
-from basic_types import API_Interaction
+from utils.discord_types import API_Interaction
 
 @dataclass
 class Permission:

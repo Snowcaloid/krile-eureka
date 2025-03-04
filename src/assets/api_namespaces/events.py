@@ -1,12 +1,11 @@
 from typing import Generator, override
-from centralized_data import Singleton
 from flask import Response
 from flask_jwt_extended import current_user
 from api_server import ApiNamespace
 from flask_restx import Resource, fields
-from discord.ext.commands import Bot
 
 from api_server.permission_manager import PermissionManager
+from bot import DiscordClient
 from data.db.sql import Transaction, in_transaction
 from data.events.event import Event
 from api_server.guild_manager import GuildManager
@@ -63,7 +62,7 @@ def _fetch_all_events() -> Generator[Event, None, None]:
             if event.category.value in allowed_categories:
                 yield event
 
-client = Singleton.get_instance(Bot)
+client = DiscordClient()
 
 def _username(user_id: int) -> str:
     if user_id is None or user_id < 1: return None

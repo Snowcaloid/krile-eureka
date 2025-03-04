@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from centralized_data import GlobalCollection
-from basic_types import GuildID
+from utils.basic_types import GuildID
 from data.db.sql import SQL, Record, in_transaction
 from data.events.event import Event
 from data.generators.event_passcode_generator import EventPasscodeGenerator

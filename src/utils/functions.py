@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 import time
-from centralized_data import Singleton
 from discord import Guild, Interaction, Member, Role
 from dateutil.tz import tzlocal, tzutc
 from enum import Enum
-from discord.ext.commands import Bot
+
+from bot import DiscordClient
 
 
 class DiscordTimestampType(Enum):
@@ -35,7 +35,7 @@ def get_discord_timestamp(date: datetime, timestamp_type: DiscordTimestampType =
 
 async def get_mention(guild_id: int, user_id: int) -> str:
     if user_id:
-        guild = Singleton.get_instance(Bot).get_guild(guild_id)
+        guild = DiscordClient().get_guild(guild_id)
         if guild:
             return guild.get_member(user_id).mention
     else:
@@ -50,7 +50,7 @@ async def get_discord_member(guild_id: int, user_id: int) -> Member:
     :param user_id: The ID of the user.
     :return: The discord.Member object.
     """
-    guild = Singleton.get_instance(Bot).get_guild(guild_id)
+    guild = DiscordClient().get_guild(guild_id)
     return await guild.fetch_member(user_id)
 
 async def default_defer(interaction: Interaction, ephemeral: bool = True):

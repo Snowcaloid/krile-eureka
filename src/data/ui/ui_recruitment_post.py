@@ -1,21 +1,24 @@
 from uuid import uuid4
-from centralized_data import Bindable, Singleton
+from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
 from data.events.schedule import Schedule
 from data.guilds.guild_channel import GuildChannel, GuildChannels
-from basic_types import GuildMessageFunction
-from basic_types import GuildPingType
-from discord.ext.commands import Bot
+from utils.basic_types import GuildMessageFunction
+from utils.basic_types import GuildPingType
 from data.events.event_category import EventCategory
-from basic_types import GuildChannelFunction
+from utils.basic_types import GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
 from data.ui.base_button import BaseButton, delete_buttons, save_buttons
-from basic_types import ButtonType
+from utils.basic_types import ButtonType
 from data.ui.views import PersistentView
 
 class UIRecruitmentPost(Bindable):
     """Party leader post."""
+    from bot import DiscordClient
+    @DiscordClient.bind
+    def client(self) -> DiscordClient: ...
+
     from data.cache.message_cache import MessageCache
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
@@ -25,7 +28,7 @@ class UIRecruitmentPost(Bindable):
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
-        channel: TextChannel = Singleton.get_instance(Bot).get_channel(channel_data.id)
+        channel: TextChannel = self.client.get_channel(channel_data.id)
         if channel is None: return
         pings = await GuildPings(guild_id).get_mention_string(GuildPingType.PL_POST, event.type)
         message = await channel.send(pings, embed=Embed(description='...'))
@@ -40,7 +43,7 @@ class UIRecruitmentPost(Bindable):
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
-        channel: TextChannel = Singleton.get_instance(Bot).get_channel(channel_data.id)
+        channel: TextChannel = self.client.get_channel(channel_data.id)
         message = await self.message_cache.get(event.pl_post_id, channel)
         if message is None: return
         embed = Embed(title=event.recruitment_post_title, description=event.recruitment_post_text)
@@ -79,7 +82,7 @@ class UIRecruitmentPost(Bindable):
         if event is None: return
         channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
-        channel: TextChannel = Singleton.get_instance(Bot).get_channel(channel_data.id)
+        channel: TextChannel = self.client.get_channel(channel_data.id)
         message = await self.message_cache.get(event.pl_post_id, channel)
         if message is None: return
         await message.delete()

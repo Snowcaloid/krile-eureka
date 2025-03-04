@@ -1,17 +1,20 @@
-from centralized_data import Bindable, Singleton
+from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
-from basic_types import EurekaTrackerZone
-from basic_types import GuildMessageFunction
-from discord.ext.commands import Bot
+from utils.basic_types import EurekaTrackerZone
+from utils.basic_types import GuildMessageFunction
 from data.guilds.guild_messages import GuildMessages
 from data.ui.base_button import BaseButton, save_buttons
-from basic_types import ButtonType
+from utils.basic_types import ButtonType
 from data.ui.views import PersistentView
 from data.weather.weather import EurekaWeathers, EurekaZones, next_4_weathers, next_weather, weather_emoji
-from utils import DiscordTimestampType, get_discord_timestamp
+from utils.functions import DiscordTimestampType, get_discord_timestamp
 
 class UIEurekaInfoPost(Bindable):
     """Eureka Info post."""
+    from bot import DiscordClient
+    @DiscordClient.bind
+    def client(self) -> DiscordClient: ...
+
     from data.cache.message_cache import MessageCache
     @MessageCache.bind
     def message_cache(self) -> MessageCache: ...
@@ -23,7 +26,7 @@ class UIEurekaInfoPost(Bindable):
     async def create(self, guild_id: int) -> Message:
         message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
-        channel: TextChannel = Singleton.get_instance(Bot).get_channel(message_data.channel_id)
+        channel: TextChannel = self.client.get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
@@ -47,7 +50,7 @@ class UIEurekaInfoPost(Bindable):
     async def rebuild(self, guild_id: int) -> Message:
         message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
-        channel: TextChannel = Singleton.get_instance(Bot).get_channel(message_data.channel_id)
+        channel: TextChannel = self.client.get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
@@ -84,7 +87,7 @@ class UIEurekaInfoPost(Bindable):
         messages = GuildMessages(guild_id)
         message_data = messages.get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
-        channel: TextChannel = Singleton.get_instance(Bot).get_channel(message_data.channel_id)
+        channel: TextChannel = self.client.get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return

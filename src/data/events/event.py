@@ -1,8 +1,6 @@
 
-from centralized_data import Singleton
 from data.events.event_category import EventCategory
 from discord import Interaction, Member
-from discord.ext.commands import Bot
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
 from typing import List, Tuple, Type
@@ -10,11 +8,11 @@ from data.db.sql import SQL, Record
 from data.events.event_template import EventTemplate
 from data.events.event_templates import EventTemplates
 from data.generators.event_passcode_generator import EventPasscodeGenerator
-from basic_types import GuildChannelFunction
-from basic_types import TaskExecutionType
+from utils.basic_types import GuildChannelFunction
+from utils.basic_types import TaskExecutionType
 
 from data.guilds.guild_channel import GuildChannels
-from utils import DiscordTimestampType, get_discord_member, get_discord_timestamp
+from utils.functions import DiscordTimestampType, get_discord_member, get_discord_timestamp
 
 class EventUserData:
     event_id: int
@@ -67,13 +65,16 @@ class Event:
     _description: str
     _use_support: bool
 
+    from bot import DiscordClient
+    @DiscordClient.bind
+    def client(self) -> DiscordClient: ...
+
     from data.tasks.tasks import Tasks
     @Tasks.bind
     def _tasks(self) -> Tasks: ...
 
     def __init__(self):
         self.users = EventUserData()
-        self.client: Bot = Singleton.get_instance(Bot)
 
     def load(self, id: int) -> None:
         record = SQL('events').select(fields=['event_type', 'pl_post_id', 'timestamp',

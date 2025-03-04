@@ -4,7 +4,7 @@ from centralized_data import GlobalCollection
 
 from data.db.sql import SQL, Record
 from data.events.event_category import EventCategory
-from basic_types import GuildChannelFunction, GuildID
+from utils.basic_types import GuildChannelFunction, GuildID
 from data.events.event_templates import EventTemplates
 
 class GuildChannel:

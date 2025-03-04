@@ -4,9 +4,9 @@ from discord.app_commands import check, command
 from discord import Interaction, Thread
 from discord.channel import TextChannel
 from data.validation.input_validator import InputValidator
-from utils import default_defer, default_response
+from utils.functions import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
-from logger import guild_log_message
+from utils.logger import guild_log_message
 
 
 class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands.'):

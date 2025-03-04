@@ -3,7 +3,7 @@ from typing import List
 
 from centralized_data import Bindable
 
-from basic_types import EurekaTrackerZone
+from utils.basic_types import EurekaTrackerZone
 from data.db.database import pg_timestamp
 from data.db.sql import SQL, Record
 

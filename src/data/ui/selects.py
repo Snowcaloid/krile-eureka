@@ -3,15 +3,15 @@ import aiohttp
 from discord import ButtonStyle, Interaction, Message, SelectOption
 from discord.ui import Button, Select
 
-from basic_types import EurekaTrackerZone
-from basic_types import GuildChannelFunction
-from basic_types import GuildPingType
+from utils.basic_types import EurekaTrackerZone
+from utils.basic_types import GuildChannelFunction
+from utils.basic_types import GuildPingType
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_pings import GuildPings
 from data.ui.modals import EurekaTrackerModal
 from data.ui.views import TemporaryView
-from logger import guild_log_message
-from utils import default_defer
+from utils.logger import guild_log_message
+from utils.functions import default_defer
 
 
 class EurekaTrackerZoneSelect(Select):

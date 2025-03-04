@@ -1,26 +1,28 @@
-from centralized_data import Singleton
-from discord.ext.commands import Bot
 from data.cache.message_cache import MessageCache
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
-from basic_types import EurekaTrackerZone, NotoriousMonster
+from utils.basic_types import EurekaTrackerZone, NotoriousMonster
 from data.events.event_category import EventCategory
 from data.events.event_templates import EventTemplates
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from basic_types import GuildChannelFunction, GuildMessageFunction, GuildPingType, GuildRoleFunction, NOTORIOUS_MONSTERS
+from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildPingType, GuildRoleFunction, NOTORIOUS_MONSTERS
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
 from data.guilds.guild_roles import GuildRoles
 from data.validation.input_validator import InputValidator
-from utils import default_defer
+from utils.functions import default_defer
 from data.validation.permission_validator import PermissionValidator
-from logger import feedback_and_log, guild_log_message
+from utils.logger import feedback_and_log, guild_log_message
 
 
 class ConfigCommands(GroupCog, group_name='config', group_description='Config commands.'):
+    from bot import DiscordClient
+    @DiscordClient.bind
+    def client(self) -> DiscordClient: ...
+
     from data.ui.ui_schedule import UISchedule
     @UISchedule.bind
     def ui_schedule(self) -> UISchedule: ...
@@ -36,7 +38,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         messages = GuildMessages(interaction.guild_id)
         message_data = messages.get(GuildMessageFunction.SCHEDULE_POST)
         if message_data:
-            old_channel = Singleton.get_instance(Bot).get_channel(message_data.channel_id)
+            old_channel = self.client.get_channel(message_data.channel_id)
             if old_channel:
                 old_message = await MessageCache().get(message_data.message_id, old_channel)
                 if old_message:

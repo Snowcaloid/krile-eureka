@@ -3,7 +3,7 @@ from discord.ext.commands import GroupCog
 from discord import Interaction, TextChannel
 from discord.app_commands import check, command
 from data.validation.input_validator import InputValidator
-from logger import guild_log_message
+from utils.logger import guild_log_message
 
 from data.validation.permission_validator import PermissionValidator
 

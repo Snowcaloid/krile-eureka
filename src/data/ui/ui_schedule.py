@@ -1,11 +1,10 @@
 from datetime import date
 from typing import List
-from centralized_data import Bindable, Singleton
+from centralized_data import Bindable
 from discord import TextChannel
 from data.events.event import Event
 from data.cache.message_cache import MessageCache
-from discord.ext.commands import Bot
-from basic_types import GuildMessageFunction
+from utils.basic_types import GuildMessageFunction
 from data.events.schedule import Schedule
 from data.guilds.guild_messages import GuildMessages
 
@@ -20,6 +19,10 @@ class DateSeparatedScheduleData:
 
 class UISchedule(Bindable):
     """Schedule post."""
+
+    from bot import DiscordClient
+    @DiscordClient.bind
+    def client(self) -> DiscordClient: ...
 
     def events_per_date(self, event_list: List[Event]) -> List[DateSeparatedScheduleData]:
         """Splits the event list by date."""
@@ -36,14 +39,13 @@ class UISchedule(Bindable):
     async def rebuild(self, guild_id: int) -> None:
         message_data = GuildMessages(guild_id).get(GuildMessageFunction.SCHEDULE_POST)
         if message_data is None: return
-        client = Singleton.get_instance(Bot)
-        channel: TextChannel = client.get_channel(message_data.channel_id)
+        channel: TextChannel = self.client.get_channel(message_data.channel_id)
         if channel is None: return
         post = await MessageCache().get(message_data.message_id, channel)
         if post:
             embed = post.embeds[0]
             embed.title = 'Upcoming Runs'
-            embed.set_thumbnail(url=client.user.avatar.url)
+            embed.set_thumbnail(url=self.client.user.avatar.url)
             description = (
                 'Please note times are quoted both in Server Time (ST) and in brackets your Local Time (LT).\n'
                 'The runs are free-for-all, no signups. Passcodes are posted 15 minutes prior to the run.\n'

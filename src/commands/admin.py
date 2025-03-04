@@ -7,9 +7,9 @@ from discord import Interaction
 from data.db.sql import Record
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from data.validation.input_validator import InputValidator
-from utils import default_defer, default_response
+from utils.functions import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
-from logger import guild_log_message
+from utils.logger import guild_log_message
 
 
 class AdminCommands(GroupCog, group_name='admin', group_description='Bot administrator commands.'):
@@ -43,8 +43,8 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
     @check(PermissionValidator().is_owner)
     async def reload(self, interaction: Interaction):
         await default_defer(interaction)
-        from bot import Krile
-        await Krile().reload_data_classes()
+        from bot import DiscordClient
+        await DiscordClient().reload_data_classes()
         await default_response(interaction, 'Successfully reloaded.')
 
 

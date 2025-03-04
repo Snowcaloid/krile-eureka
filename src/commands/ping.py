@@ -1,22 +1,24 @@
-from centralized_data import Singleton
-from discord.ext.commands import Bot
 from discord import Interaction
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from basic_types import GuildChannelFunction, NotoriousMonster
-from basic_types import GuildPingType
-from basic_types import NOTORIOUS_MONSTERS
+from utils.basic_types import GuildChannelFunction, NotoriousMonster
+from utils.basic_types import GuildPingType
+from utils.basic_types import NOTORIOUS_MONSTERS
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_pings import GuildPings
 from data.validation.input_validator import InputValidator
-from logger import guild_log_message
-from utils import default_defer, default_response
+from utils.logger import guild_log_message
+from utils.functions import default_defer, default_response
 
 ###################################################################################
 # pings
 ##################################################################################
 class PingCommands(GroupCog, group_name='ping', group_description='Ping people for mob spawns.'):
+    from bot import DiscordClient
+    @DiscordClient.bind
+    def client(self) -> DiscordClient: ...
+
     @command(name = "spawn", description = "Ping a Eureka NM.")
     async def spawn(self, interaction: Interaction, notorious_monster: str, text: str):
         await default_defer(interaction)
@@ -24,7 +26,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
         if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
         channel_data = GuildChannels(interaction.guild_id).get(GuildChannelFunction.NM_PINGS, notorious_monster)
         if channel_data:
-            channel = Singleton.get_instance(Bot).get_channel(channel_data.id)
+            channel = self.client.get_channel(channel_data.id)
             if channel:
                 mentions = await GuildPings(interaction.guild_id).get_mention_string(GuildPingType.NM_PING, notorious_monster)
                 message = await channel.send(f'{mentions} Notification for {NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]} by {interaction.user.mention}: {text}')

@@ -8,24 +8,24 @@ from discord import HTTPException, Member, Object, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, Context, Greedy
 
 from api_server import ApiServer
-from basic_types import TaskExecutionType
-from bot import Krile
+from utils.basic_types import TaskExecutionType
+from bot import DiscordClient
 from data.cache.message_cache import MessageCache
 from data.tasks.tasks import Tasks
-from logger import guild_log_message
-import bot
+from utils.logger import guild_log_message
+
+from commands.admin import AdminCommands
+from commands.ba import BACommands
+from commands.config import ConfigCommands
+from commands.copy import CopyCommands
+from commands.eureka import EurekaCommands
+from commands.logos import LogosCommands
+from commands.ping import PingCommands
+from commands.embed import EmbedCommands
+from commands.schedule import ScheduleCommands
+from commands.log import LogCommands
 
 async def setup_hook(client: Bot):
-    from commands.admin import AdminCommands
-    from commands.ba import BACommands
-    from commands.config import ConfigCommands
-    from commands.copy import CopyCommands
-    from commands.eureka import EurekaCommands
-    from commands.logos import LogosCommands
-    from commands.ping import PingCommands
-    from commands.embed import EmbedCommands
-    from commands.schedule import ScheduleCommands
-    from commands.log import LogCommands
     await client.add_cog(EmbedCommands())
     await client.add_cog(ScheduleCommands())
     await client.add_cog(LogCommands())
@@ -44,16 +44,16 @@ def _load_singleton(singleton: Singleton, initial: bool = False):
     if not initial: # Constructor of all my data classes calls load() anyway
         singleton.load()
 
-async def reload_hook(client: Bot, initial: bool):
-    from data.events.schedule import Schedule
-    from data.guilds.guild_channel import GuildChannels
-    from data.guilds.guild_messages import GuildMessages
-    from data.guilds.guild_pings import GuildPings
-    from data.guilds.guild_roles import GuildRoles
-    from data.ui.button_loader import ButtonLoader
-    from data.eureka_info import EurekaInfo
-    from data.ui.ui_schedule import UISchedule
+from data.events.schedule import Schedule
+from data.guilds.guild_channel import GuildChannels
+from data.guilds.guild_messages import GuildMessages
+from data.guilds.guild_pings import GuildPings
+from data.guilds.guild_roles import GuildRoles
+from data.ui.button_loader import ButtonLoader
+from data.eureka_info import EurekaInfo
+from data.ui.ui_schedule import UISchedule
 
+async def reload_hook(client: Bot, initial: bool):
     ui_schedule = UISchedule()
     MessageCache().clear()
     _load_singleton(ButtonLoader(), initial)
@@ -74,7 +74,7 @@ async def reload_hook(client: Bot, initial: bool):
     if not tasks.contains(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS):
         tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
 
-client = Krile()
+client = DiscordClient()
 
 # What the bot does upon connecting to discord for the first time
 @client.event
@@ -82,7 +82,7 @@ async def on_ready():
     print(f'{client.user} has connected to Discord!')
     await client.reload_data_classes(True)
     for guild in client.guilds:
-        from logger import guild_log_message
+        from utils.logger import guild_log_message
         message = (
             f'{client.user.mention} has successfully started.\n'
         )
@@ -96,7 +96,7 @@ async def on_member_join(member: Member):
 
 @client.event
 async def on_raw_message_delete(payload: RawMessageDeleteEvent):
-    client.tasks.add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
+    Tasks().add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
     message_cache = MessageCache()
     if await message_cache.get(payload.message_id, None) is None: return
     message_cache.remove(payload.message_id)
@@ -138,15 +138,16 @@ async def sync(ctx: Context, guilds: Greedy[Object], spec: Optional[Literal["~",
 async def task_loop(): # You can think of it as sleep(1000) after the last procedure finished
     """Main loop, which runs required tasks at required times. await is necessery."""
     if client.ws:
-        task = client.tasks.get_next()
+        tasks = Tasks()
+        task = tasks.get_next()
         if task is None: return
-        if client.tasks.executing: return
-        client.tasks.executing = True
+        if tasks.executing: return
+        tasks.executing = True
         try:
             await task.execute()
         finally:
-            client.tasks.remove_task(task)
-            client.tasks.executing = False
+            tasks.remove_task(task)
+            tasks.executing = False
 
 client.krile_setup_hook = setup_hook
 client.krile_reload_hook = reload_hook

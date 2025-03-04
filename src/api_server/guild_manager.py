@@ -1,7 +1,6 @@
 
 from typing import List, override
-from centralized_data import GlobalCollection, Singleton
-from discord.ext.commands import Bot
+from centralized_data import GlobalCollection
 
 
 class SimpleGuild:
@@ -10,6 +9,10 @@ class SimpleGuild:
         self.name = name
 
 class GuildManager(GlobalCollection[int]):
+    from bot import DiscordClient
+    @DiscordClient.bind
+    def client(self) -> DiscordClient: ...
+
     @override
     def constructor(self, key: int) -> None:
         super().constructor(key)
@@ -18,8 +21,7 @@ class GuildManager(GlobalCollection[int]):
 
     def load(self) -> None:
         self._guilds.clear()
-        client: Bot = Singleton.get_instance(Bot)
-        user = client.get_user(self.key)
+        user = self.client.get_user(self.key)
         if user is None: return
         for guild in user.mutual_guilds:
             self._guilds.append(SimpleGuild(guild.id, guild.name))

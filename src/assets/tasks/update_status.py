@@ -1,10 +1,8 @@
 from datetime import datetime, timedelta
 from typing import override
 
-from centralized_data import Singleton
 from discord import Activity, ActivityType, Status
-from basic_types import TaskExecutionType
-from discord.ext.commands import Bot
+from utils.basic_types import TaskExecutionType
 from data.db.sql import SQL
 from data.events.event import Event
 from data.events.event_category import EventCategory
@@ -12,6 +10,10 @@ from data.tasks.task import TaskTemplate
 
 
 class Task_UpdateStatus(TaskTemplate):
+    from bot import DiscordClient
+    @DiscordClient.bind
+    def client(self) -> DiscordClient: ...
+
     from data.tasks.tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
@@ -36,7 +38,6 @@ class Task_UpdateStatus(TaskTemplate):
                                                  'and (not canceled or canceled is null) and '
                                                  '(not finished or finished is null)'),
                                           sort_fields=[('timestamp')])
-            client = Singleton.get_instance(Bot)
             if record:
                 event = Event()
                 event.load(record['id'])
@@ -53,10 +54,10 @@ class Task_UpdateStatus(TaskTemplate):
                         desc = f'{str((delta.seconds % 3600) // 60)}m'
 
                     event_description = event.description if event.category == EventCategory.CUSTOM else event.short_description
-                    desc = f'{event_description} in {desc} ({client.get_guild(event.guild_id).name})'
-                    await client.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
+                    desc = f'{event_description} in {desc} ({self.client.get_guild(event.guild_id).name})'
+                    await self.client.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
             else:
-                await client.change_presence(activity=None, status=None)
+                await self.client.change_presence(activity=None, status=None)
         finally:
             self.tasks.remove_all(TaskExecutionType.UPDATE_STATUS)
             self.tasks.add_task(next_exec, TaskExecutionType.UPDATE_STATUS)
