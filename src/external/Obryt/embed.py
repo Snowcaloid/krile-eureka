@@ -29,7 +29,7 @@ import discord
 from discord.ui import TextInput
 from discord import ChannelType, TextChannel
 
-from bot import DiscordClient
+from bot import Bot
 from utils.basic_types import BUTTON_TYPE_CHOICES, ButtonType
 from data.ui.base_button import BaseButton, ButtonMatrix, delete_buttons, save_buttons
 from utils.basic_types import BUTTON_STYLE_CHOICES
@@ -486,8 +486,8 @@ class EditFieldDropdown(discord.ui.Select):
 
 
 class SendToChannelSelect(discord.ui.ChannelSelect):
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     def __init__(self, *, _embed: discord.Embed, buttons: ButtonMatrix):
         self.embed = _embed
@@ -506,7 +506,7 @@ class SendToChannelSelect(discord.ui.ChannelSelect):
         # check if user has access to send messages to channel
         channel_id = self.values[0].id
 
-        channel = self.client.get_channel(channel_id)
+        channel = self.bot.client.get_channel(channel_id)
 
         user_perms = channel.permissions_for(interaction.user)
 
@@ -570,8 +570,8 @@ class ReplaceMessageModal(discord.ui.Modal):
 
 
 class ReplaceChannelSelect(discord.ui.ChannelSelect):
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     def __init__(self, *, _embed: discord.Embed, buttons: ButtonMatrix, parent_view: BaseView):
         self.embed = _embed
@@ -590,7 +590,7 @@ class ReplaceChannelSelect(discord.ui.ChannelSelect):
     async def callback(self, interaction: discord.Interaction):
         # check if user has access to send messages to channel
         channel_id = self.values[0].id
-        channel = self.client.get_channel(channel_id)
+        channel = self.bot.client.get_channel(channel_id)
         await interaction.response.send_modal(ReplaceMessageModal(_embed=self.embed, buttons=self.buttons, channel=channel, parent_view=self.parent_view))
 
 

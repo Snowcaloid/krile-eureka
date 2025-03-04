@@ -7,9 +7,9 @@ from data.tasks.task import TaskTemplate
 
 
 class Task_UpdateEurekaInfoPosts(TaskTemplate):
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     from data.tasks.tasks import Tasks
     @Tasks.bind
@@ -39,7 +39,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
         next_exec = datetime.utcnow() + timedelta(minutes=1)
         try:
             self.eureka_info.remove_old()
-            for guild in self.client.guilds:
+            for guild in self.bot.client.guilds:
                 await self.ui_eureka_info.rebuild(guild.id)
         finally:
             self.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)

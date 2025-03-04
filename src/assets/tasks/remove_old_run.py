@@ -6,9 +6,9 @@ from data.tasks.task import TaskTemplate
 
 
 class Task_RemoveOldRun(TaskTemplate):
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     from data.ui.ui_schedule import UISchedule
     @UISchedule.bind
@@ -21,7 +21,7 @@ class Task_RemoveOldRun(TaskTemplate):
     async def execute(self, obj: object) -> None:
         if obj and obj["id"]:
             Schedule().finish(obj["id"])
-            for guild in self.client.guilds:
+            for guild in self.bot.client.guilds:
                 await self.ui_schedule.rebuild(guild.id)
 
 

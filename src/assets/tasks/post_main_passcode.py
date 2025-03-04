@@ -9,9 +9,9 @@ from data.tasks.task import TaskTemplate
 
 
 class Task_PostMainPasscode(TaskTemplate):
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.POST_MAIN_PASSCODE
@@ -24,7 +24,7 @@ class Task_PostMainPasscode(TaskTemplate):
             if event is None: return
             channel_data = GuildChannels(obj["guild"]).get(GuildChannelFunction.PASSCODES, event.type)
             if channel_data is None: return
-            guild = self.client.get_guild(obj["guild"])
+            guild = self.bot.client.get_guild(obj["guild"])
             channel = guild.get_channel(channel_data.id)
             if channel is None: return
             pings = await GuildPings(obj["guild"]).get_mention_string(GuildPingType.MAIN_PASSCODE, event.type)

@@ -7,7 +7,7 @@ from discord.ui import Button, View
 from discord import ButtonStyle, Emoji, Interaction, Message, PartialEmoji, Role, TextChannel
 from typing import List, Optional, Self, Tuple, Union, override
 from utils.basic_types import ButtonType
-from bot import DiscordClient
+from bot import Bot
 from data.db.sql import SQL, Record
 from data.cache.message_cache import MessageCache
 from data.ui.views import PersistentView, TemporaryView
@@ -147,7 +147,7 @@ def delete_buttons(message_id: str) -> None:
 
 
 async def get_guild_button_data(button_id: str, channel_id: int, message_id: int, role_id: int) -> Tuple[Message, Role]:
-    client = DiscordClient()
+    client = Bot().client
     channel: TextChannel = client.get_channel(channel_id)
     if channel is None: channel = await client.fetch_channel(channel_id)
     if channel:

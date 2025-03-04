@@ -19,9 +19,9 @@ from utils.logger import feedback_and_log, guild_log_message
 
 
 class ConfigCommands(GroupCog, group_name='config', group_description='Config commands.'):
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     from data.ui.ui_schedule import UISchedule
     @UISchedule.bind
@@ -38,7 +38,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         messages = GuildMessages(interaction.guild_id)
         message_data = messages.get(GuildMessageFunction.SCHEDULE_POST)
         if message_data:
-            old_channel = self.client.get_channel(message_data.channel_id)
+            old_channel = self.bot.client.get_channel(message_data.channel_id)
             if old_channel:
                 old_message = await MessageCache().get(message_data.message_id, old_channel)
                 if old_message:

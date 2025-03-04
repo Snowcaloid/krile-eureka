@@ -8,9 +8,9 @@ from utils.functions import DiscordTimestampType, get_discord_timestamp
 
 class UIWeatherPost(Bindable):
     """Eureka Weather Info post."""
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     from data.cache.message_cache import MessageCache
     @MessageCache.bind
@@ -20,7 +20,7 @@ class UIWeatherPost(Bindable):
         if message is None:
             message_data = GuildMessages(guild_id).get(GuildMessageFunction.WEATHER_POST)
             if message_data is None: return
-            channel: TextChannel = self.client.get_channel(message_data.channel_id)
+            channel: TextChannel = self.bot.client.get_channel(message_data.channel_id)
             if channel is None: return
             message = await self.message_cache.get(message_data.message_id, channel)
 
@@ -57,7 +57,7 @@ class UIWeatherPost(Bindable):
         messages = GuildMessages(guild_id)
         message_data = messages.get(GuildMessageFunction.WEATHER_POST)
         if message_data is None: return
-        channel: TextChannel = self.client.get_channel(message_data.channel_id)
+        channel: TextChannel = self.bot.client.get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return

@@ -6,9 +6,9 @@ from data.ui.base_button import delete_buttons, load_button
 from data.ui.views import PersistentView
 
 class ButtonLoader(Bindable):
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     """Loading and deleting Buttons from DB."""
     async def load(self) -> None:
@@ -21,7 +21,7 @@ class ButtonLoader(Bindable):
                                                 all=True):
                 button = await load_button(record['button_id'])
                 view.add_item(button)
-            self.client.add_view(view)
+            self.bot.client.add_view(view)
 
     def delete(self, message_id: int) -> None:
         delete_buttons(message_id)

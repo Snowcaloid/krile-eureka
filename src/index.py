@@ -5,7 +5,7 @@ if (
     # The WERKZEUG_RUN_MAIN is set to true when running the subprocess for
     # reloading, we want to start debugpy only once during the first
     # invocation and never during reloads.
-    os.environ.get("WERKZEUG_RUN_MAIN") != "true"
+    os.environ.get("WERKZEUG_RUN_MAIN") != "true" and __name__ == "__main__"
 ):
     import debugpy
 

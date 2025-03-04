@@ -10,9 +10,9 @@ from data.tasks.task import TaskTemplate
 
 
 class Task_UpdateStatus(TaskTemplate):
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     from data.tasks.tasks import Tasks
     @Tasks.bind
@@ -54,10 +54,10 @@ class Task_UpdateStatus(TaskTemplate):
                         desc = f'{str((delta.seconds % 3600) // 60)}m'
 
                     event_description = event.description if event.category == EventCategory.CUSTOM else event.short_description
-                    desc = f'{event_description} in {desc} ({self.client.get_guild(event.guild_id).name})'
-                    await self.client.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
+                    desc = f'{event_description} in {desc} ({self.bot.client.get_guild(event.guild_id).name})'
+                    await self.bot.client.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
             else:
-                await self.client.change_presence(activity=None, status=None)
+                await self.bot.client.change_presence(activity=None, status=None)
         finally:
             self.tasks.remove_all(TaskExecutionType.UPDATE_STATUS)
             self.tasks.add_task(next_exec, TaskExecutionType.UPDATE_STATUS)

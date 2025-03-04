@@ -15,9 +15,9 @@ from utils.functions import default_defer, default_response
 # pings
 ##################################################################################
 class PingCommands(GroupCog, group_name='ping', group_description='Ping people for mob spawns.'):
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     @command(name = "spawn", description = "Ping a Eureka NM.")
     async def spawn(self, interaction: Interaction, notorious_monster: str, text: str):
@@ -26,7 +26,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
         if not await InputValidator.RAISING.check_allowed_notorious_monster(interaction, notorious_monster): return
         channel_data = GuildChannels(interaction.guild_id).get(GuildChannelFunction.NM_PINGS, notorious_monster)
         if channel_data:
-            channel = self.client.get_channel(channel_data.id)
+            channel = self.bot.client.get_channel(channel_data.id)
             if channel:
                 mentions = await GuildPings(interaction.guild_id).get_mention_string(GuildPingType.NM_PING, notorious_monster)
                 message = await channel.send(f'{mentions} Notification for {NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]} by {interaction.user.mention}: {text}')

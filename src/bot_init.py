@@ -9,7 +9,7 @@ from discord.ext.commands import Bot, guild_only, Context, Greedy
 
 from api_server import ApiServer
 from utils.basic_types import TaskExecutionType
-from bot import DiscordClient
+from bot import Bot
 from data.cache.message_cache import MessageCache
 from data.tasks.tasks import Tasks
 from utils.logger import guild_log_message
@@ -74,13 +74,13 @@ async def reload_hook(client: Bot, initial: bool):
     if not tasks.contains(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS):
         tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
 
-client = DiscordClient()
+client = Bot().client
 
 # What the bot does upon connecting to discord for the first time
 @client.event
 async def on_ready():
     print(f'{client.user} has connected to Discord!')
-    await client.reload_data_classes(True)
+    await client.reload_data_classes(True) #
     for guild in client.guilds:
         from utils.logger import guild_log_message
         message = (

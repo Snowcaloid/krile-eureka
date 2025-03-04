@@ -20,9 +20,9 @@ class DateSeparatedScheduleData:
 class UISchedule(Bindable):
     """Schedule post."""
 
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     def events_per_date(self, event_list: List[Event]) -> List[DateSeparatedScheduleData]:
         """Splits the event list by date."""
@@ -39,13 +39,13 @@ class UISchedule(Bindable):
     async def rebuild(self, guild_id: int) -> None:
         message_data = GuildMessages(guild_id).get(GuildMessageFunction.SCHEDULE_POST)
         if message_data is None: return
-        channel: TextChannel = self.client.get_channel(message_data.channel_id)
+        channel: TextChannel = self.bot.client.get_channel(message_data.channel_id)
         if channel is None: return
         post = await MessageCache().get(message_data.message_id, channel)
         if post:
             embed = post.embeds[0]
             embed.title = 'Upcoming Runs'
-            embed.set_thumbnail(url=self.client.user.avatar.url)
+            embed.set_thumbnail(url=self.bot.client.user.avatar.url)
             description = (
                 'Please note times are quoted both in Server Time (ST) and in brackets your Local Time (LT).\n'
                 'The runs are free-for-all, no signups. Passcodes are posted 15 minutes prior to the run.\n'

@@ -11,9 +11,9 @@ from utils.functions import DiscordTimestampType, get_discord_timestamp
 
 class UIEurekaInfoPost(Bindable):
     """Eureka Info post."""
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     from data.cache.message_cache import MessageCache
     @MessageCache.bind
@@ -26,7 +26,7 @@ class UIEurekaInfoPost(Bindable):
     async def create(self, guild_id: int) -> Message:
         message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
-        channel: TextChannel = self.client.get_channel(message_data.channel_id)
+        channel: TextChannel = self.bot.client.get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
@@ -50,7 +50,7 @@ class UIEurekaInfoPost(Bindable):
     async def rebuild(self, guild_id: int) -> Message:
         message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
-        channel: TextChannel = self.client.get_channel(message_data.channel_id)
+        channel: TextChannel = self.bot.client.get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
@@ -87,7 +87,7 @@ class UIEurekaInfoPost(Bindable):
         messages = GuildMessages(guild_id)
         message_data = messages.get(GuildMessageFunction.EUREKA_INFO)
         if message_data is None: return
-        channel: TextChannel = self.client.get_channel(message_data.channel_id)
+        channel: TextChannel = self.bot.client.get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return

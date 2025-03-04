@@ -1,10 +1,10 @@
 from typing import Union
 from discord import Interaction, InteractionResponse
-from bot import DiscordClient
+from bot import Bot
 
 class API_Interaction:
-    @DiscordClient.bind
-    def _client(self) -> DiscordClient: ...
+    @Bot.bind
+    def _client(self) -> Bot: ...
 
     def __init__(self, user_id: int, guild_id: int) -> None:
         self.guild = self._client.get_guild(guild_id)

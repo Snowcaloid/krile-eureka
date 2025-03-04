@@ -43,8 +43,8 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
     @check(PermissionValidator().is_owner)
     async def reload(self, interaction: Interaction):
         await default_defer(interaction)
-        from bot import DiscordClient
-        await DiscordClient().reload_data_classes()
+        from bot import Bot
+        await Bot().client.reload_data_classes()
         await default_response(interaction, 'Successfully reloaded.')
 
 

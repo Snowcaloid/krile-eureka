@@ -5,7 +5,7 @@ from api_server import ApiNamespace
 from flask_restx import Resource, fields
 
 from api_server.permission_manager import PermissionManager
-from bot import DiscordClient
+from bot import Bot
 from data.db.sql import Transaction, in_transaction
 from data.events.event import Event
 from api_server.guild_manager import GuildManager
@@ -62,7 +62,7 @@ def _fetch_all_events() -> Generator[Event, None, None]:
             if event.category.value in allowed_categories:
                 yield event
 
-client = DiscordClient()
+client = Bot().client
 
 def _username(user_id: int) -> str:
     if user_id is None or user_id < 1: return None

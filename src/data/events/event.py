@@ -65,9 +65,9 @@ class Event:
     _description: str
     _use_support: bool
 
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     from data.tasks.tasks import Tasks
     @Tasks.bind
@@ -175,7 +175,7 @@ class Event:
 
     @property
     def schedule_entry_text(self) -> str:
-        user = self.client.get_guild(self.guild_id).get_member(self.users.raid_leader)
+        user = self.bot.client.get_guild(self.guild_id).get_member(self.users.raid_leader)
         return self.template.schedule_entry_text(user.mention, self.time, self.real_description, self._use_support)
 
     @property
@@ -202,12 +202,12 @@ class Event:
 
     @property
     def main_passcode_text(self) -> str:
-        user = self.client.get_guild(self.guild_id).get_member(self.users.raid_leader)
+        user = self.bot.client.get_guild(self.guild_id).get_member(self.users.raid_leader)
         return self.template.main_passcode_text(user.mention, self.passcode_main)
 
     @property
     def support_passcode_text(self) -> str:
-        user = self.client.get_guild(self.guild_id).get_member(self.users.raid_leader)
+        user = self.bot.client.get_guild(self.guild_id).get_member(self.users.raid_leader)
         return self.template.support_passcode_text(user.mention, self.passcode_supp)
 
     @property
@@ -244,7 +244,7 @@ class Event:
 
     @property
     def recruitment_post_text(self) -> str:
-        guild = self.client.get_guild(self.guild_id)
+        guild = self.bot.client.get_guild(self.guild_id)
         rl = guild.get_member(self.users.raid_leader)
         pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.template.pl_button_texts()[0] else ''
         pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1])) if self.template.pl_button_texts()[1] else ''

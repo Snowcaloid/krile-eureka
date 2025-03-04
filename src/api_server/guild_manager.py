@@ -9,9 +9,9 @@ class SimpleGuild:
         self.name = name
 
 class GuildManager(GlobalCollection[int]):
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     @override
     def constructor(self, key: int) -> None:
@@ -21,7 +21,7 @@ class GuildManager(GlobalCollection[int]):
 
     def load(self) -> None:
         self._guilds.clear()
-        user = self.client.get_user(self.key)
+        user = self.bot.client.get_user(self.key)
         if user is None: return
         for guild in user.mutual_guilds:
             self._guilds.append(SimpleGuild(guild.id, guild.name))

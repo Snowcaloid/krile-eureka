@@ -26,9 +26,9 @@ class GuildPing:
 class GuildPings(GlobalCollection[GuildID]):
     _list: List[GuildPing]
 
-    from bot import DiscordClient
-    @DiscordClient.bind
-    def client(self) -> DiscordClient: ...
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
 
     @override
     def constructor(self, key: GuildID = None) -> None:
@@ -75,7 +75,7 @@ class GuildPings(GlobalCollection[GuildID]):
 
     async def get_mention_string(self, ping_type: GuildPingType, event_type: str) -> str:
         result = ''
-        guild = self.client.get_guild(self.key)
+        guild = self.bot.client.get_guild(self.key)
         if guild is None: return ''
         await guild.fetch_roles()
         for ping in self.get(ping_type, event_type):
