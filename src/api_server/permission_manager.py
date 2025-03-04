@@ -4,7 +4,7 @@ from typing import List
 from centralized_data import GlobalCollection
 
 from api_server.guild_manager import GuildManager
-from data.validation.permission_validator import FakeInteraction
+from basic_types import API_Interaction
 
 @dataclass
 class Permission:
@@ -87,7 +87,7 @@ class PermissionManager(GlobalCollection[int]):
         return permissions
 
     def calculate_categories(self, permission: Permission, guild_id: int) -> None:
-        interaction = FakeInteraction(self.key, guild_id)
+        interaction = API_Interaction(self.key, guild_id)
         permission.categories.admin = self.permission_validator.is_admin(interaction)
         permission.categories.raid_leader = self.permission_validator.is_raid_leader(interaction)
         if interaction.user is None: return

@@ -1,11 +1,26 @@
+from dataclasses import dataclass
 from centralized_data import GlobalCollection
 from basic_types import GuildID
-from data.db.sql import SQL, Record
+from data.db.sql import SQL, Record, in_transaction
 from data.events.event import Event
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 
 from datetime import datetime
 from typing import List
+
+@dataclass
+class EventLike(dict):
+    """
+        # Keys
+        * event_type: str
+        * raid_leader: int
+        * time: datetime
+        * description: str `optional`
+        * auto_passcode: bool `optional`
+        * use_support: bool `optional`
+    """
+    ...
+
 
 class Schedule(GlobalCollection[GuildID]):
     _list: List[Event]
@@ -28,21 +43,24 @@ class Schedule(GlobalCollection[GuildID]):
     def get(self, event_id: int) -> Event:
         return next(event for event in self._list if event.id == event_id)
 
-    def add(self, leader: int, event_type: str, time: datetime,
-            description: str = '', auto_passcode: bool = True,
-            use_support: bool = True) -> Event:
-        description = description.replace('\'', '\'\'')
+    @in_transaction
+    def add(self, event: EventLike) -> Event:
+        if event.pop("description", None) is not None:
+            description = event.description.replace('\'', '\'\'')
+        auto_passcode = event.pop("auto_passcode", None)
         pass_main = EventPasscodeGenerator.generate() if auto_passcode else 0
         pass_supp = EventPasscodeGenerator.generate() if auto_passcode else 0
-        id = SQL('events').insert(Record(guild_id=self.key,
-                                         raid_leader=leader,
-                                         event_type=event_type,
-                                         timestamp=time,
-                                         description=description,
-                                         pass_main=pass_main,
-                                         pass_supp=pass_supp,
-                                         use_support=use_support),
-                                  returning_field='id')
+        id = SQL('events').insert(Record(
+                guild_id=self.key,
+                raid_leader=event.pop("raid_leader", None),
+                event_type=event.pop("event_type", None),
+                timestamp=event.pop("timestamp", None),
+                description=description,
+                pass_main=pass_main,
+                pass_supp=pass_supp,
+                use_support=event.pop("use_support", None) or False
+            ),
+            'id')
         self.load()
         result = self.get(id)
         return result

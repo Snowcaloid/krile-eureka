@@ -1,22 +1,12 @@
 from __future__ import annotations
 import os
-from discord.ext.commands import Bot
-from typing import List, Union
-from centralized_data import Bindable, Singleton
-from discord import Interaction, InteractionResponse, Member
+from typing import List
+from centralized_data import Bindable
+from discord import Member
+from basic_types import InteractionLike
 from data.events.event_category import EventCategory
 from basic_types import GuildRoleFunction
 from data.guilds.guild_roles import GuildRoles
-
-class FakeInteraction:
-    def __init__(self, user_id: int, guild_id: int) -> None:
-        client: Bot = Singleton.get_instance(Bot)
-        self.guild = client.get_guild(guild_id)
-        self.guild_id = guild_id
-        if self.guild is None: return
-        self.user = self.guild.get_member(user_id)
-
-InteractionLike = Union[Interaction, InteractionResponse, FakeInteraction]
 
 class PermissionValidator(Bindable):
     def is_in_guild(self, interaction: InteractionLike) -> bool:
