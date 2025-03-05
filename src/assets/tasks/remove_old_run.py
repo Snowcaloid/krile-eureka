@@ -20,7 +20,7 @@ class Task_RemoveOldRun(TaskTemplate):
     @override
     async def execute(self, obj: object) -> None:
         if obj and obj["id"]:
-            Schedule().finish(obj["id"])
+            Schedule(obj["guild"]).finish(obj["id"])
             for guild in self.bot.client.guilds:
                 await self.ui_schedule.rebuild(guild.id)
 

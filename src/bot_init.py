@@ -56,7 +56,7 @@ from data.ui.ui_schedule import UISchedule
 async def reload_hook(client: Bot, initial: bool):
     ui_schedule = UISchedule()
     MessageCache().clear()
-    _load_singleton(ButtonLoader(), initial)
+    await ButtonLoader().load()
     _load_singleton(EurekaInfo(), initial)
     for guild in client.guilds:
         _load_singleton(Schedule(guild.id), initial)

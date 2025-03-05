@@ -6,7 +6,7 @@ from flask_restx import Resource, fields
 
 from api_server.permission_manager import PermissionManager
 from bot import Bot
-from data.db.sql import Transaction, in_transaction
+from data.db.sql import in_transaction
 from data.events.event import Event
 from api_server.guild_manager import GuildManager
 from data.events.event_templates import EventTemplates

@@ -271,7 +271,7 @@ class Event:
         self.load(self.id)
 
     def create_tasks(self) -> None:
-        self._tasks.add_task(self.time, TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
+        self._tasks.add_task(self.time, TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id, "guild": self.guild_id})
         if self.use_recruitment_posts and self.delete_recruitment_posts:
             channel_data = GuildChannels(self.guild_id).get(GuildChannelFunction.PL_CHANNEL, self.type)
             if channel_data:
@@ -286,7 +286,7 @@ class Event:
         self._tasks.remove_task_by_data(TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
         self._tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
         self._tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
-        self._tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id})
+        self._tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id, "guild": self.guild_id})
         self._tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
 
     def recreate_tasks(self) -> None:
