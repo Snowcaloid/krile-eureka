@@ -4,6 +4,8 @@ short_description: COD Chaotic Run
 category: CHAOTIC
 use_passcodes: true
 use_recruitment_posts: false
+schedule_entry_text: |
+  (%time ST (%localtime LT)): %type (%rl) %description
 main_passcode_text: |
   Raid Leader: %rl.
 

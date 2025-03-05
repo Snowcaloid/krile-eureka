@@ -4,6 +4,8 @@ short_description: BA Collab Run
 category: BA
 use_passcodes: false
 use_recruitment_posts: false
+schedule_entry_text: |
+  (%time ST (%localtime LT)): %type (%rl) %description%support%!support= __(No support)__
 main_passcode_text: |
   Raid Leader: %rl.
 

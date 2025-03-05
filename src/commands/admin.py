@@ -24,9 +24,9 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
     @check(PermissionValidator().is_admin)
     async def query(self, interaction: Interaction, table: str, fields: Optional[str] = '*', filter: Optional[str] = '', order: Optional[str] = ''):
         await default_defer(interaction)
-        if await self.user_input.fail.sql_identifiers(interaction, filter): return
-        if await self.user_input.fail.sql_identifiers(interaction, order): return
-        if await self.user_input.fail.sql_identifiers(interaction, fields): return
+        if self.user_input.fail.sql_identifiers(interaction, filter): return
+        if self.user_input.fail.sql_identifiers(interaction, order): return
+        if self.user_input.fail.sql_identifiers(interaction, fields): return
         where = f' where {filter}' if filter else ''
         order_by = f' order by {order}' if order else ''
         if fields == '*':

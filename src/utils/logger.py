@@ -30,7 +30,8 @@ async def guild_log_message(guild_id: int, message: str):
 
 
 async def feedback_and_log(interaction: Interaction, feedback: str) -> Coroutine[None, None, None]:
-    await default_response(interaction, f'You have {feedback}')
+    if hasattr(interaction, 'response'):
+        await default_response(interaction, f'You have {feedback}')
     await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has {feedback}')
 
 

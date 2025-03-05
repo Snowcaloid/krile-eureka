@@ -4,6 +4,8 @@ short_description: Dalriada Run
 category: BOZJA
 use_passcodes: true
 use_recruitment_posts: true
+schedule_entry_text: |
+  (%time ST (%localtime LT)): %type (%rl) %description
 main_passcode_text: |
   Raid Leader: %rl.
 

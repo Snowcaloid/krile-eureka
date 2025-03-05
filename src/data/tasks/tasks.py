@@ -1,7 +1,9 @@
 from __future__ import annotations
+from asyncio import sleep
 from json import dumps
-from typing import List, override
+from typing import Any, List, override
 from datetime import datetime
+from uuid import uuid4
 
 from utils.basic_types import TaskExecutionType
 from data.db.sql import SQL, Record
@@ -30,19 +32,22 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
                                           sort_fields=['execution_time']):
             task = Task(self.loaded_assets)
             task.load(record['id'])
+            task.signature = uuid4()
             self._db_tasks.append(task)
 
     def sort_runtime_tasks_by_time(self) -> None:
         self._runtime_tasks = sorted(self._runtime_tasks, key=lambda task: task.time)
 
-    def add_task(self, time: datetime, task_type: TaskExecutionType, data: object = None) -> None:
+    def add_task(self, time: datetime, task_type: TaskExecutionType, data: object = None) -> Any:
         if self.task_template(task_type).runtime_only():
             task = Task(self.loaded_assets)
             task.time = time
             task.data = data
+            task.signature = uuid4()
             task.template = self.task_template(task_type)
             self._runtime_tasks.append(task)
             self.sort_runtime_tasks_by_time()
+            return task.signature
         else:
             SQL('tasks').insert(Record(execution_time=time, task_type=task_type.value, data=dumps(data), description=task_type.name))
             self.load()
@@ -52,6 +57,19 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
             if task.type == type:
                 return True
         return False
+
+    def contains_signature(self, signature: Any) -> bool:
+        for task in self._runtime_tasks:
+            if task.signature == signature:
+                return True
+        for task in self._db_tasks:
+            if task.signature == signature:
+                return True
+        return False
+
+    async def until_over(self, signature: Any):
+        while self.contains_signature(signature):
+            await sleep(1)
 
     def get_next(self) -> Task:
         """Gets the next possible task to be executed."""

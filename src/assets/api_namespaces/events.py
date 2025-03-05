@@ -152,9 +152,7 @@ class EventsRoute(Resource):
         if event_type is None: api.namespace.abort(400, 'Invalid event type.')
         time = api.namespace.payload.pop("timestamp")
         if time is None: api.namespace.abort(400, 'Event timestamp is missing.')
-        Transaction()
-        event = Schedule(int(guild_id)).add(rl, event_type, time)
-        _unmarshal(event, api.namespace.payload)
+        event = Schedule(int(guild_id)).add(api.namespace.payload)
         return _marshal(event)
 
 @api.namespace.route('/<int:guild_id>')

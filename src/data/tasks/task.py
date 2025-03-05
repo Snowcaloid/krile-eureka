@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List
+from typing import Any, List
 from datetime import datetime
 
 from utils.basic_types import TaskExecutionType
@@ -32,6 +32,7 @@ class Task:
     id: int
     time: datetime
     data: object
+    signature: Any
     _task_templates: List[TaskTemplate]
 
     def __init__(self, task_templates: List[TaskTemplate]) -> None:

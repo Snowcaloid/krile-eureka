@@ -26,7 +26,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
     async def spawn(self, interaction: Interaction, notorious_monster: str, text: str):
         await default_defer(interaction)
         notorious_monster = self.user_input.correction.notorious_monster_name_to_type(notorious_monster)
-        if await self.user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
+        if self.user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
         channel_data = GuildChannels(interaction.guild_id).get(GuildChannelFunction.NM_PINGS, notorious_monster)
         if channel_data:
             channel = self.bot.client.get_channel(channel_data.id)

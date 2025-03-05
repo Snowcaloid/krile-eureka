@@ -177,8 +177,11 @@ class EventTemplate(YamlAsset):
             '(%time ST (%localtime LT)): %description (%rl)%support%!support= __(No support)__'
         ))
         value = self._handle_support_text(use_support, value)
+        if '%type' in value and custom != '':
+            custom = f'[{custom}]'
+
         return value.replace('%time', time.strftime('%H:%M')).replace('%localtime', get_discord_timestamp(time)).replace(
-            '%description', custom).replace('%rl', rl)
+            '%description', custom).replace('%rl', rl).replace('%type', self.short_description())
 
     def passcode_post_title(self, time: datetime) -> str:
         value = self.source.get('passcode_post_title', (

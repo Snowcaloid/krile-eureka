@@ -5,10 +5,6 @@ from discord import Interaction
 from typing import Optional
 from data.events.schedule import Schedule
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from utils.basic_types import GuildChannelFunction
-from utils.basic_types import GuildPingType
-from data.guilds.guild_channel import GuildChannels
-from data.guilds.guild_pings import GuildPings
 from utils.functions import default_defer
 from data.validation.permission_validator import PermissionValidator
 from utils.logger import feedback_and_log, guild_log_message
@@ -29,6 +25,10 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     @UserInput.bind
     def user_input(self) -> UserInput: ...
 
+    from data.tasks.tasks import Tasks
+    @Tasks.bind
+    def tasks(self) -> Tasks: ...
+
     @command(name = "add", description = "Add an entry to the schedule.")
     @check(PermissionValidator().is_raid_leader)
     async def add(self, interaction: Interaction, event_type: str,
@@ -37,33 +37,29 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                   auto_passcode: Optional[bool] = True,
                   use_support: Optional[bool] = True):
         await default_defer(interaction, False)
-        event_type = self.user_input.correction.event_type_name_to_type(event_type, interaction.guild_id)
-        if await self.user_input.fail.is_not_event_type(interaction, event_type): return
-        if await self.user_input.fail.is_not_raid_leader_for(interaction, interaction.user, event_type): return
-        if await self.user_input.fail.is_custom_run_without_description(interaction, event_type, description): return
-        if await self.user_input.fail.invalid_date_string_format(interaction, event_date): return
-        if await self.user_input.fail.invalid_time_string_format(interaction, event_time): return
-        event_datetime = self.user_input.correction.combine_date_and_time(event_date, event_time)
-        if await self.user_input.fail.event_time_in_past(interaction, event_datetime): return
-        if not event_datetime: return
-        event = Schedule(interaction.guild_id).add(interaction.user.id, event_type, event_datetime, description, auto_passcode, use_support)
-        await self.ui_schedule.rebuild(interaction.guild_id)
-        if event.use_recruitment_posts:
-            await self.ui_recruitment_post.create(interaction.guild_id, event.id)
-        notification_channel = GuildChannels(interaction.guild_id).get(GuildChannelFunction.RUN_NOTIFICATION, event_type)
-        if notification_channel:
-            channel = interaction.guild.get_channel(notification_channel.id)
-            mentions = await GuildPings(interaction.guild_id).get_mention_string(GuildPingType.RUN_NOTIFICATION, event.type)
-            await channel.send(f'{mentions} {await event.to_string()} has been scheduled.')
-        event.create_tasks()
+        event_model = self.user_input.event_creation(
+            interaction,
+            {
+                "raid_leader": interaction.user.id,
+                "event_type": event_type,
+                "date": event_date,
+                "time": event_time,
+                "description": description,
+                "auto_passcode": auto_passcode,
+                "use_support": use_support
+            })
+        if hasattr(interaction, 'signature'):
+            sig = interaction.signature
+            return await self.tasks.until_over(sig)
+        event = Schedule(interaction.guild_id).add(event_model)
         await feedback_and_log(interaction, f'scheduled a {event_type} run #{event.id} for {event_time} with description: <{event.description}>.')
 
     @command(name = "cancel", description = "Cancel a schedule entry.")
     @check(PermissionValidator().is_raid_leader)
     async def cancel(self, interaction: Interaction, event_id: int):
         await default_defer(interaction, False)
-        if await self.user_input.fail.event_does_not_exist(interaction, event_id): return
-        if await self.user_input.fail.cant_change_run(interaction, event_id): return
+        if self.user_input.fail.event_does_not_exist(interaction, event_id): return
+        if self.user_input.fail.cant_change_run(interaction, event_id): return
         Schedule(interaction.guild_id).cancel(event_id)
         await self.ui_recruitment_post.remove(interaction.guild_id, event_id)
         await self.ui_schedule.rebuild(interaction.guild_id)
@@ -76,22 +72,22 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                    event_time: Optional[str] = None, description: Optional[str] = None,
                    auto_passcode: Optional[bool] = None, use_support: Optional[bool] = None):
         await default_defer(interaction, False)
-        if await self.user_input.fail.event_does_not_exist: return
+        if self.user_input.fail.event_does_not_exist: return
         old_event = Schedule(interaction.guild_id).get(event_id)
         check_type = old_event.type if event_type is None else event_type
         if event_type:
             event_type = self.user_input.correction.event_type_name_to_type(event_type, interaction.guild_id)
             check_type = event_type
-        if await self.user_input.fail.is_not_event_type(interaction, event_type): return
-        if await self.user_input.fail.is_not_raid_leader_for(interaction, interaction.user, check_type): return
+        if self.user_input.fail.is_not_event_type(interaction, event_type): return
+        if self.user_input.fail.is_not_raid_leader_for(interaction, interaction.user, check_type): return
         raid_leader = self.user_input.correction.member_name_to_id(interaction.guild_id, raid_leader)
         event = Schedule(interaction.guild_id).get(event_id)
         if event_date:
-            if await self.user_input.fail.invalid_date_string_format(interaction, event_date): return
+            if self.user_input.fail.invalid_date_string_format(interaction, event_date): return
         if event_time:
-            if await self.user_input.fail.invalid_time_string_format(interaction, event_time): return
+            if self.user_input.fail.invalid_time_string_format(interaction, event_time): return
         event_datetime = self.user_input.correction.combine_date_time_change(event.time, event_date, event_time)
-        if await self.user_input.fail.event_time_in_past(interaction, event_datetime): return
+        if self.user_input.fail.event_time_in_past(interaction, event_datetime): return
         if use_support is None: use_support = old_event.use_support
         is_type_change = event_type and event_type != old_event.type
         is_passcode_change = not auto_passcode is None and old_event.auto_passcode != auto_passcode

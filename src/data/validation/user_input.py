@@ -4,12 +4,12 @@ from datetime import datetime
 from centralized_data import Bindable
 from discord import Interaction, Member, TextChannel
 
-from utils.basic_types import EurekaTrackerZone, NotoriousMonster
+from utils.basic_types import EurekaTrackerZone, NotoriousMonster, TaskExecutionType
 from data.events.event_category import EventCategory
 from utils.basic_types import NOTORIOUS_MONSTERS
 from data.events.event_templates import EventTemplates
 from data.events.schedule import Schedule
-from utils.discord_types import API_Interaction
+from utils.discord_types import API_Interaction, InteractionLike
 from utils.logger import feedback_and_log
 from data.validation.permission_validator import PermissionValidator
 
@@ -71,6 +71,10 @@ class _InputCorrection(Bindable):
     """
         Synchronous corrections for user inputs.
     """
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> Bot: ...
+
     def event_type_name_to_type(self, event_type: str, guild_id: int) -> str:
         for event in EventTemplates(guild_id).all:
             if event.description() == event_type:
@@ -87,6 +91,7 @@ class _InputCorrection(Bindable):
         if member_name is None: return None
         if member_name.isnumeric():
             return int(member_name)
+        guild = self.bot.client.get_guild(guild_id)
         member = guild.get_member_named(member_name)
         if member:
             return member.id
@@ -122,97 +127,236 @@ class _FailRaiser(Bindable):
     @_InputChecker.bind
     def check(self) -> _InputChecker: ...
 
-    async def sql_identifiers(self, interaction: Interaction, text: str) -> bool:
+    from data.tasks.tasks import Tasks
+    @Tasks.bind
+    def tasks(self) -> Tasks: ...
+
+    def sql_identifiers(self, interaction: Interaction, text: str) -> bool:
         result = re.search('(\\s|^)(drop|alter|update|set|create|grant|;)\\s', text, re.IGNORECASE)
         if result:
-            await feedback_and_log(interaction, f'tried using text `{text}`, which contains a prohibited SQL word.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried using text `{text}`, which contains a prohibited SQL word.'
+                    ]
+                })
         return result
 
-    async def is_not_notorious_monster(self, interaction: Interaction, notorious_monster: str) -> bool:
+    def is_not_notorious_monster(self, interaction: Interaction, notorious_monster: str) -> bool:
         result = not self.check.is_notorious_monster(notorious_monster)
         if result:
-            await feedback_and_log(interaction, f'tried using {notorious_monster}, which does not correlate to a supported Notorious Monster.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried using {notorious_monster}, which does not correlate to a supported Notorious Monster.'
+                    ]
+                })
         return result
 
-    async def is_not_event_type(self, interaction: Interaction, event_type: str) -> bool:
+    def is_not_event_type(self, interaction: Interaction, event_type: str) -> bool:
         result = not self.check.is_event_type(interaction.guild_id, event_type)
         if result:
-            await feedback_and_log(interaction, f'tried using {event_type}, which does not correlate to a type of supported runs.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried using {event_type}, which does not correlate to a type of supported runs.'
+                    ]
+                })
         return result
 
-    async def is_not_event_category(self, interaction: Interaction, event_type: str) -> bool:
+    def is_not_event_category(self, interaction: Interaction, event_type: str) -> bool:
         result = not self.check.is_event_category(event_type)
         if result:
-            await feedback_and_log(interaction, f'tried using {event_type}, which does not correlate to a supported category.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried using {event_type}, which does not correlate to a supported category.'
+                    ]
+                })
         return result
 
-    async def is_not_event_type_or_category(self, interaction: Interaction, event_type: str) -> bool:
+    def is_not_event_type_or_category(self, interaction: Interaction, event_type: str) -> bool:
         result = not self.check.is_event_type(interaction.guild_id, event_type) and \
             not self.check.is_event_category(event_type)
         if result:
-            await feedback_and_log(interaction, f'tried using {event_type}, which does not correlate to a supported category or run type.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried using {event_type}, which does not correlate to a supported category or run type.'
+                    ]
+                })
         return result
 
-    async def is_not_raid_leader_for(self, interaction: Interaction, member: Member, event_type: str) -> bool:
+    def is_not_raid_leader_for(self, interaction: Interaction, member: Member, event_type: str) -> bool:
         result = not self.check.is_raid_leader_for(interaction.guild_id, member, event_type)
         if result:
-            await feedback_and_log(interaction, f'no roles allowing raid leading for "{event_type}".')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'no roles allowing raid leading for "{event_type}".'
+                    ]
+                })
         return result
 
-    async def is_custom_run_without_description(self, interaction: Interaction, event_type: str, description: str) -> bool:
+    def is_custom_run_without_description(self, interaction: Interaction, event_type: str, description: str) -> bool:
         result = not self.check.is_not_custom_run_or_hes_description(interaction.guild_id, event_type, description)
         if result:
-            await feedback_and_log(interaction, 'tried booking a custom run without description, but description is mandatory for custom runs.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        'tried booking a custom run without description, but description is mandatory for custom runs.'
+                    ]
+                })
         return result
 
-    async def event_does_not_exist(self, interaction: Interaction, event_id: int) -> bool:
+    def event_does_not_exist(self, interaction: Interaction, event_id: int) -> bool:
         result = not self.check.event_exists(interaction.guild_id, event_id)
         if result:
-            await feedback_and_log(interaction, f'tried accessing Event ID <{str(event_id)}>, which does not exist.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried accessing Event ID <{str(event_id)}>, which does not exist.'
+                    ]
+                })
         return result
 
-    async def cant_change_run(self, interaction: Interaction, event_id: int) -> bool:
+    def cant_change_run(self, interaction: Interaction, event_id: int) -> bool:
         result = not self.check.can_change_event(interaction.guild_id, interaction.user.id, event_id)
         if result:
-            await feedback_and_log(interaction, f'tried editing Event ID <{str(event_id)}> without permissions.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried editing Event ID <{str(event_id)}> without permissions.'
+                    ]
+                })
         return result
 
     async def message_not_found(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
         message = await self.message_cache.get(int(message_id), channel)
         result = message is None
         if result:
-            await feedback_and_log(interaction, f'tried accessing Message with ID <{str(message_id)}>, which does not exist in {channel.mention}.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried accessing Message with ID <{str(message_id)}>, which does not exist in {channel.mention}.'
+                    ]
+                })
         return result
 
     async def message_doesnt_contain_embeds(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
         message = await self.message_cache.get(int(message_id), channel)
         result = len(message.embeds) <= 0
         if result:
-            await feedback_and_log(interaction, f'tried accessing embeds in Message with ID <{str(message_id)}>, which does not contain any embeds.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried accessing embeds in Message with ID <{str(message_id)}>, which does not contain any embeds.'
+                    ]
+                })
         return result
 
-    async def is_not_eureka_instance(self, interaction: Interaction, instance: str) -> bool:
+    def is_not_eureka_instance(self, interaction: Interaction, instance: str) -> bool:
         result = not self.check.is_eureka_instance(instance)
         if result:
-            await feedback_and_log(interaction, f'tried inputting eureka instance "{instance}", which does not correlate to a supported eureka instance.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried inputting eureka instance "{instance}", which does not correlate to a supported eureka instance.'
+                    ]
+                })
         return result
 
-    async def event_time_in_past(self, interaction: Interaction, dt: datetime) -> bool:
+    def event_time_in_past(self, interaction: Interaction, dt: datetime) -> bool:
         result = not self.check.event_time(dt)
         if result:
-            await feedback_and_log(interaction, f'tried inputting Date {dt.strftime("%d-%b-%y %H%M")}, which is not in future.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried inputting Date {dt.strftime("%d-%b-%y %H%M")}, which is not in future.'
+                    ]
+                })
         return result
 
-    async def invalid_date_string_format(self, interaction: Interaction, date: str) -> bool:
+    def invalid_date_string_format(self, interaction: Interaction, date: str) -> bool:
         result = not self.check.date_string(date)
         if result:
-            await feedback_and_log(interaction, f'tried inputting Date "{date}", which is not in valid format. Valid format is most easily accessed by using autocomplete.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried inputting Date "{date}", which is not in valid format. Valid format is most easily accessed by using autocomplete.'
+                    ]
+                })
         return result
 
-    async def invalid_time_string_format(self, interaction: Interaction, time: str) -> bool:
+    def invalid_time_string_format(self, interaction: Interaction, time: str) -> bool:
         result = not self.check.time_string(time)
         if result:
-            await feedback_and_log(interaction, f'tried inputting Time "{time}", which is not in valid format. Valid format is most easily accessed by using autocomplete.')
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried inputting Time "{time}", which is not in valid format. Valid format is most easily accessed by using autocomplete.'
+                    ]
+                })
         return result
 
 class UserInput(Bindable):
@@ -224,3 +368,33 @@ class UserInput(Bindable):
 
     @_FailRaiser.bind
     def fail(self) -> _FailRaiser: ...
+
+    from data.tasks.tasks import Tasks
+    @Tasks.bind
+    def tasks(self) -> Tasks: ...
+
+    def event_creation(self, interaction: InteractionLike, event_model: dict) -> dict:
+        event_model["event_type"] = self.correction.event_type_name_to_type(event_model["event_type"], interaction.guild_id)
+        if self.fail.is_not_event_type(interaction, event_model["event_type"]): return None
+        if self.fail.is_not_raid_leader_for(interaction, interaction.user, event_model["event_type"]): return None
+        if self.fail.is_custom_run_without_description(interaction, event_model["event_type"], event_model["description"]): return None
+        if event_model.get("date") and event_model.get("time"):
+            if self.fail.invalid_date_string_format(interaction, event_model["date"]): return None
+            if self.fail.invalid_time_string_format(interaction, event_model["time"]): return None
+            event_model["datetime"] = self.correction.combine_date_and_time(event_model["date"], event_model["time"])
+        elif not event_model.get("datetime"):
+            interaction.signature = self.tasks.add_task(
+                datetime.utcnow(),
+                TaskExecutionType.RUN_ASYNC_METHOD,
+                {
+                    "method": feedback_and_log,
+                    "args": [
+                        interaction,
+                        f'tried creating an event without proper datetime parameters.'
+                    ]
+                })
+            return None
+        if self.fail.event_time_in_past(interaction, event_model["datetime"]): return None
+        event_model["description"] = self.correction.escape_event_description(event_model["description"])
+        return event_model
+

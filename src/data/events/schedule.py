@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from centralized_data import GlobalCollection
-from utils.basic_types import GuildID
-from data.db.sql import SQL, Record, in_transaction
+from utils.basic_types import GuildID, TaskExecutionType
+from data.db.sql import SQL, Record
 from data.events.event import Event
 from data.generators.event_passcode_generator import EventPasscodeGenerator
 
@@ -14,7 +14,7 @@ class EventLike(dict):
         # Keys
         * event_type: str
         * raid_leader: int
-        * time: datetime
+        * datetime: datetime
         * description: str `optional`
         * auto_passcode: bool `optional`
         * use_support: bool `optional`
@@ -24,6 +24,10 @@ class EventLike(dict):
 
 class Schedule(GlobalCollection[GuildID]):
     _list: List[Event]
+
+    from data.tasks.tasks import Tasks
+    @Tasks.bind
+    def tasks(self) -> Tasks: ...
 
     def constructor(self, key: GuildID = None) -> None:
         super().constructor(key)
@@ -43,10 +47,7 @@ class Schedule(GlobalCollection[GuildID]):
     def get(self, event_id: int) -> Event:
         return next(event for event in self._list if event.id == event_id)
 
-    @in_transaction
     def add(self, event: EventLike) -> Event:
-        if event.pop("description", None) is not None:
-            description = event.description.replace('\'', '\'\'')
         auto_passcode = event.pop("auto_passcode", None)
         pass_main = EventPasscodeGenerator.generate() if auto_passcode else 0
         pass_supp = EventPasscodeGenerator.generate() if auto_passcode else 0
@@ -54,8 +55,8 @@ class Schedule(GlobalCollection[GuildID]):
                 guild_id=self.key,
                 raid_leader=event.pop("raid_leader", None),
                 event_type=event.pop("event_type", None),
-                timestamp=event.pop("timestamp", None),
-                description=description,
+                timestamp=event.pop("datetime", None),
+                description=event.pop("description", None),
                 pass_main=pass_main,
                 pass_supp=pass_supp,
                 use_support=event.pop("use_support", None) or False
@@ -63,7 +64,9 @@ class Schedule(GlobalCollection[GuildID]):
             'id')
         self.load()
         result = self.get(id)
+        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_UPDATE, { 'event': result })
         return result
+
 
     def edit(self, id: int, leader: int, event_type: str, datetime: datetime, description: str,
              auto_passcode: bool, use_support: bool) -> Event:

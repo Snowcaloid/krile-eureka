@@ -66,6 +66,8 @@ class TaskExecutionType(Enum):
     POST_SUPPORT_PASSCODE = 6
     REMOVE_BUTTONS = 8
     UPDATE_EUREKA_INFO_POSTS = 9
+    EVENT_UPDATE = 10
+    RUN_ASYNC_METHOD = 11
 
 class EurekaTrackerZone(Enum):
     ANEMOS = 1
