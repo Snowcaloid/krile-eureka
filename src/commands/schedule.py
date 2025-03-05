@@ -41,7 +41,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
             interaction,
             {
                 "raid_leader": interaction.user.id,
-                "event_type": event_type,
+                "type": event_type,
                 "date": event_date,
                 "time": event_time,
                 "description": description,

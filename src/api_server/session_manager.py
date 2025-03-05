@@ -81,9 +81,9 @@ class SessionManager(Bindable):
         try:
             verify_jwt_in_request()
         except UserClaimsVerificationError:
-            api.namespace.abort(403, session_manager.last_error)
+            api.namespace.abort(code=403, message=session_manager.last_error)
         if current_user.id is None or current_user.id < 1:
-            api.namespace.abort(403)
+            api.namespace.abort(code=403)
 
 
 session_manager = SessionManager()

@@ -42,7 +42,7 @@ class LoginRoute(Resource):
         code = api.namespace.payload.get('code')
         code, message = self.discord_identify(code)
         if code < 1000:
-            api.namespace.abort(code, message)
+            api.namespace.abort(code=code, message=message)
         user_id, user_name = code, message
         user = self.session_manager.get_user_by_id(user_id)
         if user is None:

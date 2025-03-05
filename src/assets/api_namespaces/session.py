@@ -35,12 +35,12 @@ class SessionRoute(Resource):
     def get(self):
         self.session_manager.verify(api)
         user_id = int(get_jwt_identity())
-        if user_id is None or user_id < 1: api.namespace.abort(401, 'Invalid user token.')
+        if user_id is None or user_id < 1: api.namespace.abort(code=401, message='Invalid user token.')
         user = self.session_manager.get_user_by_id(user_id)
-        if user is None: api.namespace.abort(401, 'User not found.')
-        if user.user_token is None: api.namespace.abort(401, 'User is not logged in.')
-        if not self.session_manager.is_user_token(): api.namespace.abort(403, 'Session Token cannot be used for session grants.')
-        if not user.user_token in request.headers.get('Authorization'): api.namespace.abort(403, 'Invalid user token.')
+        if user is None: api.namespace.abort(code=401, message='User not found.')
+        if user.user_token is None: api.namespace.abort(code=401, message='User is not logged in.')
+        if not self.session_manager.is_user_token(): api.namespace.abort(code=403, message='Session Token cannot be used for session grants.')
+        if not user.user_token in request.headers.get('Authorization'): api.namespace.abort(code=403, message='Invalid user token.')
         self.session_manager.open_session(user)
         return {
             'token': user.session_token

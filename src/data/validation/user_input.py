@@ -144,6 +144,7 @@ class _FailRaiser(Bindable):
                         f'tried using text `{text}`, which contains a prohibited SQL word.'
                     ]
                 })
+            interaction.error_message = 'Text contains prohibited SQL word.'
         return result
 
     def is_not_notorious_monster(self, interaction: Interaction, notorious_monster: str) -> bool:
@@ -159,6 +160,7 @@ class _FailRaiser(Bindable):
                         f'tried using {notorious_monster}, which does not correlate to a supported Notorious Monster.'
                     ]
                 })
+            interaction.error_message = 'Notorious Monster not found.'
         return result
 
     def is_not_event_type(self, interaction: Interaction, event_type: str) -> bool:
@@ -174,6 +176,7 @@ class _FailRaiser(Bindable):
                         f'tried using {event_type}, which does not correlate to a type of supported runs.'
                     ]
                 })
+            interaction.error_message = 'Run type not found'
         return result
 
     def is_not_event_category(self, interaction: Interaction, event_type: str) -> bool:
@@ -189,6 +192,7 @@ class _FailRaiser(Bindable):
                         f'tried using {event_type}, which does not correlate to a supported category.'
                     ]
                 })
+            interaction.error_message = 'Category not found.'
         return result
 
     def is_not_event_type_or_category(self, interaction: Interaction, event_type: str) -> bool:
@@ -205,6 +209,7 @@ class _FailRaiser(Bindable):
                         f'tried using {event_type}, which does not correlate to a supported category or run type.'
                     ]
                 })
+            interaction.error_message = 'Run type or category not found.'
         return result
 
     def is_not_raid_leader_for(self, interaction: Interaction, member: Member, event_type: str) -> bool:
@@ -220,6 +225,7 @@ class _FailRaiser(Bindable):
                         f'no roles allowing raid leading for "{event_type}".'
                     ]
                 })
+            interaction.error_message = 'No roles allowing raid leading.'
         return result
 
     def is_custom_run_without_description(self, interaction: Interaction, event_type: str, description: str) -> bool:
@@ -235,6 +241,7 @@ class _FailRaiser(Bindable):
                         'tried booking a custom run without description, but description is mandatory for custom runs.'
                     ]
                 })
+            interaction.error_message = 'Custom run must have a description.'
         return result
 
     def event_does_not_exist(self, interaction: Interaction, event_id: int) -> bool:
@@ -250,6 +257,7 @@ class _FailRaiser(Bindable):
                         f'tried accessing Event ID <{str(event_id)}>, which does not exist.'
                     ]
                 })
+            interaction.error_message = 'Event does not exist'
         return result
 
     def cant_change_run(self, interaction: Interaction, event_id: int) -> bool:
@@ -265,6 +273,7 @@ class _FailRaiser(Bindable):
                         f'tried editing Event ID <{str(event_id)}> without permissions.'
                     ]
                 })
+            interaction.error_message = 'No permissions to edit event.'
         return result
 
     async def message_not_found(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
@@ -281,6 +290,7 @@ class _FailRaiser(Bindable):
                         f'tried accessing Message with ID <{str(message_id)}>, which does not exist in {channel.mention}.'
                     ]
                 })
+            interaction.error_message = 'Message not found.'
         return result
 
     async def message_doesnt_contain_embeds(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
@@ -297,6 +307,7 @@ class _FailRaiser(Bindable):
                         f'tried accessing embeds in Message with ID <{str(message_id)}>, which does not contain any embeds.'
                     ]
                 })
+            interaction.error_message = 'Message does not contain embeds.'
         return result
 
     def is_not_eureka_instance(self, interaction: Interaction, instance: str) -> bool:
@@ -312,6 +323,7 @@ class _FailRaiser(Bindable):
                         f'tried inputting eureka instance "{instance}", which does not correlate to a supported eureka instance.'
                     ]
                 })
+            interaction.error_message = 'Eureka instance not found.'
         return result
 
     def event_time_in_past(self, interaction: Interaction, dt: datetime) -> bool:
@@ -327,6 +339,7 @@ class _FailRaiser(Bindable):
                         f'tried inputting Date {dt.strftime("%d-%b-%y %H%M")}, which is not in future.'
                     ]
                 })
+            interaction.error_message = 'Event time is in the past.'
         return result
 
     def invalid_date_string_format(self, interaction: Interaction, date: str) -> bool:
@@ -342,6 +355,7 @@ class _FailRaiser(Bindable):
                         f'tried inputting Date "{date}", which is not in valid format. Valid format is most easily accessed by using autocomplete.'
                     ]
                 })
+            interaction.error_message = 'Invalid date format.'
         return result
 
     def invalid_time_string_format(self, interaction: Interaction, time: str) -> bool:
@@ -357,6 +371,7 @@ class _FailRaiser(Bindable):
                         f'tried inputting Time "{time}", which is not in valid format. Valid format is most easily accessed by using autocomplete.'
                     ]
                 })
+            interaction.error_message = 'Invalid time format.'
         return result
 
 class UserInput(Bindable):
@@ -374,10 +389,10 @@ class UserInput(Bindable):
     def tasks(self) -> Tasks: ...
 
     def event_creation(self, interaction: InteractionLike, event_model: dict) -> dict:
-        event_model["event_type"] = self.correction.event_type_name_to_type(event_model["event_type"], interaction.guild_id)
-        if self.fail.is_not_event_type(interaction, event_model["event_type"]): return None
-        if self.fail.is_not_raid_leader_for(interaction, interaction.user, event_model["event_type"]): return None
-        if self.fail.is_custom_run_without_description(interaction, event_model["event_type"], event_model["description"]): return None
+        event_model["type"] = self.correction.event_type_name_to_type(event_model["type"], interaction.guild_id)
+        if self.fail.is_not_event_type(interaction, event_model["type"]): return None
+        if self.fail.is_not_raid_leader_for(interaction, interaction.user, event_model["type"]): return None
+        if self.fail.is_custom_run_without_description(interaction, event_model["type"], event_model["description"]): return None
         if event_model.get("date") and event_model.get("time"):
             if self.fail.invalid_date_string_format(interaction, event_model["date"]): return None
             if self.fail.invalid_time_string_format(interaction, event_model["time"]): return None
@@ -393,6 +408,7 @@ class UserInput(Bindable):
                         f'tried creating an event without proper datetime parameters.'
                     ]
                 })
+            interaction.error_message = 'Event has no proper datetime parameters.'
             return None
         if self.fail.event_time_in_past(interaction, event_model["datetime"]): return None
         event_model["description"] = self.correction.escape_event_description(event_model["description"])

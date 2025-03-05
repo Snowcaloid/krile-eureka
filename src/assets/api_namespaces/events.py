@@ -1,3 +1,4 @@
+from datetime import timezone
 from typing import Generator, override
 from flask import Response
 from flask_jwt_extended import current_user
@@ -11,6 +12,8 @@ from data.events.event import Event
 from api_server.guild_manager import GuildManager
 from data.events.event_templates import EventTemplates
 from data.events.schedule import Schedule
+from utils.discord_types import API_Interaction
+from dateutil import parser
 
 class EventsNamespace(ApiNamespace):
     @override
@@ -40,7 +43,7 @@ EventModel = api.namespace.model('Krile Event', {
     'id': fields.Integer(required=False, description='Event ID.'),
     'type': fields.String(required=False, description='Event type descriptor.'),
     'guild_id': fields.String(required=False, description='Guild ID.'),
-    'timestamp': fields.DateTime(required=False, description='Event timestamp.'),
+    'datetime': fields.DateTime(required=False, description='Event timestamp.'),
     'description': fields.String(required=False, description='Event description.'),
     'raid_leader': fields.Nested(UserModel, required=False, description='Raid leader.'),
     'party_leaders': fields.List(fields.Nested(UserModel), required=False, description='Party leaders.'),
@@ -73,7 +76,7 @@ def _marshal(event: Event) -> dict:
         "id": event.id,
         "type": event.template.type(),
         "guild_id": event.guild_id,
-        "timestamp": event.time,
+        "datetime": event.time,
         "description": event.real_description,
         "raid_leader": {
             "id": event.users._raid_leader,
@@ -92,15 +95,15 @@ def _marshal(event: Event) -> dict:
 def _unmarshal(event: Event, m_event: dict):
     if 'type' in m_event:
         event.template = EventTemplates(event.guild_id).get(m_event['type'])
-    if 'timestamp' in m_event:
-        event.time = m_event['timestamp']
+    if 'datetime' in m_event:
+        event.time = m_event['datetime']
     if 'description' in m_event:
         event.real_description = m_event['description']
     if 'raid_leader' in m_event:
         event.users._raid_leader = m_event['raid_leader']['id']
     if 'party_leaders' in m_event:
         if len(m_event['party_leaders']) != 7:
-            api.namespace.abort(400, 'Party leaders must be exactly 7.')
+            api.namespace.abort(code=400, message='Party leaders must be exactly 7.')
         event.users._party_leaders = [ leader['id'] for leader in m_event['party_leaders'] ]
     if 'use_support' in m_event:
         event.use_support = m_event['use_support']
@@ -115,12 +118,12 @@ def _get_event(event_id: int = None) -> Event:
     if event_id is None:
         event_id = api.namespace.payload.get("id")
         if event_id is None:
-            api.namespace.abort(400)
+            api.namespace.abort(code=400)
     event = next((event for event in _fetch_all_events() if event.id == event_id), None)
     if event is None:
-        api.namespace.abort(404)
+        api.namespace.abort(code=404)
     if not _event_adjustable_by_user(event):
-        api.namespace.abort(403, 'Event not adjustable by user.')
+        api.namespace.abort(code=403, message='Event not adjustable by user.')
     return event
 
 @api.namespace.route('/')
@@ -128,6 +131,10 @@ class EventsRoute(Resource):
     from api_server.session_manager import SessionManager
     @SessionManager.bind
     def session_manager(self) -> SessionManager: ...
+
+    from data.validation.user_input import UserInput
+    @UserInput.bind
+    def user_input(self) -> UserInput: ...
 
     @api.namespace.doc(security="jsonWebToken")
     @api.namespace.marshal_list_with(EventModel)
@@ -140,19 +147,17 @@ class EventsRoute(Resource):
     @api.namespace.marshal_with(EventModel)
     def put(self):
         self.session_manager.verify(api)
-        guild_id = api.namespace.payload.get("guild_id")
-        if guild_id is None: api.namespace.abort(400, 'Guild ID is missing.')
-        rl = api.namespace.payload.pop("raid_leader")
-        if rl is None: api.namespace.abort(400, 'Raid leader is missing.')
-        rl = rl.get("id")
-        if rl is None: api.namespace.abort(400, 'Raid leader ID is missing.')
-        event_type = api.namespace.payload.pop("type")
-        if event_type is None: api.namespace.abort(400, 'Event type is missing.')
-        event_type = EventTemplates(guild_id).get(event_type)
-        if event_type is None: api.namespace.abort(400, 'Invalid event type.')
-        time = api.namespace.payload.pop("timestamp")
-        if time is None: api.namespace.abort(400, 'Event timestamp is missing.')
-        event = Schedule(int(guild_id)).add(api.namespace.payload)
+        try:
+            api.namespace.payload["datetime"] = parser.isoparse(api.namespace.payload.pop("datetime")).astimezone(timezone.utc).replace(tzinfo=None)
+            guild_id = int(api.namespace.payload.pop("guild_id"))
+            api.namespace.payload["raid_leader"] = api.namespace.payload.pop("raid_leader")["id"]
+            interaction = API_Interaction(current_user.id, guild_id)
+            event_model = self.user_input.event_creation(interaction, api.namespace.payload)
+        except Exception as e:
+            api.namespace.abort(code=400, message=str(e))
+        if event_model is None:
+            api.namespace.abort(code=400, message=interaction.error_message)
+        event = Schedule(int(guild_id)).add(event_model)
         return _marshal(event)
 
 @api.namespace.route('/<int:guild_id>')

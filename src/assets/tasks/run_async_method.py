@@ -15,8 +15,8 @@ class Task_RunAsyncMethod(TaskTemplate):
     async def execute(self, obj: object) -> None:
         if obj.get("method"):
             method: callable = obj["method"]
-            args = obj.get("args")
-            kwargs = obj.get("kwargs")
+            args = obj.get("args", [])
+            kwargs = obj.get("kwargs", {})
             await method(*args, **kwargs)
 
 

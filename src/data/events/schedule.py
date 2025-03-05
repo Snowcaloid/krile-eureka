@@ -53,9 +53,9 @@ class Schedule(GlobalCollection[GuildID]):
         pass_supp = EventPasscodeGenerator.generate() if auto_passcode else 0
         id = SQL('events').insert(Record(
                 guild_id=self.key,
-                raid_leader=event.pop("raid_leader", None),
-                event_type=event.pop("event_type", None),
-                timestamp=event.pop("datetime", None),
+                raid_leader=event.pop("raid_leader"),
+                event_type=event.pop("type"),
+                timestamp=event.pop("datetime"),
                 description=event.pop("description", None),
                 pass_main=pass_main,
                 pass_supp=pass_supp,

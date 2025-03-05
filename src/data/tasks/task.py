@@ -16,10 +16,10 @@ class TaskTemplate(PythonAsset):
     def type(cl) -> TaskExecutionType: return TaskExecutionType.NONE
 
     async def handle_exception(cl, e: Exception, obj: object) -> None:
-        if obj["guild"]:
+        if obj.get("guild"):
             await guild_log_message(obj["guild"], e)
         else:
-            raise e
+            print(e)
 
     def runtime_only(cl) -> bool: return False
 
