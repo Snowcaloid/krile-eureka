@@ -67,9 +67,9 @@ def _fetch_all_events() -> Generator[Event, None, None]:
 
 client = Bot().client
 
-def _username(user_id: int) -> str:
+def _username(guild_id: int, user_id: int) -> str:
     if user_id is None or user_id < 1: return None
-    return client.get_user(user_id).name
+    return client.get_guild(guild_id).get_member(user_id).display_name
 
 def _marshal(event: Event) -> dict:
     return {
@@ -80,11 +80,11 @@ def _marshal(event: Event) -> dict:
         "description": event.real_description,
         "raid_leader": {
             "id": event.users._raid_leader,
-            "name": _username(event.users._raid_leader)
+            "name": _username(event.guild_id, event.users._raid_leader)
         },
         "party_leaders": [ {
             "id": leader,
-            "name": _username(leader)
+            "name": _username(event.guild_id, leader)
         } for leader in event.users._party_leaders ],
         "use_support": event.use_support,
         "pass_main": event.passcode_main,
