@@ -68,6 +68,7 @@ class TaskExecutionType(Enum):
     UPDATE_EUREKA_INFO_POSTS = 9
     EVENT_UPDATE = 10
     RUN_ASYNC_METHOD = 11
+    EVENT_CANCEL = 12
 
 class EurekaTrackerZone(Enum):
     ANEMOS = 1

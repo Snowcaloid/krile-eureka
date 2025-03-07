@@ -1,6 +1,7 @@
 from uuid import uuid4
 from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
+from data.events.event import Event
 from data.events.schedule import Schedule
 from data.guilds.guild_channel import GuildChannel, GuildChannels
 from utils.basic_types import GuildMessageFunction
@@ -77,9 +78,7 @@ class UIRecruitmentPost(Bindable):
             message = await message.edit(embed=embed)
         return message
 
-    async def remove(self, guild_id: int, event_id: int) -> GuildChannel:
-        event = Schedule(guild_id).get(event_id)
-        if event is None: return
+    async def remove(self, guild_id: int, event: Event) -> GuildChannel:
         channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = self.bot.client.get_channel(channel_data.id)

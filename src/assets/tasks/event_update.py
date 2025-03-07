@@ -5,6 +5,8 @@ from data.guilds.guild_pings import GuildPings
 from utils.basic_types import GuildChannelFunction, GuildPingType, TaskExecutionType
 from data.events.event import Event
 from data.tasks.task import TaskTemplate
+from utils.discord_types import InteractionLike
+from utils.logger import feedback_and_log
 
 
 class Task_EventUpdate(TaskTemplate):
@@ -30,6 +32,7 @@ class Task_EventUpdate(TaskTemplate):
     async def execute(self, obj: object) -> None:
         if obj.get("event"):
             event: Event = obj["event"]
+            interaction: InteractionLike = obj["interaction"]
             await self.ui_schedule.rebuild(event.guild_id)
             if event.use_recruitment_posts:
                 await self.ui_recruitment_post.create(event.guild_id, event.id)
@@ -39,5 +42,6 @@ class Task_EventUpdate(TaskTemplate):
                 mentions = await GuildPings(event.guild_id).get_mention_string(GuildPingType.RUN_NOTIFICATION, event.type)
                 await channel.send(f'{mentions} {await event.to_string()} has been scheduled.')
             event.create_tasks()
+            await feedback_and_log(interaction, f'scheduled a {event.type} run #{event.id} for {event.time} with description: <{event.description}>.')
 
 

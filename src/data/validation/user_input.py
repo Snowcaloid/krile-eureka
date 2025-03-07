@@ -414,3 +414,7 @@ class UserInput(Bindable):
         event_model["description"] = self.correction.escape_event_description(event_model["description"])
         return event_model
 
+    def event_cancellation(self, interaction: Interaction, event_id: int) -> bool:
+        return not self.fail.event_does_not_exist(interaction, event_id) and \
+            not self.fail.cant_change_run(interaction, event_id)
+

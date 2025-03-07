@@ -8,6 +8,8 @@ from data.generators.event_passcode_generator import EventPasscodeGenerator
 from datetime import datetime
 from typing import List
 
+from utils.discord_types import InteractionLike
+
 @dataclass
 class EventLike(dict):
     """
@@ -47,7 +49,7 @@ class Schedule(GlobalCollection[GuildID]):
     def get(self, event_id: int) -> Event:
         return next(event for event in self._list if event.id == event_id)
 
-    def add(self, event: EventLike) -> Event:
+    def add(self, event: EventLike, interaction: InteractionLike) -> Event:
         auto_passcode = event.pop("auto_passcode", None)
         pass_main = EventPasscodeGenerator.generate() if auto_passcode else 0
         pass_supp = EventPasscodeGenerator.generate() if auto_passcode else 0
@@ -64,7 +66,7 @@ class Schedule(GlobalCollection[GuildID]):
             'id')
         self.load()
         result = self.get(id)
-        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_UPDATE, { 'event': result })
+        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_UPDATE, { 'event': result, 'interaction': interaction })
         return result
 
 
@@ -89,9 +91,12 @@ class Schedule(GlobalCollection[GuildID]):
         SQL('events').update(Record(finished=True), f'id={event_id}')
         self.load()
 
-    def cancel(self, event_id: int):
+    def cancel(self, event_id: int, interaction: InteractionLike) -> None:
+        event = self.get(event_id)
         SQL('events').update(Record(canceled=True), f'id={event_id}')
         self.load()
+        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_CANCEL,
+                            { 'event': event, 'guild': self.key, 'interaction': interaction })
 
     def contains(self, event_id: int) -> bool:
         return not self.get(event_id) is None

@@ -66,7 +66,9 @@ class Permission:
             self.modules.any,
             self.apiRequests])
 
-type Permissions = List[Permission]
+class Permissions(List[Permission]):
+    def for_guild(self, guild_id: int) -> Permission:
+        return next(perm for perm in self if perm.guild.id == guild_id)
 
 class PermissionManager(GlobalCollection[int]):
     from data.validation.permission_validator import PermissionValidator
@@ -77,7 +79,7 @@ class PermissionManager(GlobalCollection[int]):
         super().constructor(key)
 
     def calculate(self) -> Permissions:
-        permissions: Permissions = []
+        permissions: Permissions = Permissions()
         for guild in GuildManager(self.key).all:
             permission = Permission(guild=Permission.Guild(id=guild.id, name=guild.name))
             self.calculate_categories(permission, guild.id)

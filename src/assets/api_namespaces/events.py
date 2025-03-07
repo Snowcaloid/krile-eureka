@@ -14,6 +14,7 @@ from data.events.event_templates import EventTemplates
 from data.events.schedule import Schedule
 from utils.discord_types import API_Interaction
 from dateutil import parser
+from data.validation.user_input import UserInput
 
 class EventsNamespace(ApiNamespace):
     @override
@@ -60,7 +61,7 @@ EventDeleteModel = api.namespace.model('Krile Event Cancellation', {
 def _fetch_all_events() -> Generator[Event, None, None]:
     permissions = PermissionManager(current_user.id).calculate()
     for guild in GuildManager(current_user.id).all:
-        allowed_categories = permissions[guild.id].raid_leading.categories
+        allowed_categories = permissions.for_guild(guild.id).raid_leading.categories
         for event in Schedule(guild.id).all:
             if event.category.value in allowed_categories:
                 yield event
@@ -112,7 +113,7 @@ def _unmarshal(event: Event, m_event: dict):
 
 def _event_adjustable_by_user(event: Event) -> bool:
     permissions = PermissionManager(current_user.id).calculate()
-    return event.category.value in permissions[event.guild_id].raid_leading.categories
+    return event.category.value in permissions.for_guild(event.guild_id).raid_leading.categories
 
 def _get_event(event_id: int = None) -> Event:
     if event_id is None:
@@ -132,7 +133,6 @@ class EventsRoute(Resource):
     @SessionManager.bind
     def session_manager(self) -> SessionManager: ...
 
-    from data.validation.user_input import UserInput
     @UserInput.bind
     def user_input(self) -> UserInput: ...
 
@@ -157,7 +157,7 @@ class EventsRoute(Resource):
             api.namespace.abort(code=400, message=str(e))
         if event_model is None:
             api.namespace.abort(code=400, message=interaction.error_message)
-        event = Schedule(int(guild_id)).add(event_model)
+        event = Schedule(int(guild_id)).add(event_model, interaction)
         return _marshal(event)
 
 @api.namespace.route('/<int:guild_id>')
@@ -178,6 +178,9 @@ class EventsRoute(Resource):
     @SessionManager.bind
     def session_manager(self) -> SessionManager: ...
 
+    @UserInput.bind
+    def user_input(self) -> UserInput: ...
+
     @api.namespace.doc(security="jsonWebToken")
     @api.namespace.expect(EventModel)
     @api.namespace.marshal_with(EventModel)
@@ -191,5 +194,8 @@ class EventsRoute(Resource):
     def delete(self, event_id: int):
         self.session_manager.verify(api)
         event = _get_event(event_id)
-        Schedule(event.guild_id).cancel(event.id)
+        interaction = API_Interaction(current_user.id, event.guild_id)
+        if not self.user_input.event_cancellation(interaction, event_id):
+            api.namespace.abort(code=400, message=interaction.error_message)
+        Schedule(event.guild_id).cancel(event.id, interaction)
         return Response(status=200)

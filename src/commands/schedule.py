@@ -51,19 +51,14 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if hasattr(interaction, 'signature'):
             sig = interaction.signature
             return await self.tasks.until_over(sig)
-        event = Schedule(interaction.guild_id).add(event_model)
-        await feedback_and_log(interaction, f'scheduled a {event_type} run #{event.id} for {event_time} with description: <{event.description}>.')
+        Schedule(interaction.guild_id).add(event_model, interaction)
 
     @command(name = "cancel", description = "Cancel a schedule entry.")
     @check(PermissionValidator().is_raid_leader)
     async def cancel(self, interaction: Interaction, event_id: int):
         await default_defer(interaction, False)
-        if self.user_input.fail.event_does_not_exist(interaction, event_id): return
-        if self.user_input.fail.cant_change_run(interaction, event_id): return
-        Schedule(interaction.guild_id).cancel(event_id)
-        await self.ui_recruitment_post.remove(interaction.guild_id, event_id)
-        await self.ui_schedule.rebuild(interaction.guild_id)
-        await feedback_and_log(interaction, f'canceled the run #{event_id}.')
+        if not self.user_input.event_cancellation(interaction, event_id): return
+        Schedule(interaction.guild_id).cancel(event_id, interaction)
 
     @command(name = "edit", description = "Edit an entry from the schedule.")
     @check(PermissionValidator().is_raid_leader)
@@ -94,7 +89,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         is_time_change = old_event.time != event_datetime
         is_support_change = not use_support is None and old_event.use_support != use_support
         if is_type_change:
-            await self.ui_recruitment_post.remove(interaction.guild_id, event_id)
+            await self.ui_recruitment_post.remove(interaction.guild_id, event)
         old_event = copy.deepcopy(old_event)
         event = Schedule(interaction.guild_id).edit(event_id, raid_leader, event_type, event_datetime,
                          self.user_input.correction.escape_event_description(description), auto_passcode, use_support)
