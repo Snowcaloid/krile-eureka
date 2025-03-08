@@ -1,7 +1,7 @@
 from datetime import datetime
 from functools import wraps
 from sys import exc_info
-from typing import Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple, TypeVar
 
 from data.db.database import Database, PgColumnValue, pg_timestamp
 
@@ -21,7 +21,9 @@ class Transaction(Record):
     def __del__(self):
         self.DATABASE.disconnect(exc_info() is None)
 
-def in_transaction(func: Callable) -> Callable:
+T = TypeVar('T', bound=Callable[..., Any])
+
+def in_transaction(func: T) -> T:
     @wraps(func)
     def wrapper(*args, **kwargs):
         Transaction()

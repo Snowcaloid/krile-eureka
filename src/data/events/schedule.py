@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass
 from centralized_data import GlobalCollection
 from utils.basic_types import GuildID, TaskExecutionType
@@ -66,25 +67,16 @@ class Schedule(GlobalCollection[GuildID]):
             'id')
         self.load()
         result = self.get(id)
-        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_UPDATE, { 'event': result, 'interaction': interaction })
+        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_UPDATE,
+                            { 'event': result, 'interaction': interaction })
         return result
 
-
-    def edit(self, id: int, leader: int, event_type: str, datetime: datetime, description: str,
-             auto_passcode: bool, use_support: bool) -> Event:
+    def edit(self, id: int, model: dict, interaction: InteractionLike) -> Event:
         event = self.get(id)
-        if event.time != datetime:
-            event.time = datetime
-        if not auto_passcode is None and event.auto_passcode != auto_passcode:
-            event.auto_passcode = auto_passcode
-        if not leader is None:
-            event.users.raid_leader = leader
-        if not event_type is None:
-            event.type = event_type
-        if description:
-            event.description = description
-        if event.template.use_support() and (use_support != event.use_support):
-            event.use_support = use_support
+        old_event = deepcopy(event)
+        event.unmarshal(model)
+        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_UPDATE,
+                            { 'event': event, 'changes': model, 'interaction': interaction, 'old_event': old_event })
         return event
 
     def finish(self, event_id: int):

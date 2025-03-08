@@ -1,8 +1,9 @@
 from __future__ import annotations
+from copy import deepcopy
 import re
 from datetime import datetime
 from centralized_data import Bindable
-from discord import Interaction, Member, TextChannel
+from discord import Member, TextChannel
 
 from utils.basic_types import EurekaTrackerZone, NotoriousMonster, TaskExecutionType
 from data.events.event_category import EventCategory
@@ -10,6 +11,7 @@ from utils.basic_types import NOTORIOUS_MONSTERS
 from data.events.event_templates import EventTemplates
 from data.events.schedule import Schedule
 from utils.discord_types import API_Interaction, InteractionLike
+from utils.functions import user_display_name
 from utils.logger import feedback_and_log
 from data.validation.permission_validator import PermissionValidator
 
@@ -131,7 +133,7 @@ class _FailRaiser(Bindable):
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 
-    def sql_identifiers(self, interaction: Interaction, text: str) -> bool:
+    def sql_identifiers(self, interaction: InteractionLike, text: str) -> bool:
         result = re.search('(\\s|^)(drop|alter|update|set|create|grant|;)\\s', text, re.IGNORECASE)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -147,7 +149,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Text contains prohibited SQL word.'
         return result
 
-    def is_not_notorious_monster(self, interaction: Interaction, notorious_monster: str) -> bool:
+    def is_not_notorious_monster(self, interaction: InteractionLike, notorious_monster: str) -> bool:
         result = not self.check.is_notorious_monster(notorious_monster)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -163,7 +165,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Notorious Monster not found.'
         return result
 
-    def is_not_event_type(self, interaction: Interaction, event_type: str) -> bool:
+    def is_not_event_type(self, interaction: InteractionLike, event_type: str) -> bool:
         result = not self.check.is_event_type(interaction.guild_id, event_type)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -179,7 +181,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Run type not found'
         return result
 
-    def is_not_event_category(self, interaction: Interaction, event_type: str) -> bool:
+    def is_not_event_category(self, interaction: InteractionLike, event_type: str) -> bool:
         result = not self.check.is_event_category(event_type)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -195,7 +197,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Category not found.'
         return result
 
-    def is_not_event_type_or_category(self, interaction: Interaction, event_type: str) -> bool:
+    def is_not_event_type_or_category(self, interaction: InteractionLike, event_type: str) -> bool:
         result = not self.check.is_event_type(interaction.guild_id, event_type) and \
             not self.check.is_event_category(event_type)
         if result:
@@ -212,7 +214,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Run type or category not found.'
         return result
 
-    def is_not_raid_leader_for(self, interaction: Interaction, member: Member, event_type: str) -> bool:
+    def is_not_raid_leader_for(self, interaction: InteractionLike, member: Member, event_type: str) -> bool:
         result = not self.check.is_raid_leader_for(interaction.guild_id, member, event_type)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -228,7 +230,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'No roles allowing raid leading.'
         return result
 
-    def is_custom_run_without_description(self, interaction: Interaction, event_type: str, description: str) -> bool:
+    def is_custom_run_without_description(self, interaction: InteractionLike, event_type: str, description: str) -> bool:
         result = not self.check.is_not_custom_run_or_hes_description(interaction.guild_id, event_type, description)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -244,7 +246,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Custom run must have a description.'
         return result
 
-    def event_does_not_exist(self, interaction: Interaction, event_id: int) -> bool:
+    def event_does_not_exist(self, interaction: InteractionLike, event_id: int) -> bool:
         result = not self.check.event_exists(interaction.guild_id, event_id)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -260,7 +262,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Event does not exist'
         return result
 
-    def cant_change_run(self, interaction: Interaction, event_id: int) -> bool:
+    def cant_change_run(self, interaction: InteractionLike, event_id: int) -> bool:
         result = not self.check.can_change_event(interaction.guild_id, interaction.user.id, event_id)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -276,7 +278,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'No permissions to edit event.'
         return result
 
-    async def message_not_found(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
+    async def message_not_found(self, interaction: InteractionLike, channel: TextChannel, message_id: int) -> bool:
         message = await self.message_cache.get(int(message_id), channel)
         result = message is None
         if result:
@@ -293,7 +295,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Message not found.'
         return result
 
-    async def message_doesnt_contain_embeds(self, interaction: Interaction, channel: TextChannel, message_id: int) -> bool:
+    async def message_doesnt_contain_embeds(self, interaction: InteractionLike, channel: TextChannel, message_id: int) -> bool:
         message = await self.message_cache.get(int(message_id), channel)
         result = len(message.embeds) <= 0
         if result:
@@ -310,7 +312,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Message does not contain embeds.'
         return result
 
-    def is_not_eureka_instance(self, interaction: Interaction, instance: str) -> bool:
+    def is_not_eureka_instance(self, interaction: InteractionLike, instance: str) -> bool:
         result = not self.check.is_eureka_instance(instance)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -326,7 +328,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Eureka instance not found.'
         return result
 
-    def event_time_in_past(self, interaction: Interaction, dt: datetime) -> bool:
+    def event_time_in_past(self, interaction: InteractionLike, dt: datetime) -> bool:
         result = not self.check.event_time(dt)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -342,7 +344,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Event time is in the past.'
         return result
 
-    def invalid_date_string_format(self, interaction: Interaction, date: str) -> bool:
+    def invalid_date_string_format(self, interaction: InteractionLike, date: str) -> bool:
         result = not self.check.date_string(date)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -358,7 +360,7 @@ class _FailRaiser(Bindable):
             interaction.error_message = 'Invalid date format.'
         return result
 
-    def invalid_time_string_format(self, interaction: Interaction, time: str) -> bool:
+    def invalid_time_string_format(self, interaction: InteractionLike, time: str) -> bool:
         result = not self.check.time_string(time)
         if result:
             interaction.signature = self.tasks.add_task(
@@ -414,7 +416,42 @@ class UserInput(Bindable):
         event_model["description"] = self.correction.escape_event_description(event_model["description"])
         return event_model
 
-    def event_cancellation(self, interaction: Interaction, event_id: int) -> bool:
+    def event_cancellation(self, interaction: InteractionLike, event_id: int) -> bool:
         return not self.fail.event_does_not_exist(interaction, event_id) and \
             not self.fail.cant_change_run(interaction, event_id)
 
+    def event_change(self, interaction: InteractionLike, event_model: dict) -> dict:
+        event_model = { key: value for key, value in event_model.items() if value is not None }
+        if self.fail.event_does_not_exist(interaction, event_model.get("id")): return None
+        old_event = Schedule(interaction.guild_id).get(event_model.get("id"))
+        if event_model.get("type"):
+            event_model["type"] = self.correction.event_type_name_to_type(event_model.pop("type"), interaction.guild_id)
+            if self.fail.is_not_event_type(interaction, event_model.get("type")): return None
+            if self.fail.is_not_raid_leader_for(interaction, interaction.user, event_model.get("type")): return None
+        if event_model.get("raid_leader"):
+            event_model["raid_leader"] = self.correction.member_name_to_id(interaction.guild_id, event_model.pop("raid_leader"))
+            event_model["raid_leader"] = {
+                "id": event_model["raid_leader"],
+                "name": user_display_name(old_event.guild_id, event_model["raid_leader"])
+            }
+        if event_model.get("date"):
+            if self.fail.invalid_date_string_format(interaction, event_model["date"]): return None
+        if event_model.get("time"):
+            if self.fail.invalid_time_string_format(interaction, event_model["time"]): return None
+        if event_model.get("date") or event_model.get("time"):
+            event_model["datetime"] = self.correction.combine_date_time_change(
+                old_event.time, event_model.pop("date"), event_model.pop("time"))
+        if "date" in event_model.keys():
+            event_model.pop("date")
+        if "time" in event_model.keys():
+            event_model.pop("time")
+        if event_model.get("datetime"):
+            if self.fail.event_time_in_past(interaction, event_model.get("datetime")): return None
+        if event_model.get("description"):
+            event_model["description"] = self.correction.escape_event_description(event_model.pop("description"))
+        old_event_model = old_event.marshal()
+        changes = deepcopy(event_model)
+        changes = { key: value for key, value in changes.items() if value != old_event_model[key] }
+        if "type" in changes.keys():
+            changes["recruitment_post_to_delete"] = old_event.recruitment_post
+        return changes

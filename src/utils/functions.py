@@ -6,6 +6,7 @@ from enum import Enum
 
 from bot import Bot
 
+client = Bot().client
 
 class DiscordTimestampType(Enum):
     """Enum for the discord timestamp display format."""
@@ -35,9 +36,7 @@ def get_discord_timestamp(date: datetime, timestamp_type: DiscordTimestampType =
 
 async def get_mention(guild_id: int, user_id: int) -> str:
     if user_id:
-        guild = Bot().client.get_guild(guild_id)
-        if guild:
-            return guild.get_member(user_id).mention
+        return client.get_guild(guild_id).get_member(user_id).mention
     else:
         return ''
 
@@ -50,8 +49,7 @@ async def get_discord_member(guild_id: int, user_id: int) -> Member:
     :param user_id: The ID of the user.
     :return: The discord.Member object.
     """
-    guild = Bot().client.get_guild(guild_id)
-    return await guild.fetch_member(user_id)
+    return await client.get_guild(guild_id).fetch_member(user_id)
 
 async def default_defer(interaction: Interaction, ephemeral: bool = True):
     await interaction.response.defer(thinking=True, ephemeral=ephemeral)
@@ -72,3 +70,8 @@ def delta_to_string(delta: timedelta) -> str:
 
 def find_nearest_role(guild: Guild, role_name: str) -> Role:
     return next(role for role in guild.roles if role.name.lower().startswith(role_name.lower()))
+
+
+def user_display_name(guild_id: int, user_id: int) -> str:
+    if user_id is None or user_id < 1: return None
+    return client.get_guild(guild_id).get_member(user_id).display_name

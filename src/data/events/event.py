@@ -4,7 +4,7 @@ from discord import Interaction, Member
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
 from typing import List, Tuple, Type
-from data.db.sql import SQL, Record
+from data.db.sql import SQL, Record, in_transaction
 from data.events.event_template import EventTemplate
 from data.events.event_templates import EventTemplates
 from data.generators.event_passcode_generator import EventPasscodeGenerator
@@ -12,7 +12,7 @@ from utils.basic_types import GuildChannelFunction
 from utils.basic_types import TaskExecutionType
 
 from data.guilds.guild_channel import GuildChannels
-from utils.functions import DiscordTimestampType, get_discord_member, get_discord_timestamp
+from utils.functions import DiscordTimestampType, get_discord_member, get_discord_timestamp, user_display_name
 
 class EventUserData:
     event_id: int
@@ -56,7 +56,7 @@ PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 class Event:
     template: EventTemplate
     id: int
-    _pl_post_id: int
+    _recruitment_post: int
     _time: datetime
     guild_id: int
     users: EventUserData
@@ -83,7 +83,7 @@ class Event:
                                       where=f'id={id}')
         if record:
             self.id = id
-            self._pl_post_id = record['pl_post_id']
+            self._recruitment_post = record['pl_post_id']
             self._time = record['timestamp']
             self._description = record['description']
             self.passcode_main = record['pass_main']
@@ -92,6 +92,45 @@ class Event:
             self.template = EventTemplates(self.guild_id).get(record['event_type'])
             self._use_support = self.template.use_support() and record['use_support']
             self.users.load(id)
+
+    def marshal(self) -> dict:
+        return {
+            "id": self.id,
+            "type": self.template.type(),
+            "guild_id": self.guild_id,
+            "datetime": self.time,
+            "description": self.real_description,
+            "raid_leader": {
+                "id": self.users._raid_leader,
+                "name": user_display_name(self.guild_id, self.users._raid_leader)
+            },
+            "party_leaders": [ {
+                "id": leader,
+                "name": user_display_name(self.guild_id, leader)
+            } for leader in self.users._party_leaders ],
+            "use_support": self.use_support,
+            "pass_main": self.passcode_main,
+            "pass_supp": self.passcode_supp,
+            "auto_passcode": self.auto_passcode
+        }
+
+    @in_transaction
+    def unmarshal(self, model: dict) -> None:
+        if 'type' in model:
+            self.template = EventTemplates(self.guild_id).get(model['type'])
+        if 'datetime' in model:
+            self.time = model['datetime']
+        if 'description' in model:
+            self.real_description = model['description']
+        if 'raid_leader' in model:
+            self.users.raid_leader = model['raid_leader']['id']
+        if 'party_leaders' in model:
+            for i in range(7):
+                self.users.party_leaders[i] = model['party_leaders'][i]['id']
+        if 'use_support' in model:
+            self.use_support = model['use_support']
+        if 'auto_passcode' in model:
+            self.auto_passcode = model['auto_passcode']
 
     @property
     def real_description(self) -> str:
@@ -262,11 +301,11 @@ class Event:
             passcode=self.passcode_main)
 
     @property
-    def pl_post_id(self) -> int:
-        return self._pl_post_id
+    def recruitment_post(self) -> int:
+        return self._recruitment_post
 
-    @pl_post_id.setter
-    def pl_post_id(self, value: int) -> None:
+    @recruitment_post.setter
+    def recruitment_post(self, value: int) -> None:
         SQL('events').update(Record(pl_post_id=value), f'id={self.id}')
         self.load(self.id)
 
@@ -275,7 +314,7 @@ class Event:
         if self.use_recruitment_posts and self.delete_recruitment_posts:
             channel_data = GuildChannels(self.guild_id).get(GuildChannelFunction.PL_CHANNEL, self.type)
             if channel_data:
-                self._tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
+                self._tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.recruitment_post})
         if not self.auto_passcode: return
         self._tasks.add_task(self.time - self.main_passcode_delay, TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
         self._tasks.add_task(self.time - self.pl_passcode_delay, TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
@@ -287,7 +326,7 @@ class Event:
         self._tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
         self._tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
         self._tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_RUNS, {"id": self.id, "guild": self.guild_id})
-        self._tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.pl_post_id})
+        self._tasks.remove_task_by_data(TaskExecutionType.REMOVE_OLD_MESSAGE, {"guild": self.guild_id, "message_id": self.recruitment_post})
 
     def recreate_tasks(self) -> None:
         self.delete_tasks()
@@ -297,22 +336,3 @@ class Event:
         raid_leader = await get_discord_member(self.guild_id, self.users.raid_leader)
         discord_timestamp = get_discord_timestamp(self.time, DiscordTimestampType.RELATIVE)
         return f'{self.template.short_description()} by {raid_leader.display_name} at {self.time} ST {discord_timestamp}'
-
-    def get_changes(self, interaction: Interaction, old_event: Type['Event']) -> str:
-        result = []
-        if self.type != old_event.type:
-            result.append(f'* Run Type changed from {old_event.template.short_description()} to {self.template.short_description()}')
-        if self.time != old_event.time:
-            result.append(f'* Run Time changed from {old_event.time} ST to {self.time} ST')
-        if self.users.raid_leader != old_event.users.raid_leader:
-            result.append(f'* Raid Leader changed from {interaction.guild.get_member(old_event.users.raid_leader).mention} to {interaction.guild.get_member(self.users.raid_leader).mention}')
-        if self.auto_passcode != old_event.auto_passcode:
-            result.append(f'* Auto Passcode changed from {str(old_event.auto_passcode)} to {str(self.auto_passcode)}')
-        if self.use_support != old_event.use_support:
-            result.append(f'* Use Support changed from {str(old_event.use_support)} to {str(self.use_support)}')
-        if self.real_description != old_event.real_description:
-            result.append(f'* Description changed from "{old_event.real_description}" to "{self.real_description}"')
-        if not result:
-            result.append('No changes.')
-        return "\n".join(result)
-

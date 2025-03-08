@@ -67,40 +67,20 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
                    event_time: Optional[str] = None, description: Optional[str] = None,
                    auto_passcode: Optional[bool] = None, use_support: Optional[bool] = None):
         await default_defer(interaction, False)
-        if self.user_input.fail.event_does_not_exist: return
-        old_event = Schedule(interaction.guild_id).get(event_id)
-        check_type = old_event.type if event_type is None else event_type
-        if event_type:
-            event_type = self.user_input.correction.event_type_name_to_type(event_type, interaction.guild_id)
-            check_type = event_type
-        if self.user_input.fail.is_not_event_type(interaction, event_type): return
-        if self.user_input.fail.is_not_raid_leader_for(interaction, interaction.user, check_type): return
-        raid_leader = self.user_input.correction.member_name_to_id(interaction.guild_id, raid_leader)
-        event = Schedule(interaction.guild_id).get(event_id)
-        if event_date:
-            if self.user_input.fail.invalid_date_string_format(interaction, event_date): return
-        if event_time:
-            if self.user_input.fail.invalid_time_string_format(interaction, event_time): return
-        event_datetime = self.user_input.correction.combine_date_time_change(event.time, event_date, event_time)
-        if self.user_input.fail.event_time_in_past(interaction, event_datetime): return
-        if use_support is None: use_support = old_event.use_support
-        is_type_change = event_type and event_type != old_event.type
-        is_passcode_change = not auto_passcode is None and old_event.auto_passcode != auto_passcode
-        is_time_change = old_event.time != event_datetime
-        is_support_change = not use_support is None and old_event.use_support != use_support
-        if is_type_change:
-            await self.ui_recruitment_post.remove(interaction.guild_id, event)
-        old_event = copy.deepcopy(old_event)
-        event = Schedule(interaction.guild_id).edit(event_id, raid_leader, event_type, event_datetime,
-                         self.user_input.correction.escape_event_description(description), auto_passcode, use_support)
-        if is_type_change:
-            await self.ui_recruitment_post.create(interaction.guild_id, event_id)
-        if is_time_change or is_passcode_change or is_support_change:
-            event.recreate_tasks()
-        await self.ui_schedule.rebuild(interaction.guild_id)
-        await self.ui_recruitment_post.rebuild(interaction.guild_id, event_id, True)
-        changes = event.get_changes(interaction, old_event)
-        await feedback_and_log(interaction, f'adjusted run #{str(event_id)}:\n{changes}')
+        changes = self.user_input.event_change(interaction, {
+            "id": event_id,
+            "type": event_type,
+            "raid_leader": raid_leader,
+            "date": event_date,
+            "time": event_time,
+            "description": description,
+            "auto_passcode": auto_passcode,
+            "use_support": use_support
+        })
+        if hasattr(interaction, 'signature'):
+            sig = interaction.signature
+            return await self.tasks.until_over(sig)
+        Schedule(interaction.guild_id).edit(event_id, changes, interaction)
 
     @add.autocomplete('event_type')
     @edit.autocomplete('event_type')

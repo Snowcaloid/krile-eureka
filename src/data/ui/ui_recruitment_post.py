@@ -33,7 +33,7 @@ class UIRecruitmentPost(Bindable):
         if channel is None: return
         pings = await GuildPings(guild_id).get_mention_string(GuildPingType.PL_POST, event.type)
         message = await channel.send(pings, embed=Embed(description='...'))
-        event.pl_post_id = message.id
+        event.recruitment_post = message.id
         message = await self.rebuild(guild_id, id, True)
         GuildMessages(guild_id).add(message.id, channel.id, GuildMessageFunction.PL_POST)
         if event.use_recruitment_post_threads:
@@ -45,11 +45,11 @@ class UIRecruitmentPost(Bindable):
         channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = self.bot.client.get_channel(channel_data.id)
-        message = await self.message_cache.get(event.pl_post_id, channel)
+        message = await self.message_cache.get(event.recruitment_post, channel)
         if message is None: return
         embed = Embed(title=event.recruitment_post_title, description=event.recruitment_post_text)
         if recreate_view:
-            delete_buttons(event.pl_post_id)
+            delete_buttons(event.recruitment_post)
             view = PersistentView()
             for i in range(1, 8):
                 label = event.pl_button_texts[i-1]
@@ -82,6 +82,6 @@ class UIRecruitmentPost(Bindable):
         channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
         if channel_data is None: return
         channel: TextChannel = self.bot.client.get_channel(channel_data.id)
-        message = await self.message_cache.get(event.pl_post_id, channel)
+        message = await self.message_cache.get(event.recruitment_post, channel)
         if message is None: return
         await message.delete()

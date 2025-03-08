@@ -6,11 +6,8 @@ from api_server import ApiNamespace
 from flask_restx import Resource, fields
 
 from api_server.permission_manager import PermissionManager
-from bot import Bot
-from data.db.sql import in_transaction
 from data.events.event import Event
 from api_server.guild_manager import GuildManager
-from data.events.event_templates import EventTemplates
 from data.events.schedule import Schedule
 from utils.discord_types import API_Interaction
 from dateutil import parser
@@ -66,51 +63,6 @@ def _fetch_all_events() -> Generator[Event, None, None]:
             if event.category.value in allowed_categories:
                 yield event
 
-client = Bot().client
-
-def _username(guild_id: int, user_id: int) -> str:
-    if user_id is None or user_id < 1: return None
-    return client.get_guild(guild_id).get_member(user_id).display_name
-
-def _marshal(event: Event) -> dict:
-    return {
-        "id": event.id,
-        "type": event.template.type(),
-        "guild_id": event.guild_id,
-        "datetime": event.time,
-        "description": event.real_description,
-        "raid_leader": {
-            "id": event.users._raid_leader,
-            "name": _username(event.guild_id, event.users._raid_leader)
-        },
-        "party_leaders": [ {
-            "id": leader,
-            "name": _username(event.guild_id, leader)
-        } for leader in event.users._party_leaders ],
-        "use_support": event.use_support,
-        "pass_main": event.passcode_main,
-        "pass_supp": event.passcode_supp
-    }
-
-@in_transaction
-def _unmarshal(event: Event, m_event: dict):
-    if 'type' in m_event:
-        event.template = EventTemplates(event.guild_id).get(m_event['type'])
-    if 'datetime' in m_event:
-        event.time = m_event['datetime']
-    if 'description' in m_event:
-        event.real_description = m_event['description']
-    if 'raid_leader' in m_event:
-        event.users._raid_leader = m_event['raid_leader']['id']
-    if 'party_leaders' in m_event:
-        if len(m_event['party_leaders']) != 7:
-            api.namespace.abort(code=400, message='Party leaders must be exactly 7.')
-        event.users._party_leaders = [ leader['id'] for leader in m_event['party_leaders'] ]
-    if 'use_support' in m_event:
-        event.use_support = m_event['use_support']
-    if 'auto_passcode' in m_event:
-        event.auto_passcode = m_event['auto_passcode']
-
 def _event_adjustable_by_user(event: Event) -> bool:
     permissions = PermissionManager(current_user.id).calculate()
     return event.category.value in permissions.for_guild(event.guild_id).raid_leading.categories
@@ -140,7 +92,7 @@ class EventsRoute(Resource):
     @api.namespace.marshal_list_with(EventModel)
     def get(self):
         self.session_manager.verify(api)
-        return [ _marshal(event) for event in _fetch_all_events() ]
+        return [ event.marshal() for event in _fetch_all_events() ]
 
     @api.namespace.doc(security="jsonWebToken")
     @api.namespace.expect(EventModel)
@@ -158,7 +110,7 @@ class EventsRoute(Resource):
         if event_model is None:
             api.namespace.abort(code=400, message=interaction.error_message)
         event = Schedule(int(guild_id)).add(event_model, interaction)
-        return _marshal(event)
+        return event.marshal()
 
 @api.namespace.route('/<int:guild_id>')
 class EventsRoute(Resource):
@@ -170,7 +122,7 @@ class EventsRoute(Resource):
     @api.namespace.marshal_list_with(EventModel)
     def get(self, guild_id: int):
         self.session_manager.verify(api)
-        return [ _marshal(event) for event in _fetch_all_events() if event.guild_id == guild_id ]
+        return [ event.marshal() for event in _fetch_all_events() if event.guild_id == guild_id ]
 
 @api.namespace.route('/<int:event_id>')
 class EventsRoute(Resource):
@@ -187,8 +139,12 @@ class EventsRoute(Resource):
     def patch(self, event_id: int):
         self.session_manager.verify(api)
         event = _get_event(event_id)
-        _unmarshal(event, api.namespace.payload)
-        return _marshal(event)
+        interaction = API_Interaction(current_user.id, event.guild_id)
+        changes = self.user_input.event_change(interaction, api.namespace.payload)
+        if hasattr(interaction, 'signature')
+            api.namespace.abort(code=400, message=interaction.error_message)
+        Schedule(event.guild_id).edit(event.id, changes, interaction)
+        return event.marshal()
 
     @api.namespace.doc(security="jsonWebToken")
     def delete(self, event_id: int):
