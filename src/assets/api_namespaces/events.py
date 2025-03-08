@@ -51,10 +51,6 @@ EventModel = api.namespace.model('Krile Event', {
     'auto_passcode': fields.Boolean(required=False, description='Passcodes are handled by the bot.')
 })
 
-EventDeleteModel = api.namespace.model('Krile Event Cancellation', {
-    'id': fields.Integer(required=True, description='Event ID.')
-})
-
 def _fetch_all_events() -> Generator[Event, None, None]:
     permissions = PermissionManager(current_user.id).calculate()
     for guild in GuildManager(current_user.id).all:
@@ -102,7 +98,6 @@ class EventsRoute(Resource):
         try:
             api.namespace.payload["datetime"] = parser.isoparse(api.namespace.payload.pop("datetime")).astimezone(timezone.utc).replace(tzinfo=None)
             guild_id = int(api.namespace.payload.pop("guild_id"))
-            api.namespace.payload["raid_leader"] = api.namespace.payload.pop("raid_leader")["id"]
             interaction = API_Interaction(current_user.id, guild_id)
             event_model = self.user_input.event_creation(interaction, api.namespace.payload)
         except Exception as e:
@@ -125,7 +120,7 @@ class EventsRoute(Resource):
         return [ event.marshal() for event in _fetch_all_events() if event.guild_id == guild_id ]
 
 @api.namespace.route('/<int:event_id>')
-class EventsRoute(Resource):
+class EventIDRoute(Resource):
     from api_server.session_manager import SessionManager
     @SessionManager.bind
     def session_manager(self) -> SessionManager: ...

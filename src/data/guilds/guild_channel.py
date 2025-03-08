@@ -8,16 +8,30 @@ from utils.basic_types import GuildChannelFunction, GuildID
 from data.events.event_templates import EventTemplates
 
 class GuildChannel:
+    guild_id: GuildID
     id: int
     event_type: str
     function: GuildChannelFunction
 
-    def load(self, id: int) -> None:
+    from bot import Bot
+    @Bot.bind
+    def _bot(self) -> Bot: ...
+
+    def load(self, id: int, guild_id: GuildID) -> None:
+        self.guild_id = guild_id
         record = SQL('channels').select(fields=['channel_id', 'event_type', 'function'], where=f'id={id}')
         if record:
             self.id = record['channel_id']
             self.event_type = record['event_type']
             self.function = GuildChannelFunction(record['function'])
+
+    def marshal(self) -> dict:
+        return {
+            'id': str(self.id),
+            'name': self._bot.client.get_channel(self.id).name,
+            'event_type': self.event_type,
+            'function': self.function.name
+        }
 
 class GuildChannels(GlobalCollection[GuildID]):
     _list: List[GuildChannel]
@@ -33,7 +47,7 @@ class GuildChannels(GlobalCollection[GuildID]):
         if self.key is None: return
         for record in SQL('channels').select(fields=['id'], where=f'guild_id={self.key}', all=True):
             channel = GuildChannel()
-            channel.load(record['id'])
+            channel.load(record['id'], self.key)
             self._list.append(channel)
 
     def get(self, function: GuildChannelFunction = GuildChannelFunction.NONE, event_type: str = '') -> GuildChannel:
@@ -64,3 +78,7 @@ class GuildChannels(GlobalCollection[GuildID]):
         event_type_part = f'and event_type=\'{event_type}\'' if event_type else ''
         SQL('channels').delete(f'guild_id={self.key} and function={function.value} {event_type_part}')
         self.load()
+
+    @property
+    def all(self) -> List[GuildChannel]:
+        return self._list

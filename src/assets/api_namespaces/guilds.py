@@ -24,31 +24,31 @@ class GuildsNamespace(ApiNamespace):
 
 api = GuildsNamespace()
 
-Guild = api.namespace.model('Discord Guild simplified', {
+DiscordChannelModel = api.namespace.model('Discord Channel', {
+    'id': fields.String(required=True, description='Channel ID.'),
+    'name': fields.String(required=True, description='Channel name.')
+})
+
+DiscordRoleModel = api.namespace.model('Discord Role', {
+    'id': fields.String(required=True, description='Channel ID.'),
+    'name': fields.String(required=True, description='Channel name.')
+})
+
+RaidLeaderModel = api.namespace.model('Raid Leader',{
+    'id': fields.String(required=True, description='User ID.'),
+    'name': fields.String(required=True, description='Username.'),
+    'categories': fields.List(fields.String, required=False, description='Categories.')
+})
+
+GuildModel = api.namespace.model('Discord Guild simplified', {
     'id': fields.String(required=True, description='Guild ID.'),
     'name': fields.String(required=True, description='Guild name.'),
-    'channels': fields.List(
-        fields.Nested(api.namespace.model('Discord Channel', {
-            'id': fields.String(required=True, description='Channel ID.'),
-            'name': fields.String(required=True, description='Channel name.')
-        }), allow_null=False),
-        required=True,
-        description='Channels.'),
-    'roles': fields.List(
-        fields.Nested(api.namespace.model('Discord Roles', {
-            'id': fields.String(required=True, description='Channel ID.'),
-            'name': fields.String(required=True, description='Channel name.')
-        }), allow_null=True),
-        required=True,
-        description='Roles.'),
-    'raid_leaders': fields.List(
-        fields.Nested(api.namespace.model('Raid Leader',{
-            'id': fields.String(required=True, description='User ID.'),
-            'name': fields.String(required=True, description='Username.'),
-            'categories': fields.List(fields.String, required=False, description='Categories.')
-        }), allow_null=True),
-        required=True,
-        description='Raid leaders.')
+    'channels': fields.List(fields.Nested(DiscordChannelModel, allow_null=False),
+        required=True, description='Channels.'),
+    'roles': fields.List(fields.Nested(DiscordRoleModel, allow_null=True),
+        required=True, description='Roles.'),
+    'raid_leaders': fields.List(fields.Nested(RaidLeaderModel, allow_null=True),
+        required=True, description='Raid leaders.')
 })
 
 @api.namespace.route('/')
@@ -58,7 +58,7 @@ class GuildsRoute(Resource):
     def session_manager(self) -> SessionManager: ...
 
     @api.namespace.doc(security="jsonWebToken")
-    @api.namespace.marshal_list_with(Guild)
+    @api.namespace.marshal_list_with(GuildModel)
     def get(self):
         self.session_manager.verify(api)
         result = []
