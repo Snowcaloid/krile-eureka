@@ -141,7 +141,7 @@ class EventsRoute(Resource):
         event = _get_event(event_id)
         interaction = API_Interaction(current_user.id, event.guild_id)
         changes = self.user_input.event_change(interaction, api.namespace.payload)
-        if hasattr(interaction, 'signature')
+        if hasattr(interaction, 'signature'):
             api.namespace.abort(code=400, message=interaction.error_message)
         Schedule(event.guild_id).edit(event.id, changes, interaction)
         return event.marshal()
