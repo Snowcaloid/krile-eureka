@@ -10,7 +10,6 @@ if (
     import debugpy
 
     debugpy.listen(("0.0.0.0", 5678))
-    debugpy.wait_for_client()
 
     from dotenv import load_dotenv
     # Load all environment variables before doing anything else
