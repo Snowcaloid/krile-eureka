@@ -7,7 +7,7 @@ from discord.ext import tasks
 from discord import HTTPException, Member, Object, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, Context, Greedy
 
-from api_server import ApiServer
+# TODO: webserver - from api_server import ApiServer
 from utils.basic_types import TaskExecutionType
 from bot import Bot
 from data.cache.message_cache import MessageCache
@@ -88,7 +88,7 @@ async def on_ready():
         )
         await guild_log_message(guild.id, message)
 
-    ApiServer().start()
+    # TODO: webserver - ApiServer().start()
 
 @client.event
 async def on_member_join(member: Member):
