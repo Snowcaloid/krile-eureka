@@ -4,7 +4,7 @@ from discord import Interaction, Member
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
 from typing import List, Tuple, Type
-from data.db.sql import SQL, Record, in_transaction
+from data.db.sql import SQL, Record, Transaction
 from data.events.event_template import EventTemplate
 from data.events.event_templates import EventTemplates
 from data.generators.event_passcode_generator import EventPasscodeGenerator
@@ -114,23 +114,23 @@ class Event:
             "auto_passcode": self.auto_passcode
         }
 
-    @in_transaction
     def unmarshal(self, model: dict) -> None:
-        if 'type' in model:
-            self.template = EventTemplates(self.guild_id).get(model['type'])
-        if 'datetime' in model:
-            self.time = model['datetime']
-        if 'description' in model:
-            self.real_description = model['description']
-        if 'raid_leader' in model:
-            self.users.raid_leader = model['raid_leader']['id']
-        if 'party_leaders' in model:
-            for i in range(7):
-                self.users.party_leaders[i] = model['party_leaders'][i]['id']
-        if 'use_support' in model:
-            self.use_support = model['use_support']
-        if 'auto_passcode' in model:
-            self.auto_passcode = model['auto_passcode']
+        with Transaction():
+            if 'type' in model:
+                self.template = EventTemplates(self.guild_id).get(model['type'])
+            if 'datetime' in model:
+                self.time = model['datetime']
+            if 'description' in model:
+                self.real_description = model['description']
+            if 'raid_leader' in model:
+                self.users.raid_leader = model['raid_leader']['id']
+            if 'party_leaders' in model:
+                for i in range(7):
+                    self.users.party_leaders[i] = model['party_leaders'][i]['id']
+            if 'use_support' in model:
+                self.use_support = model['use_support']
+            if 'auto_passcode' in model:
+                self.auto_passcode = model['auto_passcode']
 
     @property
     def real_description(self) -> str:

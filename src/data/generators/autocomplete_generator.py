@@ -9,7 +9,7 @@ from utils.basic_types import NOTORIOUS_MONSTERS, EurekaTrackerZone, NotoriousMo
 
 from data.events.event_category import EventCategory
 from utils.basic_types import GuildPingType
-from utils.basic_types import GuildRoleFunction
+from utils.basic_types import GuildChannelFunction
 from utils.basic_types import NM_ALIASES
 from data.events.event_templates import EventTemplates
 from utils.basic_types import ButtonType
@@ -43,7 +43,7 @@ class AutoCompleteGenerator(Bindable):
         return self.filter_by_current(EventCategory.all_category_choices_short(), current)
 
     def guild_role_functions(self, current: str) -> List[Choice]:
-        return self.filter_by_current(GuildRoleFunction.all_function_choices(), current)
+        return self.filter_by_current(GuildChannelFunction.all_function_choices(), current)
 
     def alterantive_nm_names(self, nm_choices: List[Choice], current: str) -> List[Choice]:
         choices: List[Choice] = []

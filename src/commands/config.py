@@ -3,12 +3,12 @@ from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
+from data.services.channels_service import ChannelStruct, ChannelsService
 from utils.basic_types import EurekaTrackerZone, NotoriousMonster
 from data.events.event_category import EventCategory
 from data.events.event_templates import EventTemplates
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildPingType, GuildRoleFunction, NOTORIOUS_MONSTERS
-from data.guilds.guild_channel import GuildChannels
+from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildPingType, GuildChannelFunction, NOTORIOUS_MONSTERS
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
 from data.guilds.guild_roles import GuildRoles
@@ -33,6 +33,14 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     from data.validation.user_input import UserInput
     @UserInput.bind
     def user_input(self) -> UserInput: ...
+
+    from data.services.context_service import ContextService
+    @ContextService.bind
+    def _context_service(self) -> ContextService: ...
+
+    from data.services.permission_service import PermissionsService
+    @PermissionsService.bind
+    def _permissions_service(self) -> PermissionsService: ...
 
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)
@@ -66,67 +74,56 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         await self.ui_eureka_info.create(interaction.guild_id)
         await feedback_and_log(interaction, f'created a **Persistent Eureka Info Post** in {channel.jump_url}')
 
-    async def config_channel(self, interaction: Interaction, event_type: str, channel: TextChannel,
-                             function: GuildChannelFunction, function_desc: str):
+    @command(name = "sync_channel_category",
+             description = "Assign a channel to have a specific function for an entire event category.")
+    async def sync_channel_category(self, interaction: Interaction,
+                                    event_category: str,
+                                    channel: TextChannel,
+                                    function: int):
         await default_defer(interaction)
-        if self.user_input.fail.is_not_event_type_or_category(interaction, event_type): return
-        if self.user_input.check.is_event_type(interaction.guild_id, event_type):
-            GuildChannels(interaction.guild_id).set(channel.id, function, event_type)
-            desc = EventTemplates(interaction.guild_id).get(event_type).short_description()
-        else:
-            GuildChannels(interaction.guild_id).set_category(channel.id, function, EventCategory(event_type))
-            desc = EventCategory(event_type).value
-        await feedback_and_log(interaction, f'set {channel.jump_url} as the **{function_desc} channel** for type "{desc}".')
+        ChannelsService(interaction.guild_id).sync_category(
+            ChannelStruct(
+                guild_id=interaction.guild_id,
+                channel_id=channel.id,
+                function=GuildChannelFunction(function)
+            ),
+            event_category,
+            self._context_service.discord_context(
+                interaction,
+                self._permissions_service.calculate(
+                    interaction.guild_id, interaction.user.id)))
 
-    @command(name = "passcode_channel", description = "Set the channel, where passcodes for specific type of events will be posted.")
-    @check(PermissionValidator().is_admin)
-    async def passcode_channel(self, interaction: Interaction, event_type: str, channel: TextChannel):
-        await self.config_channel(interaction, event_type, channel, GuildChannelFunction.PASSCODES, 'main passcode')
-
-    @command(name = "support_passcode_channel", description = "Set the channel, where passcodes for specific type of events will be posted (for support parties).")
-    @check(PermissionValidator().is_admin)
-    async def support_passcode_channel(self, interaction: Interaction, event_type: str, channel: TextChannel):
-        await self.config_channel(interaction, event_type, channel, GuildChannelFunction.SUPPORT_PASSCODES, 'support passcode')
-
-    @command(name = "party_leader_channel", description = "Set the channel for party leader posts.")
-    @check(PermissionValidator().is_admin)
-    async def party_leader_channel(self, interaction: Interaction, event_type: str, channel: TextChannel):
-        await self.config_channel(interaction, event_type, channel, GuildChannelFunction.PL_CHANNEL, 'party leader recruitment')
-
-    @command(name = "notification_channel", description = "Set the channel for run schedule notifications.")
-    @check(PermissionValidator().is_admin)
-    async def notification_channel(self, interaction: Interaction, event_type: str, channel: TextChannel):
-        await self.config_channel(interaction, event_type, channel, GuildChannelFunction.RUN_NOTIFICATION, 'run notification')
-
-    @command(name = "eureka_notification_channel", description = "Set the channel for eureka tracker notifications.")
-    @check(PermissionValidator().is_admin)
-    async def eureka_notification_channel(self, interaction: Interaction, instance: str, channel: TextChannel):
+    @command(name = "sync_channel",
+             description = "Assign a channel to have a specific function.")
+    async def sync_channel_function(self, interaction: Interaction,
+                                    function: int,
+                                    event_type: str,
+                                    channel: TextChannel):
         await default_defer(interaction)
-        if self.user_input.fail.is_not_eureka_instance(interaction, instance): return
-        GuildChannels(interaction.guild_id).set(channel.id, GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION, instance)
-        await feedback_and_log(interaction, f'set {channel.jump_url} as the **eureka tracker notification channel** for "{EurekaTrackerZone(int(instance)).name}".')
-
-    @command(name = "nm_notification_channel", description = "Set the channel for notorious monster notifications.")
-    @check(PermissionValidator().is_admin)
-    async def nm_notification_channel(self, interaction: Interaction, notorious_monster: str, channel: TextChannel):
-        await default_defer(interaction)
-        notorious_monster = self.user_input.correction.notorious_monster_name_to_type(notorious_monster)
-        if self.user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
-        GuildChannels(interaction.guild_id).set(channel.id, GuildChannelFunction.NM_PINGS, notorious_monster)
-        await feedback_and_log(interaction, f'set {channel.jump_url} as the **NM notification channel** for "{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}".')
+        ChannelsService(interaction.guild_id).sync(
+            ChannelStruct(
+                guild_id=interaction.guild_id,
+                channel_id=channel.id,
+                event_type=event_type,
+                function=GuildChannelFunction(function)
+            ),
+            self._context_service.discord_context(
+                interaction,
+                self._permissions_service.calculate(
+                    interaction.guild_id, interaction.user.id)))
 
     @command(name = "set_admin", description = "Set the admin role.")
     @check(PermissionValidator().is_admin)
     async def set_admin(self, interaction: Interaction, role: Role):
         await default_defer(interaction)
-        GuildRoles(interaction.guild_id).add(role.id, GuildRoleFunction.ADMIN)
+        GuildRoles(interaction.guild_id).add(role.id, GuildChannelFunction.ADMIN)
         await feedback_and_log(interaction, f'set {role.mention} as **admin** role for **{interaction.guild.name}**.')
 
     @command(name = "set_developer", description = "Set the developer role.")
     @check(PermissionValidator().is_admin)
     async def set_developer(self, interaction: Interaction, role: Role):
         await default_defer(interaction)
-        GuildRoles(interaction.guild_id).add(role.id, GuildRoleFunction.DEVELOPER)
+        GuildRoles(interaction.guild_id).add(role.id, GuildChannelFunction.DEVELOPER)
         await feedback_and_log(interaction, f'set {role.mention} as **developer** role for **{interaction.guild.name}**.')
 
     @command(name = "add_raid_leader_role", description = "Add the Raid Leader role.")
@@ -134,7 +131,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def add_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
         if self.user_input.fail.is_not_event_category(interaction, event_category): return
-        GuildRoles(interaction.guild_id).add(role.id, GuildRoleFunction.RAID_LEADER, event_category)
+        GuildRoles(interaction.guild_id).add(role.id, GuildChannelFunction.RAID_LEADER, event_category)
         await feedback_and_log(interaction, f'added {role.mention} as **raid leader role** for {EventCategory(event_category).value}.')
 
     @command(name = "remove_raid_leader_role", description = "Remove the Raid Leader role.")
@@ -142,7 +139,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def remove_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
         if self.user_input.fail.is_not_event_category(interaction, event_category): return
-        GuildRoles(interaction.guild_id).remove(role.id, GuildRoleFunction.RAID_LEADER, event_category)
+        GuildRoles(interaction.guild_id).remove(role.id, GuildChannelFunction.RAID_LEADER, event_category)
         await feedback_and_log(interaction, f'removed {role.mention} from **raid leader roles** for {EventCategory(event_category).value}.')
 
     @command(name='ping_add_role', description='Add a ping.')

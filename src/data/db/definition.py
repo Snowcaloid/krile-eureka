@@ -2,7 +2,7 @@ from typing import Type, override
 
 from centralized_data import YamlAsset, YamlAssetLoader
 
-from data.db.sql import Record
+from data.db.sql import SQL, Batch, Record
 
 class TableDefinition(YamlAsset):
 
@@ -41,12 +41,33 @@ class TableDefinitions(YamlAssetLoader[TableDefinition]):
     @override
     def asset_class(self) -> Type[TableDefinition]: return TableDefinition
 
+    def migrate_pings_to_roles(self) -> None:
+        if not next([table for table in self.loaded_assets if table.name() == 'pings'], None):
+            return
+
+        for record in SQL('pings').select(all=True):
+            if record['ping_type'] is not None:
+                record['ping_type'] += 3
+
+            SQL('roles').insert(Record(
+                guild_id=record['guild_id'],
+                role_id=record['tag'],
+                event_type=record['schedule_type'],
+                function=record['ping_type']
+            ))
+            SQL('pings').delete(f'id={record["id"]}')
+        SQL('pings').drop()
+
+    def execute_migrations(self) -> None:
+        self.migrate_pings_to_roles()
+
     @override
     def constructor(self) -> None:
         super().constructor()
 
-        record = Record()
-        for table in self.loaded_assets:
-            record.DATABASE.query(table.to_sql_create())
-            record.DATABASE.query(table.to_sql_alter())
-        del record
+        with Batch() as batch:
+            for table in self.loaded_assets:
+                batch.DATABASE.query(table.to_sql_create())
+                batch.DATABASE.query(table.to_sql_alter())
+
+            self.execute_migrations()

@@ -6,7 +6,6 @@ from flask_jwt_extended.exceptions import UserClaimsVerificationError
 from api_server import ApiNamespace
 from data.db.sql import SQL, Record
 from centralized_data import Bindable
-from api_server.permission_manager import PermissionManager
 
 from typing import Any, Dict, List, override
 

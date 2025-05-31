@@ -1,62 +1,91 @@
+from abc import ABC, abstractmethod
 import os
 from datetime import datetime
 from typing import Coroutine
 
-from discord import Interaction
-from utils.basic_types import GuildChannelFunction
+from centralized_data import GlobalCollection
+from discord import Guild, Interaction
+from utils.basic_types import GuildID, GuildChannelFunction, TaskExecutionType
 from bot import Bot
 from utils.functions import default_response, get_discord_timestamp
 
-async def guild_log_message(guild_id: int, message: str):
-    """Send a log message to the specified guild if it has a log channel set.
+class BaseLogger(ABC):
+    def format_timestamp(self, timestamp: datetime) -> str:
+        """Format a timestamp for logging."""
+        return timestamp.strftime('[%Y-%m-%d %H:%M:%S]')
 
-    Args:
-            guild_id (int): the id of the guild to send a log message to
-            message (str): the message to log
-    """
-    # Retrieve the log channel id for this guild
-    from data.guilds.guild_channel import GuildChannels
-    channel_data = GuildChannels(guild_id).get(GuildChannelFunction.LOGGING)
-    if channel_data is None: return
-    client = Bot().client
-    guild = client.get_guild(guild_id)
-    if guild is None: return
-    channel = client.get_channel(channel_data.id)
-    if channel is None: return
-    # Print the log message with a timestamp
-    await channel.send(f'{get_discord_timestamp(datetime.utcnow())} {message}')
-    # Write this message to a log file
-    await output_to_file(guild_id, message)
+    @abstractmethod
+    def log(self, message: str) -> None: ...
+    def flush(self, message: str, exc_type: type = None) -> None:
+        self.log(message)
 
 
-async def feedback_and_log(interaction: Interaction, feedback: str) -> Coroutine[None, None, None]:
+class ConsoleLogger(BaseLogger):
+    def log(self, message: str) -> None:
+        """
+        Log a message to the console.
+        This log is accessible when debugging or running the bot in docker.
+        """
+        print(f'{self.format_timestamp(datetime.utcnow())} {message}')
+
+
+class FileLogger(BaseLogger):
+    def __init__(self, guild_id: int = None):
+        file_path = datetime.now().strftime(os.getenv('LOG_FILE_PATH', './logs/bot.log'))
+        file_path = file_path.replace('{guild_id}', str(guild_id) if guild_id else '000000000000000000')
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    def log(self, message: str) -> None:
+        """
+        Log a message to a file.
+        This log is accessible when debugging or running the bot in docker.
+        """
+        with open(self.file_path, 'a') as file:
+            file.write(f'{self.format_timestamp(datetime.now())} {message}\n')
+
+
+async def _guild_respond(interaction: Interaction, message: str, guild: Guild):
     if hasattr(interaction, 'response'):
-        await default_response(interaction, f'You have {feedback}')
-    await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}** has {feedback}')
+        await default_response(interaction, f'{message}')
+    from data.services.channels_service import ChannelsService, ChannelStruct
+    channel = ChannelsService(interaction.guild_id).find(ChannelStruct(
+        guild_id=interaction.guild_id,
+        function=GuildChannelFunction.LOGGING
+    ))
+    if channel is None: return
+    channel = guild.get_channel(channel.channel_id)
+    if channel is None: return
+    await channel.send(f'{get_discord_timestamp(datetime.utcnow())} {message}')
 
 
-async def output_to_file(guild_id: int, message: str):
-    """Write a log message to a file.
+class GuildLogger(GlobalCollection[GuildID], BaseLogger):
+    from data.tasks.tasks import Tasks
+    @Tasks.bind
+    def tasks(self) -> 'Tasks': ...
 
-    Args:
-        guild_id (int): the id of the guild to write the log message to
-        message (str): the message to log
+    from bot import Bot
+    @Bot.bind
+    def bot(self) -> 'Bot': ...
 
-    Returns:
-        None
-    """
-    # Get the log file format and replace the guild id placeholder
-    log_file = os.getenv('LOG_FILE_FORMAT')
-    if not log_file: return
-    # Set the guild id placeholder (do we want a guild_name placeholder too?)
-    log_file = log_file.replace('{guild_id}', str(guild_id))
-    datetime_now = datetime.now()
-    # Replace the time format placeholders with the current time
-    log_file = datetime_now.strftime(log_file)
-    # Get a date time prefix for the log message
-    log_time = datetime_now.strftime('%Y-%m-%d %H:%M:%S')
-    # Ensure the directory exists before writing to the file
-    os.makedirs(os.path.dirname(log_file), exist_ok=True)
-    # Write the message to the file
-    with open(log_file, 'a') as file:
-        file.write(f'[{log_time}] {message}{os.linesep}')
+    def constructor(self, guild_id: GuildID):
+        super().__init__(guild_id)
+        self.console_logger = ConsoleLogger()
+        self.file_logger = FileLogger(guild_id)
+        self.guild = self.bot.client.get_guild(guild_id)
+
+    def log(self, message: str) -> None:
+        """
+        Log a message to the guild's log channel and to a file.
+        This log is accessible when debugging or running the bot in docker.
+        """
+        self.console_logger.log(message)
+        self.file_logger.log(message)
+
+    def respond(self, interaction: Interaction, message: str) -> Coroutine[None, None, None]:
+        self.tasks.add_task(
+            datetime.utcnow(),
+            TaskExecutionType.RUN_ASYNC_METHOD,
+            {
+                "method": _guild_respond,
+                "args": [interaction, message, self.guild]
+            }

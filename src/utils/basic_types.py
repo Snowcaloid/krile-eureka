@@ -43,17 +43,26 @@ class GuildMessageFunction(Enum):
         ]
 
 class GuildRoleFunction(Enum):
-    NONE = 0
     DEVELOPER = 1
     ADMIN = 2
     RAID_LEADER = 3
+    MAIN_PASSCODE_PING = 4
+    SUPPORT_PASSCODE_PING = 5
+    PL_POST_PING = 4
+    EVENT_NOTIFICATION_PING = 5
+    EUREKA_TRACKER_NOTIFICATION_PING = 6
+    NM_PING = 7
 
     @classmethod
     def all_function_choices(cl) -> List[Choice]:
         return [
-            Choice(name='', value=GuildRoleFunction.DEVELOPER.value),
-            Choice(name='Admin', value=GuildRoleFunction.ADMIN.value),
-            Choice(name='Raid Leader', value=GuildRoleFunction.RAID_LEADER.value)
+            Choice(name='Raid Leader', value=GuildRoleFunction.RAID_LEADER.value),
+            Choice(name='Main Passcode Ping', value=GuildRoleFunction.MAIN_PASSCODE_PING.value),
+            Choice(name='Support Passcode Ping', value=GuildRoleFunction.SUPPORT_PASSCODE_PING.value),
+            Choice(name='PL Post Ping', value=GuildRoleFunction.PL_POST_PING.value),
+            Choice(name='Event Notification Ping', value=GuildRoleFunction.EVENT_NOTIFICATION_PING.value),
+            Choice(name='Eureka Tracker Notification Ping', value=GuildRoleFunction.EUREKA_TRACKER_NOTIFICATION_PING.value),
+            Choice(name='Notorious Monster Ping', value=GuildRoleFunction.NM_PING.value)
         ]
 
 class TaskExecutionType(Enum):

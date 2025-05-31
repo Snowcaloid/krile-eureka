@@ -18,17 +18,14 @@ class Record(Dict[str, PgColumnValue]):
         self.DATABASE.disconnect()
 
 class Transaction(Record):
-    def __del__(self):
-        self.DATABASE.disconnect(exc_info() is None)
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.DATABASE.disconnect(exc_type is None)
+
+class Batch(Record):
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.DATABASE.disconnect()
 
 T = TypeVar('T', bound=Callable[..., Any])
-
-def in_transaction(func: T) -> T:
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        Transaction()
-        return func(*args, **kwargs)
-    return wrapper
 
 class Records(List[Record]):
     def __init__(self, *args, **kwargs):
@@ -95,8 +92,9 @@ class SQL:
     def update(self, record: Record, where: str) -> None:
         set_fields = ', '.join([f'{field} = {self._convert_to_sql(value)}' for field, value in record.items()])
         record.DATABASE.query(f'update {self.table_name} set {set_fields} where {where}')
-        return None
 
     def delete(self, where: str) -> None:
         Record().DATABASE.query(f'delete from {self.table_name} where {where}')
-        return None
+
+    def drop(self) -> None:
+        Record().DATABASE.query(f'drop table if exists {self.table_name}')
