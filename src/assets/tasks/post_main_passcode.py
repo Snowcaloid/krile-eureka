@@ -2,16 +2,13 @@ from typing import override
 from discord import Embed
 from utils.basic_types import GuildChannelFunction, TaskExecutionType
 from utils.basic_types import GuildPingType
-from data.events.schedule import Schedule
-from data.guilds.guild_channel import GuildChannels
-from data.guilds.guild_pings import GuildPings
 from data.tasks.task import TaskTemplate
 
 
 class Task_PostMainPasscode(TaskTemplate):
     from bot import Bot
     @Bot.bind
-    def bot(self) -> Bot: ...
+    def _bot(self) -> Bot: ...
 
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.POST_MAIN_PASSCODE
@@ -20,12 +17,19 @@ class Task_PostMainPasscode(TaskTemplate):
     async def execute(self, obj: object) -> None:
         """Sends the main party passcode embed to the allocated passcode channel."""
         if obj and obj["guild"] and obj["entry_id"]:
+            from data.events.schedule import Schedule
+            from data.services.channels_service import ChannelsService, ChannelStruct
+            from data.guilds.guild_pings import GuildPings
+
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event is None: return
-            channel_data = GuildChannels(obj["guild"]).get(GuildChannelFunction.PASSCODES, event.type)
+            channel_data = ChannelsService(obj["guild"]).find(
+                ChannelStruct(
+                    guild_id=obj["guild"],
+                    function=GuildChannelFunction.PASSCODES,
+                    event_type=event.type))
             if channel_data is None: return
-            guild = self.bot.client.get_guild(obj["guild"])
-            channel = guild.get_channel(channel_data.id)
+            channel = self._bot.client.get_channel(channel_data.channel_id)
             if channel is None: return
             pings = await GuildPings(obj["guild"]).get_mention_string(GuildPingType.MAIN_PASSCODE, event.type)
             await channel.send(pings, embed=Embed(

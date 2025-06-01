@@ -40,6 +40,7 @@ class _UserInput:
                     f"Invalid NM type: {self.struct.event_type}"
             case _:
                 from data.services.validators.event_types_service import EventTypesService
+
                 self.struct.event_type = EventTypesService(self.struct.guild_id).event_type_name_to_type(self.struct.event_type)
                 assert EventTypesService(self.struct.guild_id).is_event_type_or_category(self.struct.event_type), \
                     f"Invalid event type: {self.struct.event_type}"
@@ -162,9 +163,11 @@ class ChannelsService(GlobalCollection[GuildID]):
                 function=GuildChannelFunction(record["function"]) if record["function"] else None)
             self._list.append(channel)
 
-    def sync(self, channel: ChannelStruct, context: ServiceContext) -> None:
+    def sync(self, channel: ChannelStruct,
+             context: ServiceContext) -> None:
         with context:
-            from data.validation.permission import ModulePermissions, PermissionLevel, Permissions
+            from data.validation.permission import ModulePermissions, PermissionLevel, Permissions#
+
             context.assert_permissions(Permissions(modules=ModulePermissions(channels=PermissionLevel.FULL)))
             channel.user_input.validate_and_fix()
             assert channel.guild_id is not None, "Channel sync failure: ChannelStruct is missing Guild ID"
@@ -184,10 +187,13 @@ class ChannelsService(GlobalCollection[GuildID]):
                 context.log(f"Channel:```{channel}```")
             self.load()
 
-    def sync_category(self, channel: ChannelStruct, event_category: EventCategory, context: ServiceContext) -> None:
+    def sync_category(self, channel: ChannelStruct,
+                      event_category: EventCategory,
+                      context: ServiceContext) -> None:
         with context:
             from data.services.validators.event_types_service import EventTypesService
             from data.events.event_templates import EventTemplates
+
             event_category = EventTypesService(self.key).event_category_name_to_category(event_category)
             assert EventTypesService(self.key).is_event_category(event_category), \
                 f"Invalid event category: {event_category}"
@@ -195,9 +201,11 @@ class ChannelsService(GlobalCollection[GuildID]):
                 self.sync(channel.intersect(ChannelStruct(event_type=event_template.type())), context)
             context.log(f"Channel category `{event_category.name}` synced for channel: ```{channel}```")
 
-    def remove(self, channel: ChannelStruct, context: ServiceContext) -> None:
+    def remove(self, channel: ChannelStruct,
+               context: ServiceContext) -> None:
         with context:
             from data.validation.permission import ModulePermissions, PermissionLevel, Permissions
+
             context.assert_permissions(Permissions(modules=ModulePermissions(channels=PermissionLevel.FULL)))
             assert channel.guild_id is not None, "Channel removal failure: ChannelStruct is missing Guild ID"
             found_channel = self.find(channel)
@@ -212,3 +220,17 @@ class ChannelsService(GlobalCollection[GuildID]):
                     f'and function={channel.function.value} {event_type_part}'))
             context.log(f"Channel assignment removed successfully: ```{channel}```")
             self.load()
+
+    def remove_category(self, channel: ChannelStruct,
+                        event_category: EventCategory,
+                        context: ServiceContext) -> None:
+        with context:
+            from data.services.validators.event_types_service import EventTypesService
+            from data.events.event_templates import EventTemplates
+
+            event_category = EventTypesService(self.key).event_category_name_to_category(event_category)
+            assert EventTypesService(self.key).is_event_category(event_category), \
+                f"Invalid event category: {event_category}"
+            for event_template in EventTemplates(self.key).get_by_categories([event_category]):
+                self.remove(channel.intersect(ChannelStruct(event_type=event_template.type())), context)
+            context.log(f"Channel category `{event_category.name}` removed for channel: ```{channel}```")
