@@ -5,14 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Remote Attach",
+            "name": "Python: Attach to Pi",
             "type": "debugpy",
             "request": "attach",
             "connect": {
-                "host": "localhost",
+                "host": "snowcaloid-pi",
                 "port": 5678
             },
-            "preLaunchTask": "start-debug-compose",
             "pathMappings": [
                 {
                     "localRoot": "${workspaceFolder}",
