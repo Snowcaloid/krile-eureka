@@ -260,6 +260,6 @@ async def buttons_from_message(message: Message) -> List[ButtonBase]:
     for record in SQL('buttons').select(fields=['button_id'],
                                         where=f'message_id={message.id}',
                                         all=True):
-        result.append(await load_button(record[0]))
+        result.append(await load_button(record['button_id']))
     del query
     return result
