@@ -4,6 +4,7 @@ import data.events.ba_events as ba_events
 import data.events.drs_events as drs_events
 import data.events.bozja_events as bozja_events
 import data.events.chaotic_events as chaotic_events
+import data.events.occult_crescent_events as occult_crescent_events
 
 
 class EventRegister:
@@ -24,8 +25,10 @@ class EventRegister:
         bozja_events.CastrumAndDalriada.register()
         bozja_events.BozjaAllRounder.register()
         chaotic_events.CloudOfDarknessChaotic.register()
+        occult_crescent_events.ForkedTower.register()
         event.EventCategoryCollection.ALL_WITH_CUSTOM = event.Event.all_events_for_category(event.EventCategory.BA) + \
             event.Event.all_events_for_category(event.EventCategory.DRS) + \
             event.Event.all_events_for_category(event.EventCategory.BOZJA) + \
             event.Event.all_events_for_category(event.EventCategory.CHAOTIC) + \
+            event.Event.all_events_for_category(event.EventCategory.OC) + \
             [event.Event]

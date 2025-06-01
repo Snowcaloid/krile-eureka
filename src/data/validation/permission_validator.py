@@ -42,16 +42,17 @@ class PermissionValidator:
         return False
 
     @classmethod
-    def get_raid_leader_permissions(cl, member: Member) -> Tuple[bool, bool, bool, bool]:
+    def get_raid_leader_permissions(cl, member: Member) -> Tuple[bool, bool, bool, bool, bool]:
         guild_roles = bot.instance.data.guilds.get(member.guild.id).roles
         admin_role_id = bot.instance.data.guilds.get(member.guild.id).role_admin
         allow_ba = False
         allow_drs = False
         allow_bozja = False
         allow_chaotic = False
+        allow_oc = False
         for role in member.roles:
             if role.id == admin_role_id:
-                return True, True, True, True
+                return True, True, True, True, True
             elif [True for guild_role in guild_roles.get(GuildRoleFunction.RAID_LEADER, EventCategory.BA.value) if guild_role.role_id == role.id]:
                 allow_ba = True
             elif [True for guild_role in guild_roles.get(GuildRoleFunction.RAID_LEADER, EventCategory.DRS.value) if guild_role.role_id == role.id]:
@@ -60,4 +61,6 @@ class PermissionValidator:
                 allow_bozja = True
             elif [True for guild_role in guild_roles.get(GuildRoleFunction.RAID_LEADER, EventCategory.CHAOTIC.value) if guild_role.role_id == role.id]:
                 allow_chaotic = True
-        return allow_ba, allow_drs, allow_bozja, allow_chaotic
+            elif [True for guild_role in guild_roles.get(GuildRoleFunction.RAID_LEADER, EventCategory.OC.value) if guild_role.role_id == role.id]:
+                allow_oc = True
+        return allow_ba, allow_drs, allow_bozja, allow_chaotic, allow_oc

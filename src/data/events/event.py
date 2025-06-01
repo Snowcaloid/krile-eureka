@@ -22,6 +22,7 @@ class EventCategory(Enum):
     DRS = 'DRS_CATEGORY'
     BOZJA = 'BOZJA_CATEGORY'
     CHAOTIC = 'CHAOTIC'
+    OC = 'OC_CATEGORY'
 
     @classmethod
     def all_category_choices(cl) -> List[Choice]:
@@ -30,7 +31,8 @@ class EventCategory(Enum):
             Choice(name='All BA runs', value=cl.BA.value),
             Choice(name='All DRS runs', value=cl.DRS.value),
             Choice(name='All Bozja-related runs', value=cl.BOZJA.value),
-            Choice(name='All Chaotic Alliance runs', value=cl.CHAOTIC.value)
+            Choice(name='All Chaotic Alliance runs', value=cl.CHAOTIC.value),
+            Choice(name='All OC runs', value=cl.OC.value)
         ]
 
     @classmethod
@@ -40,7 +42,8 @@ class EventCategory(Enum):
             Choice(name='BA', value=cl.BA.value),
             Choice(name='DRS', value=cl.DRS.value),
             Choice(name='Bozja', value=cl.BOZJA.value),
-            Choice(name='Chaotic', value=cl.CHAOTIC.value)
+            Choice(name='Chaotic', value=cl.CHAOTIC.value),
+            Choice(name='OC', value=cl.OC.value)
         ]
 
     @classmethod
@@ -48,12 +51,13 @@ class EventCategory(Enum):
         return next(choice for choice in cl.all_category_choices() if choice.value == category.value)
 
     @classmethod
-    def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_chaotic: bool, use_custom: bool) -> List[Choice]:
+    def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_chaotic: bool, use_oc: bool, use_custom: bool) -> List[Choice]:
         result: List[Event] = []
         if use_ba: result = result + cl.as_choice(EventCategory.BA)
         if use_drs: result = result + cl.as_choice(EventCategory.DRS)
         if use_bozja: result = result + cl.as_choice(EventCategory.BOZJA)
         if use_chaotic: result = result + cl.as_choice(EventCategory.CHAOTIC)
+        if use_oc: result = result + cl.as_choice(EventCategory.OC)
         if use_custom: result = result + cl.as_choice(EventCategory.CUSTOM)
         return result
 
@@ -152,12 +156,13 @@ class EventCategoryCollection:
     ALL_WITH_CUSTOM: List[Event]
 
     @classmethod
-    def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_chaotic: bool, use_custom: bool) -> List[Choice]:
+    def calculate_choices(cl, use_ba: bool, use_drs: bool, use_bozja: bool, use_chaotic: bool, use_oc: bool, use_custom: bool) -> List[Choice]:
         result: List[Event] = []
         if use_ba: result = result + Event.all_events_for_category(EventCategory.BA)
         if use_drs: result = result + Event.all_events_for_category(EventCategory.DRS)
         if use_bozja: result = result + Event.all_events_for_category(EventCategory.BOZJA)
         if use_chaotic: result = result + Event.all_events_for_category(EventCategory.CHAOTIC)
+        if use_oc: result = result + Event.all_events_for_category(EventCategory.OC)
         if use_custom: result = result + [Event]
         return [event_base.as_choice() for event_base in result]
 
