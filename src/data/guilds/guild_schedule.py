@@ -6,9 +6,12 @@ from data.generators.event_passcode_generator import EventPasscodeGenerator
 
 
 class GuildSchedule:
-    _list: List[ScheduledEvent] = []
+    _list: List[ScheduledEvent]
 
     guild_id: int
+
+    def __init__(self):
+        self._list = []
 
     def load(self, guild_id: int) -> None:
         self.guild_id = guild_id

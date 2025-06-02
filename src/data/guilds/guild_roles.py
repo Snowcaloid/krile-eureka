@@ -19,9 +19,12 @@ class GuildRole:
             self.function = GuildRoleFunction(record['function'])
 
 class GuildRoles:
-    _list: List[GuildRole] = []
+    _list: List[GuildRole]
 
     guild_id: int
+
+    def __init__(self):
+        self._list = []
 
     def load(self, guild_id: int) -> None:
         self.guild_id = guild_id

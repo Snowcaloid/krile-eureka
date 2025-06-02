@@ -17,9 +17,12 @@ class GuildChannel:
             self.function = GuildChannelFunction(record['function'])
 
 class GuildChannels:
-    _list: List[GuildChannel] = []
+    _list: List[GuildChannel]
 
     guild_id: int
+
+    def __init__(self):
+        self._list = []
 
     def load(self, guild_id: int) -> None:
         self.guild_id = guild_id

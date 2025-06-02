@@ -32,8 +32,11 @@ class GuildPing:
             self.tag = record['tag']
 
 class GuildPings:
-    _list: List[GuildPing] = []
+    _list: List[GuildPing]
     guild_id: int
+
+    def __init__(self):
+        self._list = []
 
     def load(self, guild_id: int) -> None:
         self.guild_id = guild_id

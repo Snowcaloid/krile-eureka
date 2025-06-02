@@ -60,7 +60,10 @@ class Guild:
 
 
 class Guilds:
-    _list: List[Guild] = []
+    _list: List[Guild]
+
+    def __init__(self):
+        self._list = []
 
     def load(self) -> None:
         self._list.clear()
