@@ -43,7 +43,6 @@ class RuntimeData:
         self.ready = True
         cache.messages.cache.clear()
         for guild in bot.instance.guilds:
-            await guild.fetch_members()
             await self.ui.schedule.rebuild(guild.id)
 
         if not self.tasks.contains(TaskExecutionType.UPDATE_STATUS):
