@@ -1,6 +1,6 @@
 
 from typing import override
-from data.ui.base_button import BaseButton, ButtonTemplate
+from ui.base_button import BaseButton, ButtonTemplate
 from utils.basic_types import ButtonType
 
 

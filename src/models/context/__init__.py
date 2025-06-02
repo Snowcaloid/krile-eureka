@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from typing import Callable
-from data.tasks.tasks import Tasks
-from discord import Interaction
-from centralized_data import Bindable
-from data.validation.permission import Permissions
-from utils.logger import BaseLogger, GuildLogger
+
+from models.permissions import Permissions
+from utils.logger import BaseLogger
+
 
 ContextResponse = Callable[[str, Exception], None]
+
 
 @dataclass
 class ServiceContext:
@@ -53,18 +53,3 @@ class ServiceContext:
     def assert_permissions(self, permissions: Permissions) -> None:
         assert self.permissions is not None, "context object must have permissions set for this action."
         self.permissions.full_check(permissions)
-
-
-class ContextService(Bindable):
-    @Tasks.bind
-    def tasks(self) -> Tasks: ...
-
-    def basic_context(self,
-                      logger: BaseLogger,
-                      permissions: Permissions = None) -> ServiceContext:
-        return ServiceContext(logger=logger, permissions=permissions)
-
-    def discord_context(self, interaction: Interaction, permissions: Permissions = None) -> ServiceContext:
-        return self.basic_context(logger=GuildLogger(interaction.guild_id),
-                                  permissions=permissions,
-                                  on_flush=lambda message, exc: GuildLogger(interaction.guild_id).respond(interaction, message))

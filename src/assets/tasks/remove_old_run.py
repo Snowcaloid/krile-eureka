@@ -10,7 +10,7 @@ class Task_RemoveOldRun(TaskTemplate):
     @Bot.bind
     def bot(self) -> Bot: ...
 
-    from data.ui.ui_schedule import UISchedule
+    from ui.ui_schedule import UISchedule
     @UISchedule.bind
     def ui_schedule(self) -> UISchedule: ...
 

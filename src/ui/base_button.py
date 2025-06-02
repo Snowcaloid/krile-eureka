@@ -10,7 +10,7 @@ from utils.basic_types import ButtonType
 from bot import Bot
 from data.db.sql import SQL, Record
 from data.cache.message_cache import MessageCache
-from data.ui.views import PersistentView, TemporaryView
+from ui.views import PersistentView, TemporaryView
 
 class ButtonTemplate(PythonAsset):
     @classmethod

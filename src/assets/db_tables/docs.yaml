@@ -1,0 +1,9 @@
+name: docs
+columns:
+- name: id
+  type: SERIAL
+  unique: true
+- name: guild_id
+  type: BIGINT
+- name: data
+  type: JSON

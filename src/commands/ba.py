@@ -6,7 +6,7 @@ from utils.logger import guild_log_message
 
 
 class BACommands(GroupCog, group_name='ba', group_description='Baldesion Arsenal commands.'):
-    from data.ui.ui_help import UIHelp
+    from ui.ui_help import UIHelp
     @UIHelp.bind
     def ui_help(self) -> UIHelp: ...
 

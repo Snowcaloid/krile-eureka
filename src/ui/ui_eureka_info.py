@@ -3,9 +3,9 @@ from discord import ButtonStyle, Embed, Message, TextChannel
 from utils.basic_types import EurekaTrackerZone
 from utils.basic_types import GuildMessageFunction
 from data.guilds.guild_messages import GuildMessages
-from data.ui.base_button import BaseButton, save_buttons
+from ui.base_button import BaseButton, save_buttons
 from utils.basic_types import ButtonType
-from data.ui.views import PersistentView
+from ui.views import PersistentView
 from data.weather.weather import EurekaWeathers, EurekaZones, next_4_weathers, next_weather, weather_emoji
 from utils.functions import DiscordTimestampType, get_discord_timestamp
 

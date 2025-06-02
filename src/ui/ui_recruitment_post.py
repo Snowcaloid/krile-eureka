@@ -10,9 +10,9 @@ from data.events.event_category import EventCategory
 from utils.basic_types import GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
-from data.ui.base_button import BaseButton, delete_buttons, save_buttons
+from ui.base_button import BaseButton, delete_buttons, save_buttons
 from utils.basic_types import ButtonType
-from data.ui.views import PersistentView
+from ui.views import PersistentView
 
 class UIRecruitmentPost(Bindable):
     """Party leader post."""

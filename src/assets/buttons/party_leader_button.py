@@ -1,6 +1,6 @@
 from typing import override
 from data.events.schedule import Schedule
-from data.ui.base_button import BaseButton, ButtonTemplate
+from ui.base_button import BaseButton, ButtonTemplate
 from utils.basic_types import ButtonType
 from utils.logger import feedback_and_log, guild_log_message
 from utils.functions import default_defer, default_response
@@ -12,7 +12,7 @@ class PartyLeaderButton(ButtonTemplate):
     from party leader position of a run."""
     event_id: int
 
-    from data.ui.ui_recruitment_post import UIRecruitmentPost
+    from ui.ui_recruitment_post import UIRecruitmentPost
     @UIRecruitmentPost.bind
     def ui_recruitment_post(self) -> UIRecruitmentPost: ...
 

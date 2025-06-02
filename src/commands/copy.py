@@ -9,7 +9,7 @@ from utils.logger import guild_log_message
 
 
 class CopyCommands(GroupCog, group_name='copy', group_description='Copy commands.'):
-    from data.ui.copied_messages import MessageCopyController
+    from ui.copied_messages import MessageCopyController
     @MessageCopyController.bind
     def message_copy_controller(self) -> MessageCopyController: ...
 

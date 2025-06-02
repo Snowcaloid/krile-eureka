@@ -6,7 +6,7 @@ from utils.logger import guild_log_message
 
 
 class EurekaCommands(GroupCog, group_name='eureka', group_description='Eureka commands.'):
-    from data.ui.ui_weather_post import UIWeatherPost
+    from ui.ui_weather_post import UIWeatherPost
     @UIWeatherPost.bind
     def ui_weather_post(self) -> UIWeatherPost: ...
 

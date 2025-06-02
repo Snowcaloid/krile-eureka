@@ -19,7 +19,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
-    from data.ui.ui_eureka_info import UIEurekaInfoPost
+    from ui.ui_eureka_info import UIEurekaInfoPost
     @UIEurekaInfoPost.bind
     def ui_eureka_info(self) -> UIEurekaInfoPost: ...
 

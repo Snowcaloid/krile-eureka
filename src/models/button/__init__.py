@@ -1,0 +1,98 @@
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import override
+
+from discord import ButtonStyle
+from data.db.sql import Record
+from models._base import BaseStruct
+from utils.basic_types import ButtonType
+
+@dataclass
+class ButtonStruct(BaseStruct):
+    id: str = None
+    button_type: ButtonType
+    channel_id: int = None
+    message_id: int = None
+    emoji: str = None
+    label: str = None
+    style: ButtonStyle = None
+    row: int = None
+    index: int = None
+    role: int = None
+    party: int = None
+    event_id: int = None
+
+    @override
+    def to_record(self) -> Record:
+        record = Record()
+        if self.id is not None:
+            record['id'] = self.id
+        if self.button_type is not None:
+            record['button_type'] = self.button_type.value
+        if self.channel_id is not None:
+            record['channel_id'] = self.channel_id
+        if self.message_id is not None:
+            record['message_id'] = self.message_id
+        if self.emoji is not None:
+            record['emoji'] = self.emoji
+        if self.label is not None:
+            record['label'] = self.label
+        if self.style is not None:
+            record['style'] = self.style.value
+        if self.row is not None:
+            record['row'] = self.row
+        if self.index is not None:
+            record['index'] = self.index
+        if self.role is not None:
+            record['role'] = self.role
+        if self.party is not None:
+            record['party'] = self.party
+        if self.event_id is not None:
+            record['event_id'] = self.event_id
+        return record
+
+    @classmethod
+    def from_record(cls, record: Record) -> ButtonStruct:
+        return ButtonStruct(
+            id=record.get('id'),
+            button_type=ButtonType(record['button_type']) if record.get('button_type') else None,
+            channel_id=record.get('channel_id'),
+            message_id=record.get('message_id'),
+            emoji=record.get('emoji'),
+            label=record.get('label'),
+            style=ButtonStyle(record['style']) if record.get('style') else None,
+            row=record.get('row'),
+            index=record.get('index'),
+            role=record.get('role'),
+            party=record.get('party'),
+            event_id=record.get('event_id')
+        )
+
+    @override
+    def intersect(self, other: ButtonStruct) -> ButtonStruct:
+        id = other.id if hasattr(other, 'id') else self.id
+        button_type = other.button_type if hasattr(other, 'button_type') else self.button_type
+        channel_id = other.channel_id if hasattr(other, 'channel_id') else self.channel_id
+        message_id = other.message_id if hasattr(other, 'message_id') else self.message_id
+        emoji = other.emoji if hasattr(other, 'emoji') else self.emoji
+        label = other.label if hasattr(other, 'label') else self.label
+        style = other.style if hasattr(other, 'style') else self.style
+        row = other.row if hasattr(other, 'row') else self.row
+        index = other.index if hasattr(other, 'index') else self.index
+        role = other.role if hasattr(other, 'role') else self.role
+        party = other.party if hasattr(other, 'party') else self.party
+        event_id = other.event_id if hasattr(other, 'event_id') else self.event_id
+        return ButtonStruct(
+            id=id,
+            button_type=button_type,
+            channel_id=channel_id,
+            message_id=message_id,
+            emoji=emoji,
+            label=label,
+            style=style,
+            row=row,
+            index=index,
+            role=role,
+            party=party,
+            event_id=event_id
+        )

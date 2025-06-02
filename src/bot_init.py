@@ -45,13 +45,13 @@ def _load_singleton(singleton: Singleton, initial: bool = False):
         singleton.load()
 
 from data.events.schedule import Schedule
-from data.services.channels_service import ChannelsService
+from services.channels import ChannelsService
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
 from data.guilds.guild_roles import GuildRoles
-from data.ui.button_loader import ButtonLoader
+from ui.button_loader import ButtonLoader
 from data.eureka_info import EurekaInfo
-from data.ui.ui_schedule import UISchedule
+from ui.ui_schedule import UISchedule
 
 async def reload_hook(client: Bot, initial: bool):
     ui_schedule = UISchedule()

@@ -1,8 +1,8 @@
 from typing import override
-from data.ui.base_button import BaseButton, ButtonTemplate
+from ui.base_button import BaseButton, ButtonTemplate
 from utils.basic_types import ButtonType
-from data.ui.selects import EurekaTrackerZoneSelect
-from data.ui.views import TemporaryView
+from ui.selects import EurekaTrackerZoneSelect
+from ui.views import TemporaryView
 
 
 from discord import Interaction

@@ -3,11 +3,12 @@ from typing import Generator
 from discord import Member
 from centralized_data import Bindable
 from data.events.event_category import EventCategory
-from data.services.roles_service import RoleStruct, RolesService
-from data.validation.permission import (NO_ACCESS, PermissionLevel, ModulePermissions, EventAdministrationPermissions, Permissions, FULL_ACCESS, ADMIN_ACCESS, DEV_ACCESS)
+from providers.roles import RolesProvider
+from models.roles import RoleStruct
+from models.permissions import (NO_ACCESS, PermissionLevel, ModulePermissions, EventAdministrationPermissions, Permissions, FULL_ACCESS, ADMIN_ACCESS, DEV_ACCESS)
 from utils.basic_types import GuildID, GuildChannelFunction
 
-class PermissionsService(Bindable):
+class PermissionProvider(Bindable):
     from bot import Bot
     @Bot.bind
     def bot(self) -> Bot: ...
@@ -27,14 +28,14 @@ class PermissionsService(Bindable):
         )
 
     def _is_developer(self, guild_id: GuildID, user: Member) -> bool:
-        role = RolesService(guild_id).find(RoleStruct(
+        role = RolesProvider(guild_id).find(RoleStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.DEVELOPER
         ))
         return not user.get_role(role.role_id) is None
 
     def _is_admin(self, guild_id: GuildID, user: Member) -> bool:
-        role = RolesService(guild_id).find(RoleStruct(
+        role = RolesProvider(guild_id).find(RoleStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.ADMIN
         ))
@@ -44,7 +45,7 @@ class PermissionsService(Bindable):
         return user_id == int(getenv('OWNER_ID'))
 
     def _is_raid_leader(self, guild_id: GuildID, user: Member) -> bool:
-        for role in RolesService(guild_id).find_all(RoleStruct(
+        for role in RolesProvider(guild_id).find_all(RoleStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.RAID_LEADER
         )):

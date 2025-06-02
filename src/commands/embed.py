@@ -10,7 +10,7 @@ from data.validation.permission_validator import PermissionValidator
 # embeds
 ###################################################################################
 class EmbedCommands(GroupCog, group_name='embed', group_description='Commands for creating an embed.'):
-    from data.ui.ui_embed_builder import UI_Embed_Builder
+    from ui.ui_embed_builder import UI_Embed_Builder
     @UI_Embed_Builder.bind
     def ui_embed_builder(self) -> UI_Embed_Builder: ...
 

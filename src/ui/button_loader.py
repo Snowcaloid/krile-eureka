@@ -2,8 +2,8 @@
 from centralized_data import Bindable
 
 from data.db.sql import SQL
-from data.ui.base_button import delete_buttons, load_button
-from data.ui.views import PersistentView
+from ui.base_button import delete_buttons, load_button
+from ui.views import PersistentView
 
 class ButtonLoader(Bindable):
     from bot import Bot

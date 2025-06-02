@@ -1,0 +1,11 @@
+name: faq
+columns:
+- name: id
+  type: SERIAL
+  unique: true
+- name: guild_id
+  type: BIGINT
+- name: pattern
+  type: TEXT
+- name: data
+  type: JSON

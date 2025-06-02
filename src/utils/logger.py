@@ -5,6 +5,7 @@ from typing import Coroutine
 
 from centralized_data import GlobalCollection
 from discord import Guild, Interaction
+from models.channel import ChannelStruct
 from utils.basic_types import GuildID, GuildChannelFunction, TaskExecutionType
 from bot import Bot
 from utils.functions import default_response, get_discord_timestamp
@@ -47,7 +48,7 @@ class FileLogger(BaseLogger):
 async def _guild_respond(interaction: Interaction, message: str, guild: Guild):
     if hasattr(interaction, 'response'):
         await default_response(interaction, f'{message}')
-    from data.services.channels_service import ChannelsService, ChannelStruct
+    from services.channels import ChannelsService
     channel = ChannelsService(interaction.guild_id).find(ChannelStruct(
         guild_id=interaction.guild_id,
         function=GuildChannelFunction.LOGGING
@@ -89,3 +90,4 @@ class GuildLogger(GlobalCollection[GuildID], BaseLogger):
                 "method": _guild_respond,
                 "args": [interaction, message, self.guild]
             }
+        )

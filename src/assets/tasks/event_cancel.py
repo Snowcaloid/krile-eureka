@@ -12,11 +12,11 @@ class Task_EventCancel(TaskTemplate):
     @Bot.bind
     def bot(self) -> Bot: ...
 
-    from data.ui.ui_schedule import UISchedule
+    from ui.ui_schedule import UISchedule
     @UISchedule.bind
     def ui_schedule(self) -> UISchedule: ...
 
-    from data.ui.ui_recruitment_post import UIRecruitmentPost
+    from ui.ui_recruitment_post import UIRecruitmentPost
     @UIRecruitmentPost.bind
     def ui_recruitment_post(self) -> UIRecruitmentPost: ...
 

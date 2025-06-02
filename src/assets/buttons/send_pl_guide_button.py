@@ -1,4 +1,4 @@
-from data.ui.base_button import BaseButton, ButtonTemplate
+from ui.base_button import BaseButton, ButtonTemplate
 from utils.basic_types import ButtonType
 from utils.functions import default_defer, default_response
 
@@ -11,7 +11,7 @@ class SendPLGuideButton(ButtonTemplate):
 
     def button_type(self) -> ButtonType: return ButtonType.SEND_PL_GUIDE
 
-    from data.ui.ui_help import UIHelp
+    from ui.ui_help import UIHelp
     @UIHelp.bind
     def ui_help(self) -> UIHelp: ...
 

@@ -8,7 +8,7 @@ from utils.basic_types import GuildChannelFunction
 from utils.basic_types import GuildPingType
 from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_pings import GuildPings
-from data.ui.views import TemporaryView
+from ui.views import TemporaryView
 from utils.logger import guild_log_message
 
 class EurekaTrackerModal(Modal):
@@ -16,7 +16,7 @@ class EurekaTrackerModal(Modal):
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
-    from data.ui.ui_eureka_info import UIEurekaInfoPost
+    from ui.ui_eureka_info import UIEurekaInfoPost
     @UIEurekaInfoPost.bind
     def ui_eureka_info(self) -> UIEurekaInfoPost: ...
 

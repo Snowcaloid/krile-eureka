@@ -1,5 +1,6 @@
 from typing import override
 from discord import Embed
+from models.channel import ChannelStruct
 from utils.basic_types import GuildChannelFunction, TaskExecutionType
 from utils.basic_types import GuildPingType
 from data.tasks.task import TaskTemplate
@@ -18,7 +19,7 @@ class Task_PostMainPasscode(TaskTemplate):
         """Sends the main party passcode embed to the allocated passcode channel."""
         if obj and obj["guild"] and obj["entry_id"]:
             from data.events.schedule import Schedule
-            from data.services.channels_service import ChannelsService, ChannelStruct
+            from services.channels import ChannelsService
             from data.guilds.guild_pings import GuildPings
 
             event = Schedule(obj["guild"]).get(obj["entry_id"])

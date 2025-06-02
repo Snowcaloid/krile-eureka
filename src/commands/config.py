@@ -3,7 +3,8 @@ from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
-from data.services.channels_service import ChannelStruct, ChannelsService
+from services.channels import ChannelsService
+from models.channel import ChannelStruct
 from utils.basic_types import EurekaTrackerZone, NotoriousMonster
 from data.events.event_category import EventCategory
 from data.events.event_templates import EventTemplates
@@ -22,11 +23,11 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @Bot.bind
     def bot(self) -> Bot: ...
 
-    from data.ui.ui_schedule import UISchedule
+    from ui.ui_schedule import UISchedule
     @UISchedule.bind
     def ui_schedule(self) -> UISchedule: ...
 
-    from data.ui.ui_eureka_info import UIEurekaInfoPost
+    from ui.ui_eureka_info import UIEurekaInfoPost
     @UIEurekaInfoPost.bind
     def ui_eureka_info(self) -> UIEurekaInfoPost: ...
 
@@ -34,13 +35,13 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @UserInput.bind
     def user_input(self) -> UserInput: ...
 
-    from data.services.context_service import ContextService
-    @ContextService.bind
-    def _context_service(self) -> ContextService: ...
+    from providers.context import ContextProvider
+    @ContextProvider.bind
+    def _context_service(self) -> ContextProvider: ...
 
-    from data.services.permission_service import PermissionsService
-    @PermissionsService.bind
-    def _permissions_service(self) -> PermissionsService: ...
+    from providers.permissions import PermissionProvider
+    @PermissionProvider.bind
+    def _permissions_service(self) -> PermissionProvider: ...
 
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)

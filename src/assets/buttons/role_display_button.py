@@ -1,4 +1,4 @@
-from data.ui.base_button import BaseButton, ButtonTemplate
+from ui.base_button import BaseButton, ButtonTemplate
 from utils.basic_types import ButtonType
 from utils.functions import default_defer
 

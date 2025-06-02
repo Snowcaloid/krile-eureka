@@ -39,3 +39,5 @@ columns:
     type: BOOLEAN
   - name: canceled
     type: BOOLEAN
+  - name: is_signup
+    type: BOOLEAN

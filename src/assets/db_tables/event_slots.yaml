@@ -1,0 +1,13 @@
+name: event_slots
+columns:
+- name: id
+  type: SERIAL
+  primary_key: true
+- name: event_id
+  type: BIGINT
+- name: party
+  type: INTEGER
+- name: slot
+  type: INTEGER
+- name: user_id
+  type: BIGINT
