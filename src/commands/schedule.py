@@ -90,7 +90,8 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
         if is_time_change or is_passcode_change or is_support_change:
             event.recreate_tasks()
         await bot.instance.data.ui.schedule.rebuild(interaction.guild_id)
-        await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event_id, True)
+        if event.pl_post_id:
+            await bot.instance.data.ui.pl_post.rebuild(interaction.guild_id, event_id, True)
         changes = event.get_changes(interaction, old_event)
         await feedback_and_log(interaction, f'adjusted run #{str(event_id)}:\n{changes}')
 
