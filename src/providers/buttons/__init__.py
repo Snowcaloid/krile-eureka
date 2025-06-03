@@ -3,7 +3,7 @@ from models.button import ButtonStruct
 from providers._base import BaseProvider
 
 
-class ButtonProvider(BaseProvider[ButtonStruct]):
+class ButtonsProvider(BaseProvider[ButtonStruct]):
     @override
     def db_table_name(self) -> str:
         return 'buttons'

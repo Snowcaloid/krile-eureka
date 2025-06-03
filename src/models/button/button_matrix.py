@@ -1,7 +1,7 @@
 from data.db.sql import SQL, Record
 from models.button import ButtonStruct
 from models.button.discord_button import DiscordButton
-from providers.buttons import ButtonProvider
+from providers.buttons import ButtonsProvider
 from ui.views import PersistentView, TemporaryView
 
 
@@ -14,8 +14,8 @@ from uuid import uuid4
 
 
 class ButtonMatrix(list[DiscordButton]):
-    @ButtonProvider.bind
-    def _button_provider(self) -> ButtonProvider: return ...
+    @ButtonsProvider.bind
+    def _button_provider(self) -> ButtonsProvider: return ...
 
     def __init__(self, buttons: List[DiscordButton]):
         super().__init__([[None] * 5 for _ in range(5)]) # 5x5 matrix
@@ -44,7 +44,7 @@ class ButtonMatrix(list[DiscordButton]):
                                             where=f'message_id={message.id}',
                                             all=True):
             discord_button = DiscordButton(cls, cls._button_provider.find(
-                    ButtonStruct(id=record['button_id'])))
+                    ButtonStruct(button_id=record['button_id'])))
             result.append(discord_button)
         del query
         return cls(result)

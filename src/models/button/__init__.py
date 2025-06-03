@@ -9,7 +9,7 @@ from utils.basic_types import ButtonType
 
 @dataclass
 class ButtonStruct(BaseStruct):
-    id: str = None
+    button_id: str = None
     button_type: ButtonType
     channel_id: int = None
     message_id: int = None
@@ -25,8 +25,8 @@ class ButtonStruct(BaseStruct):
     @override
     def to_record(self) -> Record:
         record = Record()
-        if self.id is not None:
-            record['id'] = self.id
+        if self.button_id is not None:
+            record['id'] = self.button_id
         if self.button_type is not None:
             record['button_type'] = self.button_type.value
         if self.channel_id is not None:
@@ -53,24 +53,16 @@ class ButtonStruct(BaseStruct):
 
     @classmethod
     def from_record(cls, record: Record) -> ButtonStruct:
-        return ButtonStruct(
-            id=record['id'],
-            button_type=ButtonType(record['button_type']) if record['button_type'] else None,
-            channel_id=record['channel_id'],
-            message_id=record['message_id'],
-            emoji=record['emoji'],
-            label=record['label'],
-            style=ButtonStyle(record['style']) if record['style'] else None,
-            row=record['row'],
-            index=record['index'],
-            role_id=record['role'],
-            party=record['party'],
-            event_id=record['event_id']
-        )
+        kwargs = {k : v for k, v in record.items() if v is not None}
+        if kwargs.get('button_type'):
+            kwargs['button_type'] = ButtonType(kwargs['button_type'])
+        if kwargs.get('style'):
+            kwargs['style'] = ButtonStyle(kwargs['style'])
+        return ButtonStruct(**kwargs)
 
     @override
     def intersect(self, other: ButtonStruct) -> ButtonStruct:
-        id = other.id if hasattr(other, 'id') else self.id
+        id = other.button_id if hasattr(other, 'id') else self.button_id
         button_type = other.button_type if hasattr(other, 'button_type') else self.button_type
         channel_id = other.channel_id if hasattr(other, 'channel_id') else self.channel_id
         message_id = other.message_id if hasattr(other, 'message_id') else self.message_id
@@ -83,7 +75,7 @@ class ButtonStruct(BaseStruct):
         party = other.party if hasattr(other, 'party') else self.party
         event_id = other.event_id if hasattr(other, 'event_id') else self.event_id
         return ButtonStruct(
-            id=id,
+            button_id=id,
             button_type=button_type,
             channel_id=channel_id,
             message_id=message_id,
