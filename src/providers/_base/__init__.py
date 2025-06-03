@@ -49,7 +49,6 @@ class BaseProvider[T: BaseStruct](Bindable, ABC):
     def db_table_name(self) -> str: ...
     """Override to return the name of the database table for this provider."""
 
-
 class BaseGuildProvider[T: BaseStruct](GlobalCollection[GuildID], ABC):
     """
     Provides data from the database for a specific guild.

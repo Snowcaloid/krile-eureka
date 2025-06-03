@@ -1,9 +1,10 @@
 from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
+from models.button.discord_button import DiscordButton
 from utils.basic_types import EurekaTrackerZone
 from utils.basic_types import GuildMessageFunction
 from data.guilds.guild_messages import GuildMessages
-from ui.base_button import BaseButton, save_buttons
+from ui.base_button import save_buttons
 from utils.basic_types import ButtonType
 from ui.views import PersistentView
 from data.weather.weather import EurekaWeathers, EurekaZones, next_4_weathers, next_weather, weather_emoji
@@ -31,8 +32,8 @@ class UIEurekaInfoPost(Bindable):
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
         view = PersistentView()
-        view.add_item(BaseButton(ButtonType.ASSIGN_TRACKER ,style=ButtonStyle.success, label='Assign an existing tracker', row=0, index=0))
-        view.add_item(BaseButton(ButtonType.GENERATE_TRACKER, style=ButtonStyle.primary, label='Generate a tracker', row=0, index=1))
+        view.add_item(DiscordButton(ButtonType.ASSIGN_TRACKER ,style=ButtonStyle.success, label='Assign an existing tracker', row=0, index=0))
+        view.add_item(DiscordButton(ButtonType.GENERATE_TRACKER, style=ButtonStyle.primary, label='Generate a tracker', row=0, index=1))
         message = await message.edit(view=view)
         await self.rebuild(guild_id)
         save_buttons(message, view)

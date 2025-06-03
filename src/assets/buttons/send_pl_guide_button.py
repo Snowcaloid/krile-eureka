@@ -1,4 +1,5 @@
-from ui.base_button import BaseButton, ButtonTemplate
+from models.button.discord_button import DiscordButton
+from models.button.button_template import ButtonTemplate
 from utils.basic_types import ButtonType
 from utils.functions import default_defer, default_response
 
@@ -15,7 +16,7 @@ class SendPLGuideButton(ButtonTemplate):
     @UIHelp.bind
     def ui_help(self) -> UIHelp: ...
 
-    async def callback(self, interaction: Interaction, button: BaseButton):
+    async def callback(self, interaction: Interaction, button: DiscordButton):
         await default_defer(interaction)
         message = await interaction.user.send('_ _')
         await self.ui_help.ba_party_leader(message, interaction.guild.emojis)

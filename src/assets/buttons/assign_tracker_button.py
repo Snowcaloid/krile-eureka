@@ -1,5 +1,6 @@
 from typing import override
-from ui.base_button import BaseButton, ButtonTemplate
+from models.button.discord_button import DiscordButton
+from models.button.button_template import ButtonTemplate
 from utils.basic_types import ButtonType
 from ui.selects import EurekaTrackerZoneSelect
 from ui.views import TemporaryView
@@ -14,7 +15,7 @@ class AssignTrackerButton(ButtonTemplate):
     def button_type(self) -> ButtonType: return ButtonType.ASSIGN_TRACKER
 
     @override
-    async def callback(self, interaction: Interaction, button: BaseButton):
+    async def callback(self, interaction: Interaction, button: DiscordButton):
         view = TemporaryView()
         select = EurekaTrackerZoneSelect(generate=False)
         view.add_item(select)

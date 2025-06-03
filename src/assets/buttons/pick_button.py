@@ -1,6 +1,7 @@
 
 from typing import override
-from ui.base_button import BaseButton, ButtonTemplate
+from models.button.discord_button import DiscordButton
+from models.button.button_template import ButtonTemplate
 from utils.basic_types import ButtonType
 
 
@@ -17,7 +18,7 @@ class PickButton(ButtonTemplate):
     def button_type(self) -> ButtonType: return ButtonType.PICK_BUTTON
 
     @override
-    async def callback(self, interaction: Interaction, button: BaseButton):
+    async def callback(self, interaction: Interaction, button: DiscordButton):
         if button.disabled: return
         if button.original_button is None:
             await interaction.response.send_modal(AddButtonModal(

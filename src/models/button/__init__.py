@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import override
 
-from discord import ButtonStyle
+from discord import Button, ButtonStyle
 from data.db.sql import Record
 from models._base import BaseStruct
 from utils.basic_types import ButtonType
@@ -18,7 +18,7 @@ class ButtonStruct(BaseStruct):
     style: ButtonStyle = None
     row: int = None
     index: int = None
-    role: int = None
+    role_id: int = None
     party: int = None
     event_id: int = None
 
@@ -43,8 +43,8 @@ class ButtonStruct(BaseStruct):
             record['row'] = self.row
         if self.index is not None:
             record['index'] = self.index
-        if self.role is not None:
-            record['role'] = self.role
+        if self.role_id is not None:
+            record['role'] = self.role_id
         if self.party is not None:
             record['party'] = self.party
         if self.event_id is not None:
@@ -63,7 +63,7 @@ class ButtonStruct(BaseStruct):
             style=ButtonStyle(record['style']) if record['style'] else None,
             row=record['row'],
             index=record['index'],
-            role=record['role'],
+            role_id=record['role'],
             party=record['party'],
             event_id=record['event_id']
         )
@@ -79,7 +79,7 @@ class ButtonStruct(BaseStruct):
         style = other.style if hasattr(other, 'style') else self.style
         row = other.row if hasattr(other, 'row') else self.row
         index = other.index if hasattr(other, 'index') else self.index
-        role = other.role if hasattr(other, 'role') else self.role
+        role = other.role_id if hasattr(other, 'role') else self.role_id
         party = other.party if hasattr(other, 'party') else self.party
         event_id = other.event_id if hasattr(other, 'event_id') else self.event_id
         return ButtonStruct(
@@ -92,7 +92,13 @@ class ButtonStruct(BaseStruct):
             style=style,
             row=row,
             index=index,
-            role=role,
+            role_id=role,
             party=party,
             event_id=event_id
         )
+
+    # TODO: Implement the following methods
+    # tostring
+    #equals
+    #marshal : tojson
+    #changes_since : diffrerence between 2 objects

@@ -1,14 +1,18 @@
-
 from centralized_data import Bindable
 
 from data.db.sql import SQL
-from ui.base_button import delete_buttons, load_button
+from models.button import ButtonStruct
+from models.button.discord_button import DiscordButton
+from providers.buttons import ButtonProvider
+from ui.base_button import delete_buttons
 from ui.views import PersistentView
 
 class ButtonLoader(Bindable):
     from bot import Bot
     @Bot.bind
     def bot(self) -> Bot: ...
+    @ButtonProvider.bind
+    def _button_provider(self) -> ButtonProvider: ...
 
     """Loading and deleting Buttons from DB."""
     async def load(self) -> None:
@@ -19,8 +23,9 @@ class ButtonLoader(Bindable):
             for record in SQL('buttons').select(fields=['button_id'],
                                                 where=f"message_id = '{message_record["message_id"]}'",
                                                 all=True):
-                button = await load_button(record['button_id'])
-                view.add_item(button)
+                discord_button = DiscordButton(self._button_provider.find(
+                    ButtonStruct(id=record['button_id'])))
+                view.add_item(discord_button)
             self.bot.client.add_view(view)
 
     def delete(self, message_id: int) -> None:

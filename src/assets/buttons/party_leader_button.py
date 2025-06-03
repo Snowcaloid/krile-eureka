@@ -1,6 +1,7 @@
 from typing import override
 from data.events.schedule import Schedule
-from ui.base_button import BaseButton, ButtonTemplate
+from models.button.discord_button import DiscordButton
+from models.button.button_template import ButtonTemplate
 from utils.basic_types import ButtonType
 from utils.logger import feedback_and_log, guild_log_message
 from utils.functions import default_defer, default_response
@@ -19,7 +20,7 @@ class PartyLeaderButton(ButtonTemplate):
     def button_type(self) -> ButtonType: return ButtonType.PL_POST
 
     @override
-    async def callback(self, interaction: Interaction, button: BaseButton):
+    async def callback(self, interaction: Interaction, button: DiscordButton):
         await default_defer(interaction)
         id = button.event_id
         event = Schedule(interaction.guild_id).get(id)

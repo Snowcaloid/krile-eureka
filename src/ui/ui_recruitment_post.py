@@ -4,13 +4,14 @@ from discord import ButtonStyle, Embed, Message, TextChannel
 from data.events.event import Event
 from data.events.schedule import Schedule
 from data.guilds.guild_channel import GuildChannel, GuildChannels
+from models.button.discord_button import DiscordButton
 from utils.basic_types import GuildMessageFunction
 from utils.basic_types import GuildPingType
 from data.events.event_category import EventCategory
 from utils.basic_types import GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
-from ui.base_button import BaseButton, delete_buttons, save_buttons
+from ui.base_button import delete_buttons, save_buttons
 from utils.basic_types import ButtonType
 from ui.views import PersistentView
 
@@ -54,7 +55,7 @@ class UIRecruitmentPost(Bindable):
             for i in range(1, 8):
                 label = event.pl_button_texts[i-1]
                 if label:
-                    button = BaseButton(
+                    button = DiscordButton(
                         ButtonType.PL_POST,
                         label=label,
                         custom_id=str(uuid4()),
@@ -65,7 +66,7 @@ class UIRecruitmentPost(Bindable):
                     button.event_id = event.id
                     view.add_item(button)
             if event.category == EventCategory.BA:
-                view.add_item(BaseButton(
+                view.add_item(DiscordButton(
                     ButtonType.SEND_PL_GUIDE,
                     label='How to party lead?',
                     custom_id=str(uuid4()),

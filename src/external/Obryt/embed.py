@@ -30,8 +30,10 @@ from discord.ui import TextInput
 from discord import ChannelType, TextChannel
 
 from bot import Bot
+from models.button.button_matrix import ButtonMatrix
+from models.button.discord_button import DiscordButton
 from utils.basic_types import BUTTON_TYPE_CHOICES, ButtonType
-from ui.base_button import BaseButton, ButtonMatrix, delete_buttons, save_buttons
+from ui.base_button import delete_buttons, save_buttons
 from utils.basic_types import BUTTON_STYLE_CHOICES
 from ui.views import TemporaryView
 from utils.logger import guild_log_message
@@ -595,7 +597,7 @@ class ReplaceChannelSelect(discord.ui.ChannelSelect):
 
 
 class AddButtonModal(discord.ui.Modal):
-    def __init__(self, *, buttons: ButtonMatrix, parent_view: EmbedBuilderView, button: BaseButton) -> None:
+    def __init__(self, *, buttons: ButtonMatrix, parent_view: EmbedBuilderView, button: DiscordButton) -> None:
         self.buttons = buttons
         self.button = button
         self.parent_view = parent_view
@@ -710,7 +712,7 @@ class EditButtonModal(discord.ui.Modal):
         *,
         buttons: ButtonMatrix,
         parent_view: EmbedBuilderView,
-        button: BaseButton) -> None:
+        button: DiscordButton) -> None:
         self.buttons = buttons
 
         self.parent_view = parent_view
@@ -887,11 +889,11 @@ class ImportJSONModal(discord.ui.Modal):
 
 
 class ButtonMatrixView(TemporaryView):
-    def __init__(self, buttons: ButtonMatrix, parent_view: EmbedBuilderView, original_button: BaseButton = None):
+    def __init__(self, buttons: ButtonMatrix, parent_view: EmbedBuilderView, original_button: DiscordButton = None):
         super().__init__()
         for i, button in enumerate([button for button in buttons]):
             if button is None:
-                button = BaseButton(button_type=ButtonType.PICK_BUTTON,
+                button = DiscordButton(button_struct=ButtonType.PICK_BUTTON,
                                     row=i // 5,
                                     index=i % 5,
                                     label=f"R {i // 5 + 1} C {i % 5 + 1}",
