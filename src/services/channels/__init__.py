@@ -6,9 +6,10 @@ from data.events.event_category import EventCategory
 from providers.channels import ChannelsProvider
 from models.channel import ChannelStruct
 from models.context import ServiceContext
+from services._base import BaseGuildService
 from utils.basic_types import GuildID
 
-class ChannelsService(GlobalCollection[GuildID]):
+class ChannelsService(BaseGuildService[ChannelStruct]):
     from services.channels.user_input import ChannelUserInput
     @ChannelUserInput.bind
     def _user_input(self) -> ChannelUserInput: ...

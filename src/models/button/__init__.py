@@ -54,18 +54,18 @@ class ButtonStruct(BaseStruct):
     @classmethod
     def from_record(cls, record: Record) -> ButtonStruct:
         return ButtonStruct(
-            id=record.get('id'),
-            button_type=ButtonType(record['button_type']) if record.get('button_type') else None,
-            channel_id=record.get('channel_id'),
-            message_id=record.get('message_id'),
-            emoji=record.get('emoji'),
-            label=record.get('label'),
-            style=ButtonStyle(record['style']) if record.get('style') else None,
-            row=record.get('row'),
-            index=record.get('index'),
-            role=record.get('role'),
-            party=record.get('party'),
-            event_id=record.get('event_id')
+            id=record['id'],
+            button_type=ButtonType(record['button_type']) if record['button_type'] else None,
+            channel_id=record['channel_id'],
+            message_id=record['message_id'],
+            emoji=record['emoji'],
+            label=record['label'],
+            style=ButtonStyle(record['style']) if record['style'] else None,
+            row=record['row'],
+            index=record['index'],
+            role=record['role'],
+            party=record['party'],
+            event_id=record['event_id']
         )
 
     @override
