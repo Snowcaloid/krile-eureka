@@ -7,7 +7,7 @@ from utils.basic_types import GuildChannelFunction
 
 
 class ChannelStruct(BaseStruct):
-    def __init__(self, **kwargs)
+    def __init__(self, **kwargs):
         if kwargs.get('guild_id') is not None:
             self.guild_id = kwargs['guild_id']
         if kwargs.get('id') is not None:

@@ -1,13 +1,11 @@
 from __future__ import annotations
 from typing import override
-from centralized_data import GlobalCollection
 from data.db.sql import SQL
 from data.events.event_category import EventCategory
 from providers.channels import ChannelsProvider
 from models.channel import ChannelStruct
 from models.context import ServiceContext
 from services._base import BaseGuildService
-from utils.basic_types import GuildID
 
 class ChannelsService(BaseGuildService[ChannelStruct]):
     from services.channels.user_input import ChannelUserInput
@@ -20,7 +18,7 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
         with context:
             from models.permissions import ModulePermissions, PermissionLevel, Permissions
             context.assert_permissions(Permissions(modules=ModulePermissions(channels=PermissionLevel.FULL)))
-            channel.user_input.validate_and_fix()
+            self._user_input.validate_and_fix()
             assert channel.guild_id is not None, "Channel sync failure: ChannelStruct is missing Guild ID"
             found_channel = ChannelsProvider(self.key).find(channel)
             if found_channel:

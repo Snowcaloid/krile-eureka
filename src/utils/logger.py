@@ -82,7 +82,7 @@ class GuildLogger(GlobalCollection[GuildID], BaseLogger):
         self.console_logger.log(message)
         self.file_logger.log(message)
 
-    def respond(self, interaction: Interaction, message: str) -> Coroutine[None, None, None]:
+    def respond(self, interaction: Interaction, message: str) -> None:
         self.tasks.add_task(
             datetime.utcnow(),
             TaskExecutionType.RUN_ASYNC_METHOD,
