@@ -2,7 +2,7 @@
 from enum import Enum
 from discord import ButtonStyle
 from discord.app_commands import Choice
-from typing import Dict, List
+from typing import Dict, List, Type
 
 
 type GuildID = int
@@ -12,6 +12,12 @@ class _Unassigned:
         return "<unassigned value>"
 
 Unassigned = _Unassigned()
+
+def fix_enum(enum_type: Type[Enum], value: any):
+    if isinstance(value, enum_type):
+        return value
+    else:
+        return enum_type(value) if value is not None and value is not Unassigned else None
 
 class GuildChannelFunction(Enum):
     NONE = 0

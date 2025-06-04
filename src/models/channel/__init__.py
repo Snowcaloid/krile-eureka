@@ -2,9 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import override
 from bot import Bot
-from data.db.sql import Record, enum_db_value
 from models._base import BaseStruct
-from utils.basic_types import Unassigned, GuildChannelFunction
+from utils.basic_types import Unassigned, GuildChannelFunction, fix_enum
 
 
 @dataclass
@@ -17,6 +16,10 @@ class ChannelStruct(BaseStruct):
 
     @Bot.bind
     def _bot(self) -> Bot: ...
+
+    @override
+    def fixup_enums(self) -> None:
+        self.function = fix_enum(GuildChannelFunction, self.function)
 
     @override
     def __eq__(self, other: ChannelStruct) -> bool:

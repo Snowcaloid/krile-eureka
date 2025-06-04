@@ -2,31 +2,30 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, override
 from bot import Bot
-from data.db.sql import Record
 from models._base import BaseStruct
-from utils.basic_types import GuildRoleFunction
+from utils.basic_types import Unassigned
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 
 @dataclass
 class EventStruct(BaseStruct):
-    guild_id: int = None
-    id: int = None
-    event_type: str = None
-    timestamp: datetime = None
-    custom_description: str = None
-    raid_leader_id: int = None
-    party_leader_ids: List[int] = field(default_factory=list)
-    use_support: bool = None
-    passcode_main: int = None
-    passcode_support: int = None
-    recruitment_post_id: int = None
-    finished: bool = None
-    canceled: bool = None
-    is_signup: bool = None
+    guild_id: int = Unassigned
+    id: int = Unassigned
+    event_type: str = Unassigned
+    timestamp: datetime = Unassigned
+    custom_description: str = Unassigned
+    raid_leader_id: int = Unassigned
+    party_leader_ids: List[int] = Unassigned
+    use_support: bool = Unassigned
+    passcode_main: int = Unassigned
+    passcode_support: int = Unassigned
+    recruitment_post_id: int = Unassigned
+    finished: bool = Unassigned
+    canceled: bool = Unassigned
+    is_signup: bool = Unassigned
 
     @Bot.bind
     def _bot(self) -> Bot: ...

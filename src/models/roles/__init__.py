@@ -3,21 +3,25 @@ from typing import override
 from bot import Bot
 from data.db.sql import Record
 from models._base import BaseStruct
-from utils.basic_types import GuildRoleFunction
+from utils.basic_types import GuildRoleFunction, Unassigned, fix_enum
 
 from dataclasses import dataclass
 
 
 @dataclass
 class RoleStruct(BaseStruct):
-    guild_id: int = None
-    id: int = None
-    role_id: int = None
-    event_category: str = None
-    function: GuildRoleFunction = None
+    guild_id: int = Unassigned
+    id: int = Unassigned
+    role_id: int = Unassigned
+    event_category: str = Unassigned
+    function: GuildRoleFunction = Unassigned
 
     @Bot.bind
     def _bot(self) -> Bot: ...
+
+    @override
+    def fixup_enums(self) -> None:
+        self.function = fix_enum(GuildRoleFunction, self.function)
 
     @override
     def __eq__(self, other: RoleStruct) -> bool:
