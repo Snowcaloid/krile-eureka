@@ -1,9 +1,11 @@
 from datetime import datetime
+from enum import Enum
 from functools import wraps
 from sys import exc_info
 from typing import Any, Callable, Dict, List, Tuple, TypeVar
 
 from data.db.database import Database, PgColumnValue, pg_timestamp
+from utils.basic_types import STRUCT_NULL, Unassigned
 
 SQL_ALL_FIELDS = ['*']
 
@@ -16,6 +18,18 @@ class Record(Dict[str, PgColumnValue]):
 
     def __del__(self):
         self.DATABASE.disconnect()
+
+    def __getitem__(self, key: str) -> PgColumnValue:
+        if super().__getitem__(key) is None: return Unassigned
+        return super().__getitem__(key)
+
+    def _enum_db_value(self, enum: Enum):
+        return enum.value if enum is not None and enum is not STRUCT_NULL else None
+
+    def __setitem__(self, key: str, value: PgColumnValue) -> None:
+        if isinstance(value, Enum): super().__setitem__(key, self._enum_db_value(value))
+        elif value is Unassigned: super().__setitem__(key, None)
+        else: super().__setitem__(key, value)
 
 class Transaction(Record):
     def __exit__(self, exc_type, exc_value, traceback):

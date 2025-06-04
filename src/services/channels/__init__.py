@@ -32,7 +32,7 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
                 SQL('channels').insert(channel.to_record())
                 context.log(f"[CHANNELS] #{self.bot.client.get_channel(channel.channel_id).name} added successfully.")
                 context.log(f"Channel:```{channel}```")
-            self.load()
+            ChannelsProvider(self.key).load()
 
     def sync_category(self, channel: ChannelStruct,
                       event_category: EventCategory,
@@ -65,7 +65,7 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
                     f'guild_id={channel.guild_id} and channel_id={channel.channel_id} '
                     f'and function={channel.function.value} {event_type_part}'))
             context.log(f"Channel assignment removed successfully: ```{channel}```")
-            self.load()
+            ChannelsProvider(self.key).load()
 
     def remove_category(self, channel: ChannelStruct,
                         event_category: EventCategory,

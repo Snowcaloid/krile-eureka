@@ -7,6 +7,12 @@ from typing import Dict, List
 
 type GuildID = int
 
+class _Unassigned:
+    def __repr__(self) -> str:
+        return "<unassigned value>"
+
+Unassigned = _Unassigned()
+
 class GuildChannelFunction(Enum):
     NONE = 0
     PASSCODES = 1

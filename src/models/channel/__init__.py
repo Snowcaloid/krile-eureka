@@ -1,66 +1,22 @@
 from __future__ import annotations
+from dataclasses import dataclass
 from typing import override
 from bot import Bot
-from data.db.sql import Record
+from data.db.sql import Record, enum_db_value
 from models._base import BaseStruct
-from utils.basic_types import GuildChannelFunction
+from utils.basic_types import Unassigned, GuildChannelFunction
 
 
+@dataclass
 class ChannelStruct(BaseStruct):
-    def __init__(self, **kwargs):
-        if kwargs.get('guild_id') is not None:
-            self.guild_id = kwargs['guild_id']
-        if kwargs.get('id') is not None:
-            self.id = kwargs['id']
-        if kwargs.get('channel_id') is not None:
-            self.channel_id = kwargs['channel_id']
-        if kwargs.get('event_type') is not None:
-            self.event_type = kwargs['event_type']
-        if kwargs.get('function') is not None:
-            self.function = GuildChannelFunction(kwargs['function'])
+    guild_id: int = Unassigned
+    id: int = Unassigned
+    channel_id: int = Unassigned
+    event_type: str = Unassigned
+    function: GuildChannelFunction = Unassigned
 
     @Bot.bind
     def _bot(self) -> Bot: ...
-
-    @override
-    def to_record(self) -> Record:
-        record = Record()
-        if self.guild_id is not None:
-            record['guild_id'] = self.guild_id
-        if self.id is not None:
-            record['id'] = self.id
-        if self.channel_id is not None:
-            record['channel_id'] = self.channel_id
-        if self.event_type is not None:
-            record['event_type'] = self.event_type
-        if self.function is not None:
-            record['function'] = self.function.value if self.function else None
-        return record
-
-    @classmethod
-    def from_record(cls, record: Record) -> ChannelStruct:
-        return ChannelStruct(
-            guild_id=record['guild_id'],
-            id=record['id'],
-            channel_id=record['channel_id'],
-            event_type=record['event_type'],
-            function=GuildChannelFunction(record['function']) if record['function'] else None
-        )
-
-    @override
-    def intersect(self, other: ChannelStruct) -> ChannelStruct:
-        guild_id = other.guild_id if other.hasattr('guild_id') else self.guild_id
-        id = other.id if other.hasattr('id') else self.id
-        channel_id = other.channel_id if other.hasattr('channel_id') else self.channel_id
-        event_type = other.event_type if other.hasattr('event_type') else self.event_type
-        function = other.function if other.hasattr('function') else self.function
-        return ChannelStruct(
-            guild_id=guild_id,
-            id=id,
-            channel_id=channel_id,
-            event_type=event_type,
-            function=function
-        )
 
     @override
     def __eq__(self, other: ChannelStruct) -> bool:

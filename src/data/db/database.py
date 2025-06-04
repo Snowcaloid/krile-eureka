@@ -4,12 +4,14 @@ import psycopg2
 import os
 from datetime import datetime
 
+from utils.basic_types import _Unassigned
+
 
 def pg_timestamp(timestamp: datetime):
     return timestamp.strftime("\'%Y-%m-%d %H:%M\'")
 
 
-PgColumnValue = Union[Any, str, int, bool, datetime, None]
+PgColumnValue = Union[Any, str, int, bool, datetime, _Unassigned]
 
 
 class DatabaseOperation(Enum):

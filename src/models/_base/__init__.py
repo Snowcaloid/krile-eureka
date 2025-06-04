@@ -1,7 +1,9 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from dataclasses import fields
 
 from data.db.sql import Record
+from utils.basic_types import Unassigned
 
 
 class BaseStruct(ABC):
@@ -20,18 +22,31 @@ class BaseStruct(ABC):
     @Bot.bind
     def _bot(self) -> Bot: ...
 
-    @abstractmethod
-    def to_record(self) -> Record: ...
-    """Override to create a database record from the struct."""
+    def __init__(self):
+        super().__init__()
+        self.fixup_enums()
+
+    def _to_constructor_dict(self):
+        return {field.name: getattr(self, field.name) for field in fields(self)}
 
     @classmethod
-    def from_record(cls, record: Record) -> BaseStruct: ...
-    """Override to create an instance from a database record."""
+    def from_record(cls, record: Record) -> BaseStruct:
+        return cls(**record)
 
     @abstractmethod
-    def intersect(self, other: BaseStruct) -> BaseStruct: ...
-    """Should yield a new struct that contains only the fields
-    that are not None in both structs."""
+    def fixup_enums(self) -> None: ...
+    """Override to change enum fields into actual enums."""
+
+    def to_record(self) -> Record:
+        return Record(self._to_constructor_dict())
+
+    def intersect(self, other: BaseStruct) -> BaseStruct:
+        result = self.__class__(self._to_constructor_dict())
+        for field in fields(other):
+            value = getattr(other, field.name)
+            if value is not Unassigned:
+                setattr(result, field.name, value)
+        return result
 
     @abstractmethod
     def __eq__(self, other: BaseStruct) -> bool: ...

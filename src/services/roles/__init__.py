@@ -34,7 +34,7 @@ class RolesService(BaseGuildService[RoleStruct]):
     def sync_category(self, channel: RoleStruct, event_category: EventCategory, context: ServiceContext) -> None:
         with context:
             for event_template in EventTemplates(self.key).get_by_categories([event_category]):
-                self.sync(channel.intersect(RoleStruct(event_type=event_template.type())), context)
+                self.sync(channel.intersect(RoleStruct(event_category=event_template.type())), context)
 
     @override
     def remove(self, role: RoleStruct, context: ServiceContext) -> None:
@@ -46,7 +46,7 @@ class RolesService(BaseGuildService[RoleStruct]):
                 SQL('roles').delete(f'id={found_role.id}')
                 context.log(f"[ROLES] #{found_role} removed successfully.")
             elif self._user_input.can_remove(role):
-                event_type_part = f"and event_type='{role.event_type}'" if role.event_type else ''
+                event_type_part = f"and event_type='{role.event_category}'" if role.event_category else ''
                 SQL('roles').delete((
                     f'guild_id={role.guild_id} and channel_id={role.role_id} '
                     f'and function={role.function.value} {event_type_part}'))
