@@ -26,6 +26,10 @@ class EventRegister:
         bozja_events.BozjaAllRounder.register()
         chaotic_events.CloudOfDarknessChaotic.register()
         occult_crescent_events.ForkedTower.register()
+        occult_crescent_events.ForkedTowerDeadStarsProg.register()
+        occult_crescent_events.ForkedTowerMarbleDragonProg.register()
+        occult_crescent_events.ForkedTowerMagitaurProg.register()
+        occult_crescent_events.ForkedTowerReclear.register()
         event.EventCategoryCollection.ALL_WITH_CUSTOM = event.Event.all_events_for_category(event.EventCategory.BA) + \
             event.Event.all_events_for_category(event.EventCategory.DRS) + \
             event.Event.all_events_for_category(event.EventCategory.BOZJA) + \

@@ -42,14 +42,15 @@ class OccultCrescent(Event):
             'The passcode(s) will be posted automatically at the appropriate time for that run.'
         )
     @classmethod
-    def pl_passcode_delay(cl) -> timedelta: return timedelta(minutes=20)
+    def pl_passcode_delay(cl) -> timedelta: return timedelta(minutes=30)
     @classmethod
-    def main_passcode_delay(cl) -> timedelta: return timedelta(minutes=5)
+    def main_passcode_delay(cl) -> timedelta: return timedelta(minutes=15)
     @classmethod
     def pl_button_texts(cl) -> Tuple[str, str, str, str, str, str, str]:
         return '1', '2', '3', '4', '5', '6', ''
     @classmethod
     def use_support(cl) -> bool: return False
+
 
 class ForkedTower(OccultCrescent):
     @classmethod
@@ -58,3 +59,40 @@ class ForkedTower(OccultCrescent):
     def description(cl) -> str: return 'Forked Tower Open Run'
     @classmethod
     def short_description(cl) -> str: return 'FT Open Run'
+
+
+class ForkedTowerDeadStarsProg(OccultCrescent):
+    @classmethod
+    def type(cl) -> str: return 'FT3'
+    @classmethod
+    def description(cl) -> str: return 'Forked Tower Dead Stars Prog Run'
+    @classmethod
+    def short_description(cl) -> str: return 'FT Dead Stars Prog Run'
+
+
+class ForkedTowerMarbleDragonProg(OccultCrescent):
+    @classmethod
+    def type(cl) -> str: return 'FTMD'
+    @classmethod
+    def description(cl) -> str: return 'Forked Tower Marble Dragon Prog Run'
+    @classmethod
+    def short_description(cl) -> str: return 'FT Marble Dragon Prog Run'
+
+
+class ForkedTowerMagitaurProg(OccultCrescent):
+    @classmethod
+    def type(cl) -> str: return 'FTMT'
+    @classmethod
+    def description(cl) -> str: return 'Forked Tower Magitaur Prog Run'
+    @classmethod
+    def short_description(cl) -> str: return 'FT Magitaur Prog Run'
+
+
+class ForkedTowerReclear(OccultCrescent):
+    @classmethod
+    def type(cl) -> str: return 'FTRC'
+    @classmethod
+    def description(cl) -> str: return 'Forked Tower Reclear Run'
+    @classmethod
+    def short_description(cl) -> str: return 'FT Reclear Run'
+
