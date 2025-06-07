@@ -4,6 +4,17 @@ from abc import ABC, abstractmethod
 from centralized_data import Bindable
 from models._base import BaseStruct
 
+class SimpleUserInput[T](Bindable, ABC):
+    """
+    Base class for simple user input validation and fixing.
+    When creating new user input classes, inherit from this class
+    and override `validate_and_fix()`.
+    The user input can be bound to a service.
+    """
+
+    @abstractmethod
+    def validate_and_fix(self, value: any) -> T: ...
+    """Override to add assertions and user input fixing logic."""
 
 class BaseUserInput[T: BaseStruct](Bindable, ABC):
     """
@@ -20,10 +31,6 @@ class BaseUserInput[T: BaseStruct](Bindable, ABC):
     from bot import Bot
     @Bot.bind
     def _bot(self) -> Bot: ...
-
-    @abstractmethod
-    def validate_and_fix(self, struct: T) -> None: ...
-    """Override to add assertions and user input fixing logic."""
 
     @abstractmethod
     def can_insert(self, struct: T) -> bool: ...

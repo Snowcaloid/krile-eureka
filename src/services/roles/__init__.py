@@ -6,7 +6,7 @@ from data.events.event_templates import EventTemplates
 from services._base import BaseGuildService
 from providers.roles import RolesProvider
 from models.roles import RoleStruct
-from models.context import ServiceContext
+from models.context import ExecutionContext
 from models.permissions import ModulePermissions, PermissionLevel, Permissions
 
 class RolesService(BaseGuildService[RoleStruct]):
@@ -15,7 +15,7 @@ class RolesService(BaseGuildService[RoleStruct]):
     def _user_input(self) -> RoleUserInput: ...
 
     @override
-    def sync(self, role: RoleStruct, context: ServiceContext) -> None:
+    def sync(self, role: RoleStruct, context: ExecutionContext) -> None:
         with context:
             context.assert_permissions(Permissions(modules=ModulePermissions(roles=PermissionLevel.FULL)))
             assert role.guild_id is not None, "Role sync failure: RoleStruct is missing Guild ID"
@@ -31,13 +31,13 @@ class RolesService(BaseGuildService[RoleStruct]):
                 context.log(f"[ROLES] #{role} added successfully.")
             self.load()
 
-    def sync_category(self, channel: RoleStruct, event_category: EventCategory, context: ServiceContext) -> None:
+    def sync_category(self, channel: RoleStruct, event_category: EventCategory, context: ExecutionContext) -> None:
         with context:
             for event_template in EventTemplates(self.key).get_by_categories([event_category]):
                 self.sync(channel.intersect(RoleStruct(event_category=event_template.type())), context)
 
     @override
-    def remove(self, role: RoleStruct, context: ServiceContext) -> None:
+    def remove(self, role: RoleStruct, context: ExecutionContext) -> None:
         with context:
             context.assert_permissions(Permissions(modules=ModulePermissions(roles=PermissionLevel.FULL)))
             assert role.guild_id is not None, "Role removal failure: RoleStruct is missing Guild ID"

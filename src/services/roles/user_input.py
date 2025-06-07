@@ -1,5 +1,5 @@
 from typing import override
-from services._base.user_input import BaseUserInput
+from user_input._base import BaseUserInput
 from models.channel import ChannelStruct
 
 

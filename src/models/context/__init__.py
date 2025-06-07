@@ -9,8 +9,8 @@ ContextResponse = Callable[[str, Exception], None]
 
 
 @dataclass
-class ServiceContext:
-    """Context for service operations.
+class ExecutionContext:
+    """Context for executing operations.
 
     Usage:
     ```python
@@ -24,6 +24,7 @@ class ServiceContext:
         assert needed_condition, "This is something that went wrong."
     ```
     """
+    user_id: int
     logger: BaseLogger
     """Handles logging."""
     on_flush: ContextResponse = None

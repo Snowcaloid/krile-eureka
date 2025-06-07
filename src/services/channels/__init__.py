@@ -4,7 +4,7 @@ from data.db.sql import SQL
 from data.events.event_category import EventCategory
 from providers.channels import ChannelsProvider
 from models.channel import ChannelStruct
-from models.context import ServiceContext
+from models.context import ExecutionContext
 from services._base import BaseGuildService
 
 class ChannelsService(BaseGuildService[ChannelStruct]):
@@ -14,7 +14,7 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
 
     @override
     def sync(self, channel: ChannelStruct,
-             context: ServiceContext) -> None:
+             context: ExecutionContext) -> None:
         with context:
             from models.permissions import ModulePermissions, PermissionLevel, Permissions
             context.assert_permissions(Permissions(modules=ModulePermissions(channels=PermissionLevel.FULL)))
@@ -36,7 +36,7 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
 
     def sync_category(self, channel: ChannelStruct,
                       event_category: EventCategory,
-                      context: ServiceContext) -> None:
+                      context: ExecutionContext) -> None:
         with context:
             from services.validators.event_types_service import EventTypesService
             from data.events.event_templates import EventTemplates
@@ -50,7 +50,7 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
 
     @override
     def remove(self, channel: ChannelStruct,
-               context: ServiceContext) -> None:
+               context: ExecutionContext) -> None:
         with context:
             from models.permissions import ModulePermissions, PermissionLevel, Permissions
 
@@ -69,7 +69,7 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
 
     def remove_category(self, channel: ChannelStruct,
                         event_category: EventCategory,
-                        context: ServiceContext) -> None:
+                        context: ExecutionContext) -> None:
         with context:
             from services.validators.event_types_service import EventTypesService
             from data.events.event_templates import EventTemplates
