@@ -47,13 +47,18 @@ class PermissionValidator(Bindable):
         return False
 
     def get_raid_leader_permissions(self, member: Member) -> List[EventCategory]:
-        admin_role_id = guild_roles.get(GuildRoleFunction.ADMIN)
+        admin_role_struct = RolesProvider(member.guild.id).find(RoleStruct(
+            function=GuildRoleFunction.ADMIN
+        ))
+        rl_role_structs = RolesProvider(member.guild.id).find_all(RoleStruct(
+            function=GuildRoleFunction.RAID_LEADER
+        ))
         categories: List[EventCategory] = []
         for role in member.roles:
-            if role.id == admin_role_id:
+            if admin_role_struct and role.id == admin_role_struct.role_id:
                 return list(EventCategory)
             else:
-                for guild_role in guild_roles.get_by_id(role.id):
-                    if guild_role.function == GuildRoleFunction.RAID_LEADER and not guild_role.event_category in categories:
-                        categories.append(EventCategory(guild_role.event_category))
+                for role_struct in rl_role_structs:
+                    if role_struct.role_id == role.id and not role_struct.event_category in categories:
+                        categories.append(EventCategory(role_struct.event_category))
         return categories
