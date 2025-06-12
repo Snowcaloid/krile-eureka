@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import override
 
 from utils.basic_types import TaskExecutionType
@@ -6,13 +7,17 @@ from data.guilds.guild_messages import GuildMessages
 from data.tasks.task import TaskTemplate
 
 
-class Task_RemoveOldMessage(TaskTemplate):
+class Task_RemoveRecruitmentPost(TaskTemplate):
     from bot import Bot
     @Bot.bind
     def bot(self) -> Bot: ...
 
     @override
-    def type(self) -> TaskExecutionType: return TaskExecutionType.REMOVE_OLD_MESSAGE
+    def type(self) -> TaskExecutionType: return TaskExecutionType.REMOVE_RECRUITMENT_POST
+
+    @override
+    def description(self, data: object, timestamp: datetime) -> str:
+        return f'Remove Recruitment Post at {timestamp.strftime("%Y-%m %H:%M ST")}'
 
     @override
     async def execute(self, obj: object) -> None:

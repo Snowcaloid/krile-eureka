@@ -1,9 +1,9 @@
+from datetime import datetime
 from typing import override
 from discord import Embed
 from utils.basic_types import GuildChannelFunction, TaskExecutionType
 from utils.basic_types import GuildPingType
 from data.events.schedule import Schedule
-from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_pings import GuildPings
 from data.tasks.task import TaskTemplate
 
@@ -15,6 +15,10 @@ class Task_PostSupportPasscode(TaskTemplate):
 
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.POST_SUPPORT_PASSCODE
+
+    @override
+    def description(self, data: object, timestamp: datetime) -> str:
+        return f'Post Support Passcode for event {data["entry_id"]} at {timestamp.strftime("%Y-%m %H:%M ST")}'
 
     @override
     async def execute(self, obj: object) -> None:

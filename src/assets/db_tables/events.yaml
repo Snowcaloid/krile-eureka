@@ -13,20 +13,6 @@ columns:
     type: TEXT
   - name: raid_leader
     type: BIGINT
-  - name: pl1
-    type: BIGINT
-  - name: pl2
-    type: BIGINT
-  - name: pl3
-    type: BIGINT
-  - name: pl4
-    type: BIGINT
-  - name: pl5
-    type: BIGINT
-  - name: pl6
-    type: BIGINT
-  - name: pls
-    type: BIGINT
   - name: use_support
     type: BOOLEAN
   - name: pass_main

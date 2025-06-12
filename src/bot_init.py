@@ -8,6 +8,7 @@ from discord import HTTPException, Member, Object, RawMessageDeleteEvent
 from discord.ext.commands import Bot, guild_only, Context, Greedy
 
 # TODO: webserver - from api_server import ApiServer
+from ui.base_button import delete_buttons
 from utils.basic_types import TaskExecutionType
 from bot import Bot
 from data.cache.message_cache import MessageCache
@@ -96,7 +97,7 @@ async def on_member_join(member: Member):
 
 @client.event
 async def on_raw_message_delete(payload: RawMessageDeleteEvent):
-    Tasks().add_task(datetime.utcnow(), TaskExecutionType.REMOVE_BUTTONS, {"message_id": payload.message_id})
+    delete_buttons(payload.message_id)
     message_cache = MessageCache()
     if await message_cache.get(payload.message_id, None) is None: return
     message_cache.remove(payload.message_id)

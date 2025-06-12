@@ -1,0 +1,19 @@
+name: event_users
+columns:
+- name: id
+  type: SERIAL
+  primary_key: true
+- name: event_id
+  type: INTEGER
+- name: user_id
+  type: BIGINT
+- name: user_name
+  type: VARCHAR(100)
+- name: is_party_leader
+  type: BOOLEAN
+- name: party
+  type: INTEGER
+- name: slot
+  type: INTEGER
+- name: slot_name
+  type: VARCHAR(50)

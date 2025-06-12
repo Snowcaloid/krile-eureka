@@ -5,7 +5,7 @@ from data.events.schedule import Schedule
 from data.tasks.task import TaskTemplate
 
 
-class Task_RemoveOldRun(TaskTemplate):
+class Task_MarkRunAsFinished(TaskTemplate):
     from bot import Bot
     @Bot.bind
     def bot(self) -> Bot: ...
@@ -15,7 +15,7 @@ class Task_RemoveOldRun(TaskTemplate):
     def ui_schedule(self) -> UISchedule: ...
 
     @override
-    def type(self) -> TaskExecutionType: return TaskExecutionType.REMOVE_OLD_RUNS
+    def type(self) -> TaskExecutionType: return TaskExecutionType.MARK_RUN_AS_FINISHED
 
     @override
     async def execute(self, obj: object) -> None:

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import override
 from discord import Embed
 from models.channel import ChannelStruct
@@ -13,6 +14,10 @@ class Task_PostMainPasscode(TaskTemplate):
 
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.POST_MAIN_PASSCODE
+
+    @override
+    def description(self, data: object, timestamp: datetime) -> str:
+        return f'Post Main Passcode for event {data["entry_id"]} at {timestamp.strftime("%Y-%m %H:%M ST")}'
 
     @override
     async def execute(self, obj: object) -> None:

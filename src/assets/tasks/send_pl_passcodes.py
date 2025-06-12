@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import override
 from discord import Embed
 from utils.basic_types import TaskExecutionType
@@ -12,6 +13,10 @@ class Task_SendPLPasscodes(TaskTemplate):
 
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.SEND_PL_PASSCODES
+
+    @override
+    def description(self, data: object, timestamp: datetime) -> str:
+        return f'Send Party Leader Passcodes for event {data["entry_id"]} at {timestamp.strftime("%Y-%m %H:%M ST")}'
 
     @override
     async def execute(self, obj: object) -> None:

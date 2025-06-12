@@ -7,6 +7,6 @@ columns:
   - name: task_type
     type: INTEGER
   - name: description
-    type: VARCHAR(30)
+    type: VARCHAR(100)
   - name: data
     type: JSON

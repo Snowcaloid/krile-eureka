@@ -75,3 +75,7 @@ def find_nearest_role(guild: Guild, role_name: str) -> Role:
 def user_display_name(guild_id: int, user_id: int) -> str:
     if user_id is None or user_id < 1: return None
     return client.get_guild(guild_id).get_member(user_id).display_name
+
+def is_null_or_unassigned(value: any) -> bool:
+    from utils.basic_types import Unassigned
+    return value is None or value is Unassigned

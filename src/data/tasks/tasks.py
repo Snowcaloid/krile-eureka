@@ -49,7 +49,12 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
             self.sort_runtime_tasks_by_time()
             return task.signature
         else:
-            SQL('tasks').insert(Record(execution_time=time, task_type=task_type.value, data=dumps(data), description=task_type.name))
+            SQL('tasks').insert(Record(
+                execution_time=time,
+                task_type=task_type.value,
+                data=dumps(data),
+                description=self.task_template(task_type).description(data, time)
+            ))
             self.load()
 
     def contains(self, type: TaskExecutionType) -> bool:
@@ -113,3 +118,11 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
         else:
             SQL('tasks').delete(f'task_type={type.value} and data=\'{dumps(data)}\'')
             self.load()
+
+    @classmethod
+    def run_async_method(cls, method: callable, *args, **kwargs) -> None:
+        cls().add_task(datetime.utcnow(), TaskExecutionType.RUN_ASYNC_METHOD, {
+            "method": method,
+            "args": args,
+            "kwargs": kwargs
+        })

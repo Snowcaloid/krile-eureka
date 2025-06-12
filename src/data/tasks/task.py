@@ -10,21 +10,26 @@ from abc import abstractmethod
 from utils.logger import guild_log_message
 
 class TaskTemplate(PythonAsset):
-    @classmethod
-    def base_asset_class_name(cls) -> str: return 'TaskTemplate'
+    @abstractmethod
+    def base_asset_class_name(self) -> str: return 'TaskTemplate'
 
-    def type(cl) -> TaskExecutionType: return TaskExecutionType.NONE
+    @abstractmethod
+    def type(self) -> TaskExecutionType: return TaskExecutionType.NONE
 
-    async def handle_exception(cl, e: Exception, obj: object) -> None:
+    async def handle_exception(self, e: Exception, obj: object) -> None:
         if obj.get("guild"):
             await guild_log_message(obj["guild"], e)
         else:
             print(e)
 
-    def runtime_only(cl) -> bool: return False
+    @abstractmethod
+    def runtime_only(self) -> bool: return False
 
     @abstractmethod
-    async def execute(cl, obj: object) -> None: pass
+    def description(self, data: object, timestamp: datetime) -> str: ...
+
+    @abstractmethod
+    async def execute(self, data: object) -> None: pass
 
 
 class Task:
