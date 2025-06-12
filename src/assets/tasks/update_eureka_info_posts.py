@@ -3,7 +3,7 @@ from typing import override
 
 
 from utils.basic_types import TaskExecutionType
-from data.tasks.task import TaskTemplate
+from tasks.task import TaskTemplate
 
 
 class Task_UpdateEurekaInfoPosts(TaskTemplate):
@@ -11,7 +11,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
     @Bot.bind
     def bot(self) -> Bot: ...
 
-    from data.tasks.tasks import Tasks
+    from tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 

@@ -69,7 +69,7 @@ class Event:
     @Bot.bind
     def bot(self) -> Bot: ...
 
-    from data.tasks.tasks import Tasks
+    from tasks import Tasks
     @Tasks.bind
     def _tasks(self) -> Tasks: ...
 

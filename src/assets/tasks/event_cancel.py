@@ -2,7 +2,7 @@ from typing import override
 
 from data.events.event import Event
 from utils.basic_types import TaskExecutionType
-from data.tasks.task import TaskTemplate
+from tasks.task import TaskTemplate
 from utils.discord_types import InteractionLike
 from utils.logger import feedback_and_log
 

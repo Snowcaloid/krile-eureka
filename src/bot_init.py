@@ -12,7 +12,7 @@ from ui.base_button import delete_buttons
 from utils.basic_types import TaskExecutionType
 from bot import Bot
 from data.cache.message_cache import MessageCache
-from data.tasks.tasks import Tasks
+from tasks import Tasks
 from utils.logger import guild_log_message
 
 from commands.admin import AdminCommands
@@ -49,7 +49,6 @@ from data.events.schedule import Schedule
 from services.channels import ChannelsService
 from data.guilds.guild_messages import GuildMessages
 from data.guilds.guild_pings import GuildPings
-from data.guilds.guild_roles import GuildRoles
 from ui.button_loader import ButtonLoader
 from data.eureka_info import EurekaInfo
 from ui.ui_schedule import UISchedule
@@ -63,7 +62,6 @@ async def reload_hook(client: Bot, initial: bool):
         _load_singleton(Schedule(guild.id), initial)
         _load_singleton(ChannelsService(guild.id), initial)
         _load_singleton(GuildMessages(guild.id), initial)
-        _load_singleton(GuildRoles(guild.id), initial)
         _load_singleton(GuildPings(guild.id), initial)
         await ui_schedule.rebuild(guild.id)
 

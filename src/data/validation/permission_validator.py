@@ -3,10 +3,12 @@ import os
 from typing import List
 from centralized_data import Bindable
 from discord import Member
+from models.roles import RoleStruct
+from providers.roles import RolesProvider
 from utils.discord_types import InteractionLike
 from data.events.event_category import EventCategory
-from utils.basic_types import GuildChannelFunction
-from data.guilds.guild_roles import GuildRoles
+from utils.basic_types import GuildRoleFunction
+from utils.functions import is_null_or_unassigned
 
 class PermissionValidator(Bindable):
     def is_in_guild(self, interaction: InteractionLike) -> bool:
@@ -17,36 +19,41 @@ class PermissionValidator(Bindable):
 
     def is_developer(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
-            role_id = GuildRoles(interaction.guild_id).get(GuildChannelFunction.DEVELOPER)
-            if not role_id: return self.is_owner(interaction)
-            return not interaction.user.get_role(role_id) is None or self.is_owner(interaction)
+            role_struct = RolesProvider(interaction.guild_id).find(RoleStruct(
+                function=GuildRoleFunction.DEVELOPER
+            ))
+            if is_null_or_unassigned(role_struct.role_id): return self.is_owner(interaction)
+            return not interaction.user.get_role(role_struct.role_id) is None or self.is_owner(interaction)
         return False
 
     def is_admin(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
-            role_id = GuildRoles(interaction.guild_id).get(GuildChannelFunction.ADMIN)
-            if not role_id: return self.is_developer(interaction)
-            return not interaction.user.get_role(role_id) is None or self.is_developer(interaction)
+            role_struct = RolesProvider(interaction.guild_id).find(RoleStruct(
+                function=GuildRoleFunction.ADMIN
+            ))
+            if is_null_or_unassigned(role_struct.role_id): return self.is_developer(interaction)
+            return not interaction.user.get_role(role_struct.role_id) is None or self.is_developer(interaction)
         return False
 
     def is_raid_leader(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
-            raid_leader_roles = GuildRoles(interaction.guild_id).get(GuildChannelFunction.RAID_LEADER)
-            for role in raid_leader_roles:
-                if not interaction.user.get_role(role.role_id) is None:
+            role_structs = RolesProvider(interaction.guild_id).find_all(RoleStruct(
+                function=GuildRoleFunction.RAID_LEADER
+            ))
+            for role_struct in role_structs:
+                if not interaction.user.get_role(role_struct.role_id) is None:
                     return True
             return self.is_admin(interaction)
         return False
 
     def get_raid_leader_permissions(self, member: Member) -> List[EventCategory]:
-        guild_roles = GuildRoles(member.guild.id)
-        admin_role_id = guild_roles.get(GuildChannelFunction.ADMIN)
+        admin_role_id = guild_roles.get(GuildRoleFunction.ADMIN)
         categories: List[EventCategory] = []
         for role in member.roles:
             if role.id == admin_role_id:
                 return list(EventCategory)
             else:
                 for guild_role in guild_roles.get_by_id(role.id):
-                    if guild_role.function == GuildChannelFunction.RAID_LEADER and not guild_role.event_category in categories:
+                    if guild_role.function == GuildRoleFunction.RAID_LEADER and not guild_role.event_category in categories:
                         categories.append(EventCategory(guild_role.event_category))
         return categories

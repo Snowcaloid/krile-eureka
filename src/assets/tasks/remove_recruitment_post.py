@@ -4,7 +4,7 @@ from typing import override
 from utils.basic_types import TaskExecutionType
 from data.cache.message_cache import MessageCache
 from data.guilds.guild_messages import GuildMessages
-from data.tasks.task import TaskTemplate
+from tasks.task import TaskTemplate
 
 
 class Task_RemoveRecruitmentPost(TaskTemplate):

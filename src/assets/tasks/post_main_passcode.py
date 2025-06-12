@@ -4,7 +4,7 @@ from discord import Embed
 from models.channel import ChannelStruct
 from utils.basic_types import GuildChannelFunction, TaskExecutionType
 from utils.basic_types import GuildPingType
-from data.tasks.task import TaskTemplate
+from tasks.task import TaskTemplate
 
 
 class Task_PostMainPasscode(TaskTemplate):

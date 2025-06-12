@@ -6,7 +6,7 @@ from utils.basic_types import TaskExecutionType
 from data.db.sql import SQL
 from data.events.event import Event
 from data.events.event_category import EventCategory
-from data.tasks.task import TaskTemplate
+from tasks.task import TaskTemplate
 
 
 class Task_UpdateStatus(TaskTemplate):
@@ -14,7 +14,7 @@ class Task_UpdateStatus(TaskTemplate):
     @Bot.bind
     def bot(self) -> Bot: ...
 
-    from data.tasks.tasks import Tasks
+    from tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 

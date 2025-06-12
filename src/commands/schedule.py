@@ -25,7 +25,7 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     @UserInput.bind
     def user_input(self) -> UserInput: ...
 
-    from data.tasks.tasks import Tasks
+    from tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 

@@ -5,7 +5,7 @@ from utils.basic_types import GuildChannelFunction, TaskExecutionType
 from utils.basic_types import GuildPingType
 from data.events.schedule import Schedule
 from data.guilds.guild_pings import GuildPings
-from data.tasks.task import TaskTemplate
+from tasks.task import TaskTemplate
 
 
 class Task_PostSupportPasscode(TaskTemplate):

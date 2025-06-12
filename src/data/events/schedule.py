@@ -28,7 +28,7 @@ class EventLike(dict):
 class Schedule(GlobalCollection[GuildID]):
     _list: List[Event]
 
-    from data.tasks.tasks import Tasks
+    from tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 

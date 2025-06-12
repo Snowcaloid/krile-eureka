@@ -3,16 +3,15 @@ from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
+from models.roles import RoleStruct
+from providers.context import discord_context
 from services.channels import ChannelsService
 from models.channel import ChannelStruct
-from utils.basic_types import EurekaTrackerZone, NotoriousMonster
-from data.events.event_category import EventCategory
-from data.events.event_templates import EventTemplates
+from services.roles import RolesService
+from utils.basic_types import GuildRoleFunction
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildPingType, GuildChannelFunction, NOTORIOUS_MONSTERS
+from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
-from data.guilds.guild_pings import GuildPings
-from data.guilds.guild_roles import GuildRoles
 from utils.functions import default_defer
 from data.validation.permission_validator import PermissionValidator
 from utils.logger import feedback_and_log, guild_log_message
@@ -35,13 +34,9 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @UserInput.bind
     def user_input(self) -> UserInput: ...
 
-    from providers.context import ContextProvider
-    @ContextProvider.bind
-    def _context_service(self) -> ContextProvider: ...
-
     from providers.permissions import PermissionProvider
     @PermissionProvider.bind
-    def _permissions_service(self) -> PermissionProvider: ...
+    def _permissions_provider(self) -> PermissionProvider: ...
 
     @command(name = "create_schedule_post", description = "Initialize the server\'s schedule by creating a static post that will be used as an event list.")
     @check(PermissionValidator().is_admin)
@@ -89,10 +84,8 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                 function=GuildChannelFunction(function)
             ),
             event_category,
-            self._context_service.discord_context(
-                interaction,
-                self._permissions_service.calculate(
-                    interaction.guild_id, interaction.user.id)))
+            discord_context(interaction)
+        )
 
     @command(name = "sync_channel",
              description = "Assign a channel to have a specific function.")
@@ -108,100 +101,137 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                 event_type=event_type,
                 function=GuildChannelFunction(function)
             ),
-            self._context_service.discord_context(
-                interaction,
-                self._permissions_service.calculate(
-                    interaction.guild_id, interaction.user.id)))
+            discord_context(interaction)
+        )
 
     @command(name = "set_admin", description = "Set the admin role.")
     @check(PermissionValidator().is_admin)
     async def set_admin(self, interaction: Interaction, role: Role):
         await default_defer(interaction)
-        GuildRoles(interaction.guild_id).add(role.id, GuildChannelFunction.ADMIN)
-        await feedback_and_log(interaction, f'set {role.mention} as **admin** role for **{interaction.guild.name}**.')
+        RolesService(interaction.guild_id).sync(RoleStruct(
+            guild_id=interaction.guild_id,
+            role_id=role.id,
+            function=GuildRoleFunction.ADMIN
+        ),
+            discord_context(interaction)
+        )
 
     @command(name = "set_developer", description = "Set the developer role.")
     @check(PermissionValidator().is_admin)
     async def set_developer(self, interaction: Interaction, role: Role):
         await default_defer(interaction)
-        GuildRoles(interaction.guild_id).add(role.id, GuildChannelFunction.DEVELOPER)
-        await feedback_and_log(interaction, f'set {role.mention} as **developer** role for **{interaction.guild.name}**.')
+        RolesService(interaction.guild_id).sync(RoleStruct(
+            guild_id=interaction.guild_id,
+            role_id=role.id,
+            function=GuildRoleFunction.DEVELOPER
+        ),
+            discord_context(interaction)
+        )
+
 
     @command(name = "add_raid_leader_role", description = "Add the Raid Leader role.")
     @check(PermissionValidator().is_admin)
     async def add_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
-        if self.user_input.fail.is_not_event_category(interaction, event_category): return
-        GuildRoles(interaction.guild_id).add(role.id, GuildChannelFunction.RAID_LEADER, event_category)
-        await feedback_and_log(interaction, f'added {role.mention} as **raid leader role** for {EventCategory(event_category).value}.')
+        RolesService(interaction.guild_id).sync(RoleStruct(
+            guild_id=interaction.guild_id,
+            role_id=role.id,
+            function=GuildRoleFunction.RAID_LEADER,
+            event_category=event_category
+        ),
+            discord_context(interaction)
+        )
 
     @command(name = "remove_raid_leader_role", description = "Remove the Raid Leader role.")
     @check(PermissionValidator().is_admin)
     async def remove_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
-        if self.user_input.fail.is_not_event_category(interaction, event_category): return
-        GuildRoles(interaction.guild_id).remove(role.id, GuildChannelFunction.RAID_LEADER, event_category)
-        await feedback_and_log(interaction, f'removed {role.mention} from **raid leader roles** for {EventCategory(event_category).value}.')
+        RolesService(interaction.guild_id).remove(RoleStruct(
+            guild_id=interaction.guild_id,
+            role_id=role.id,
+            function=GuildRoleFunction.RAID_LEADER,
+            event_category=event_category
+        ),
+            discord_context(interaction)
+        )
 
     @command(name='ping_add_role', description='Add a ping.')
     @check(PermissionValidator().is_admin)
     async def ping_add_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
         await default_defer(interaction)
-        if self.user_input.fail.is_not_event_type_or_category(interaction, event_type): return
-        if self.user_input.check.is_event_type(interaction.guild_id, event_type):
-            GuildPings(interaction.guild_id).add_ping(GuildPingType(ping_type), event_type, role.id)
-            desc = EventTemplates(interaction.guild_id).get(event_type).short_description()
-        else:
-            GuildPings(interaction.guild_id).add_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
-            desc = EventCategory(event_type).value
-        await feedback_and_log(interaction, f'added a ping for role {role.mention} on event <{GuildPingType(ping_type).name}, {desc}>')
+        RolesService(interaction.guild_id).sync(RoleStruct(
+            guild_id=interaction.guild_id,
+            role_id=role.id,
+            function=GuildRoleFunction(ping_type),
+            event_category=event_type
+        ),
+            discord_context(interaction)
+        )
 
     @command(name='ping_remove_role', description='Remove a ping.')
     @check(PermissionValidator().is_admin)
     async def ping_remove_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
         await default_defer(interaction)
-        if self.user_input.fail.is_not_event_type_or_category(interaction, event_type): return
-        if self.user_input.check.is_event_type(interaction.guild_id, event_type):
-            GuildPings(interaction.guild_id).remove_ping(GuildPingType(ping_type), event_type, role.id)
-            desc = EventTemplates(interaction.guild_id).get(event_type).short_description()
-        else:
-            GuildPings(interaction.guild_id).remove_ping_category(GuildPingType(ping_type), EventCategory(event_type), role.id)
-            desc = EventCategory(event_type).value
-        await feedback_and_log(interaction, f'removed a ping for role {role.mention} on event <{GuildPingType(ping_type).name}, {desc}>')
+        RolesService(interaction.guild_id).remove(RoleStruct(
+            guild_id=interaction.guild_id,
+            role_id=role.id,
+            function=GuildRoleFunction(ping_type),
+            event_category=event_type
+        ),
+            discord_context(interaction)
+        )
 
     @command(name='ping_add_eureka_role', description='Add a ping for eureka tracker notifications.')
     @check(PermissionValidator().is_admin)
     async def ping_add_eureka_role(self, interaction: Interaction, instance: str, role: Role):
         await default_defer(interaction)
-        if self.user_input.fail.is_not_eureka_instance(interaction, instance): return
-        GuildPings(interaction.guild_id).add_ping(GuildPingType.EUREKA_TRACKER_NOTIFICATION, instance, role.id)
-        await feedback_and_log(interaction, f'added {role.mention} as a ping for tracker notifications in **{EurekaTrackerZone(int(instance)).name}**.')
+        RolesService(interaction.guild_id).sync(RoleStruct(
+            guild_id=interaction.guild_id,
+            role_id=role.id,
+            function=GuildRoleFunction.EUREKA_TRACKER_NOTIFICATION_PING,
+            event_category=instance
+        ),
+            discord_context(interaction)
+        )
 
     @command(name='ping_remove_eureka_role', description='Remove a ping for eureka tracker notifications.')
     @check(PermissionValidator().is_admin)
     async def ping_remove_eureka_role(self, interaction: Interaction, instance: str, role: Role):
         await default_defer(interaction)
-        if self.user_input.fail.is_not_eureka_instance(interaction, instance): return
-        GuildPings(interaction.guild_id).remove_ping(GuildPingType.EUREKA_TRACKER_NOTIFICATION, instance, role.id)
-        await feedback_and_log(interaction, f'removed {role.mention} from pings for tracker notifications in **{EurekaTrackerZone(int(instance)).name}**.')
+        RolesService(interaction.guild_id).remove(RoleStruct(
+            guild_id=interaction.guild_id,
+            role_id=role.id,
+            function=GuildRoleFunction.EUREKA_TRACKER_NOTIFICATION_PING,
+            event_category=instance
+        ),
+            discord_context(interaction)
+        )
 
     @command(name='ping_add_nm_role', description='Add a ping for notorious monster notifications.')
     @check(PermissionValidator().is_admin)
     async def ping_add_nm_role(self, interaction: Interaction, notorious_monster: str, role: Role):
         await default_defer(interaction)
-        notorious_monster = self.user_input.correction.notorious_monster_name_to_type(notorious_monster)
-        if self.user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
-        GuildPings(interaction.guild_id).add_ping(GuildPingType.NM_PING, notorious_monster, role.id)
-        await feedback_and_log(interaction, f'added a role {role.mention} ping for **{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}**.')
+        RolesService(interaction.guild_id).sync(RoleStruct(
+            guild_id=interaction.guild_id,
+            role_id=role.id,
+            function=GuildRoleFunction.NM_PING,
+            event_category=notorious_monster
+        ),
+            discord_context(interaction)
+        )
 
     @command(name='ping_remove_nm_role', description='Remove a ping for notorious monster notifications.')
     @check(PermissionValidator().is_admin)
     async def ping_remove_nm_role(self, interaction: Interaction, notorious_monster: str, role: Role):
         await default_defer(interaction)
-        notorious_monster = self.user_input.correction.notorious_monster_name_to_type(notorious_monster)
-        if self.user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
-        GuildPings(interaction.guild_id).remove_ping(GuildPingType.NM_PING, notorious_monster, role.id)
-        await feedback_and_log(interaction,  f'removed role {role.mention} ping for **{NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]}**.')
+        RolesService(interaction.guild_id).remove(RoleStruct(
+            guild_id=interaction.guild_id,
+            role_id=role.id,
+            function=GuildRoleFunction.NM_PING,
+            event_category=notorious_monster
+        ),
+            discord_context(interaction)
+        )
 
     @ping_add_role.autocomplete('ping_type')
     @ping_remove_role.autocomplete('ping_type')

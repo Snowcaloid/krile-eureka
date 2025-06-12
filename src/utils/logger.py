@@ -1,13 +1,11 @@
 from abc import ABC, abstractmethod
 import os
 from datetime import datetime
-from typing import Coroutine
 
 from centralized_data import GlobalCollection
 from discord import Guild, Interaction
 from models.channel import ChannelStruct
-from utils.basic_types import GuildID, GuildChannelFunction, TaskExecutionType
-from bot import Bot
+from utils.basic_types import GuildID, GuildChannelFunction
 from utils.functions import default_response, get_discord_timestamp
 
 class BaseLogger(ABC):
@@ -60,19 +58,15 @@ async def _guild_respond(interaction: Interaction, message: str, guild: Guild):
 
 
 class GuildLogger(GlobalCollection[GuildID], BaseLogger):
-    from data.tasks.tasks import Tasks
-    @Tasks.bind
-    def tasks(self) -> 'Tasks': ...
-
     from bot import Bot
     @Bot.bind
-    def bot(self) -> 'Bot': ...
+    def _bot(self) -> Bot: ...
 
     def constructor(self, guild_id: GuildID):
         super().__init__(guild_id)
         self.console_logger = ConsoleLogger()
         self.file_logger = FileLogger(guild_id)
-        self.guild = self.bot.client.get_guild(guild_id)
+        self.guild = self._bot.client.get_guild(guild_id)
 
     def log(self, message: str) -> None:
         """
@@ -83,11 +77,5 @@ class GuildLogger(GlobalCollection[GuildID], BaseLogger):
         self.file_logger.log(message)
 
     def respond(self, interaction: Interaction, message: str) -> None:
-        self.tasks.add_task(
-            datetime.utcnow(),
-            TaskExecutionType.RUN_ASYNC_METHOD,
-            {
-                "method": _guild_respond,
-                "args": [interaction, message, self.guild]
-            }
-        )
+        from tasks import Tasks
+        Tasks.run_async_method(_guild_respond, *[interaction, message, self.guild])

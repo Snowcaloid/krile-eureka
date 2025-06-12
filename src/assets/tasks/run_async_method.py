@@ -1,7 +1,7 @@
 from typing import override
 
 from utils.basic_types import TaskExecutionType
-from data.tasks.task import TaskTemplate
+from tasks.task import TaskTemplate
 
 
 class Task_RunAsyncMethod(TaskTemplate):

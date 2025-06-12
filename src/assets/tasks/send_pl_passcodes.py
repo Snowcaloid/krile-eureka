@@ -3,7 +3,7 @@ from typing import override
 from discord import Embed
 from utils.basic_types import TaskExecutionType
 from data.events.schedule import Schedule
-from data.tasks.task import TaskTemplate
+from tasks.task import TaskTemplate
 
 
 class Task_SendPLPasscodes(TaskTemplate):

@@ -129,7 +129,7 @@ class _FailRaiser(Bindable):
     @_InputChecker.bind
     def check(self) -> _InputChecker: ...
 
-    from data.tasks.tasks import Tasks
+    from tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 
@@ -386,7 +386,7 @@ class UserInput(Bindable):
     @_FailRaiser.bind
     def fail(self) -> _FailRaiser: ...
 
-    from data.tasks.tasks import Tasks
+    from tasks import Tasks
     @Tasks.bind
     def tasks(self) -> Tasks: ...
 

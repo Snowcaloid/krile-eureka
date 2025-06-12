@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from utils.basic_types import TaskExecutionType
 from data.db.sql import SQL, Record
-from data.tasks.task import Task, TaskTemplate
+from tasks.task import Task, TaskTemplate
 from centralized_data import PythonAssetLoader
 
 class Tasks(PythonAssetLoader[TaskTemplate]):

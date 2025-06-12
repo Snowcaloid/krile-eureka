@@ -5,7 +5,7 @@ from data.guilds.guild_channel import GuildChannels
 from data.guilds.guild_pings import GuildPings
 from utils.basic_types import GuildChannelFunction, GuildPingType, TaskExecutionType
 from data.events.event import Event
-from data.tasks.task import TaskTemplate
+from tasks.task import TaskTemplate
 from utils.discord_types import InteractionLike
 from utils.functions import user_display_name
 from utils.logger import feedback_and_log
