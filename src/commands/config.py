@@ -3,6 +3,8 @@ from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
+from data.events.event_category import EventCategory
+from data.events.event_templates import EventTemplates
 from models.roles import RoleStruct
 from providers.context import discord_context
 from services.channels import ChannelsService
@@ -67,7 +69,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         message = await channel.send(embed=Embed(description='_ _'))
         messages.add(message.id, channel.id, GuildMessageFunction.EUREKA_INFO)
         await self.ui_eureka_info.create(interaction.guild_id)
-        await feedback_and_log(interaction, f'created a **Persistent Eureka Info Post** in {channel.jump_url}')
+        await feedback_and_log(interaction, f'created a **Persistent Eureka Info Post** in {channel.jump_url}') #TODO: undefined method?
 
     @command(name = "sync_channel_category",
              description = "Assign a channel to have a specific function for an entire event category.")
@@ -76,7 +78,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                                     channel: TextChannel,
                                     function: int):
         await default_defer(interaction)
-        ChannelsService(interaction.guild_id).sync_category(
+        ChannelsService(interaction.guild_id).sync_category( #TODO: undefined method?
             ChannelStruct(
                 guild_id=interaction.guild_id,
                 channel_id=channel.id,
@@ -249,16 +251,12 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @ping_add_role.autocomplete('event_type')
     @ping_remove_role.autocomplete('event_type')
     async def autocomplete_event_type_with_all(self, interaction: Interaction, current: str):
-        return AutoComplete().event_type_with_categories(current, interaction.guild_id)
-
-    @eureka_notification_channel.autocomplete('instance')
-    async def autocomplete_instance(self, interaction: Interaction, current: str):
-        return AutoComplete().eureka_instance(current)
+        return EventTemplates.autocomplete(current, interaction.guild_id)
 
     @add_raid_leader_role.autocomplete('event_category')
     @remove_raid_leader_role.autocomplete('event_category')
     async def autocomplete_event_category(self, interaction: Interaction, current: str):
-        return AutoComplete().event_categories(current)
+        return EventCategory.autocomplete(current)
 
     #region error-handling
     @create_schedule_post.error
@@ -273,7 +271,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @ping_remove_eureka_role.error
     async def handle_error(self, interaction: Interaction, error):
         print(error)
-        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}')
+        await guild_log_message(interaction.guild_id, f'**{interaction.user.display_name}**: {str(error)}') #TODO: undefined method? Maybe has to be GuildLogger().log()
         if interaction.response.is_done():
             if interaction.followup:
                 await interaction.followup.send('You have insufficient rights to use this command or an error has occured.', ephemeral=True)
