@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import override
-from discord import Embed
+from discord import Embed, Guild, TextChannel
 from models.channel import ChannelStruct
 from models.roles import RoleStruct
 from providers.channels import ChannelsProvider
@@ -35,11 +35,12 @@ class Task_PostSupportPasscode(TaskTemplate):
             ))
             if channel_struct is None: return
             guild = self._bot.client.get_guild(obj["guild"])
+            if not isinstance(guild, Guild): return
             channel = guild.get_channel(channel_struct.channel_id)
-            if channel is None: return
+            if not isinstance(channel, TextChannel): return
             mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                 guild_id=guild.id,
-                event_type=event.type,
+                event_category=event.type,
                 function=GuildRoleFunction.SUPPORT_PASSCODE_PING
             ))
             await channel.send(mention_string, embed=Embed(

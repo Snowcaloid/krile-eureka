@@ -14,7 +14,6 @@ from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildC
 from data.guilds.guild_messages import GuildMessages
 from utils.functions import default_defer
 from data.validation.permission_validator import PermissionValidator
-from utils.logger import feedback_and_log, guild_log_message
 
 
 class ConfigCommands(GroupCog, group_name='config', group_description='Config commands.'):

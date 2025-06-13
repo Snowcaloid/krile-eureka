@@ -113,14 +113,6 @@ class AutoCompleteGenerator(Bindable):
                 break
         return users
 
-    def ping_type(self, current: str) -> List[Choice]:
-        return self.filter_by_current([
-            Choice(name='Main passcodes',  value=GuildPingType.MAIN_PASSCODE.value),
-            Choice(name='Support passcodes', value=GuildPingType.SUPPORT_PASSCODE.value),
-            Choice(name='Party leader posts', value=GuildPingType.PL_POST.value),
-            Choice(name='Run Notification', value=GuildPingType.RUN_NOTIFICATION.value)
-        ], current)
-
     def eureka_instance(self, current: str) -> List[Choice]:
         return self.filter_by_current([
             Choice(name='Anemos',  value=str(EurekaTrackerZone.ANEMOS.value)),
