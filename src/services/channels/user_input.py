@@ -9,7 +9,6 @@ class ChannelUserInput(BaseUserInput[ChannelStruct]):
     @EurekaTypesService.bind
     def _eureka_types_service(self) -> EurekaTypesService: ...
 
-    @override
     def validate_and_fix(self, struct: ChannelStruct) -> None:
         if struct.guild_id is not None:
             assert self._bot.client.get_guild(struct.guild_id), \

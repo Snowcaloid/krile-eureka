@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import fields
+from typing import Self
 
 from data.db.sql import Record
 from utils.basic_types import Unassigned
@@ -23,10 +24,10 @@ class BaseStruct(ABC):
         self.fixup_types()
 
     def _to_constructor_dict(self):
-        return {field.name: getattr(self, field.name) for field in fields(self)}
+        return {field.name: getattr(self, field.name) for field in fields(self)} #type: ignore
 
     @classmethod
-    def from_record(cls, record: Record) -> BaseStruct:
+    def from_record(cls, record: Record) -> Self:
         return cls(**record)
 
     @abstractmethod
@@ -36,9 +37,9 @@ class BaseStruct(ABC):
     def to_record(self) -> Record:
         return Record(self._to_constructor_dict())
 
-    def intersect(self, other: BaseStruct) -> BaseStruct:
-        result = self.__class__(self._to_constructor_dict())
-        for field in fields(other):
+    def intersect(self, other: Self) -> Self:
+        result = self.__class__(**self._to_constructor_dict())
+        for field in fields(other): #type: ignore
             value = getattr(other, field.name)
             if value is not Unassigned:
                 setattr(result, field.name, value)
