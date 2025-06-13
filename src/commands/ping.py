@@ -2,11 +2,12 @@ from discord import Interaction
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
 from data.generators.autocomplete_generator import AutoCompleteGenerator
-from utils.basic_types import GuildChannelFunction, NotoriousMonster
-from utils.basic_types import GuildPingType
+from models.channel import ChannelStruct
+from models.roles import RoleStruct
+from providers.channels import ChannelsProvider
+from providers.roles import RolesProvider
+from utils.basic_types import GuildChannelFunction, GuildRoleFunction, NotoriousMonster
 from utils.basic_types import NOTORIOUS_MONSTERS
-from data.guilds.guild_channel import GuildChannels
-from data.guilds.guild_pings import GuildPings
 from utils.logger import guild_log_message
 from utils.functions import default_defer, default_response
 
@@ -16,23 +17,31 @@ from utils.functions import default_defer, default_response
 class PingCommands(GroupCog, group_name='ping', group_description='Ping people for mob spawns.'):
     from bot import Bot
     @Bot.bind
-    def bot(self) -> Bot: ...
+    def _bot(self) -> Bot: ...
 
     from data.validation.user_input import UserInput
     @UserInput.bind
-    def user_input(self) -> UserInput: ...
+    def _user_input(self) -> UserInput: ...
 
     @command(name = "spawn", description = "Ping a Eureka NM.")
     async def spawn(self, interaction: Interaction, notorious_monster: str, text: str):
         await default_defer(interaction)
-        notorious_monster = self.user_input.correction.notorious_monster_name_to_type(notorious_monster)
-        if self.user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
-        channel_data = GuildChannels(interaction.guild_id).get(GuildChannelFunction.NM_PINGS, notorious_monster)
-        if channel_data:
-            channel = self.bot.client.get_channel(channel_data.id)
+        notorious_monster = self._user_input.correction.notorious_monster_name_to_type(notorious_monster)
+        if self._user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
+        channel_struct = ChannelsProvider(interaction.guild_id).find(ChannelStruct(
+            guild_id=interaction.guild_id,
+            event_type=notorious_monster.value,
+            function=GuildChannelFunction.NM_PINGS
+        ))
+        if channel_struct:
+            channel = self._bot.client.get_channel(channel_struct.channel_id)
             if channel:
-                mentions = await GuildPings(interaction.guild_id).get_mention_string(GuildPingType.NM_PING, notorious_monster)
-                message = await channel.send(f'{mentions} Notification for {NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]} by {interaction.user.mention}: {text}')
+                mention_string = RolesProvider(interaction.guild_id).as_discord_mention_string(RoleStruct(
+                    guild_id=interaction.guild_id,
+                    event_type=notorious_monster.value,
+                    function=GuildRoleFunction.NM_PING
+                ))
+                message = await channel.send(f'{mention_string} Notification for {NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]} by {interaction.user.mention}: {text}')
                 await default_response(interaction, f'Pinged: {message.jump_url}')
                 await message.add_reaction('💀')
                 await message.add_reaction('🔒')

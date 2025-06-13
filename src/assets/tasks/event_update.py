@@ -1,9 +1,9 @@
 from typing import override
 
 from data.events.event_templates import EventTemplates
-from data.guilds.guild_channel import GuildChannels
-from data.guilds.guild_pings import GuildPings
-from utils.basic_types import GuildChannelFunction, GuildPingType, TaskExecutionType
+from models.roles import RoleStruct
+from providers.roles import RolesProvider
+from utils.basic_types import GuildChannelFunction, GuildRoleFunction, TaskExecutionType
 from data.events.event import Event
 from tasks.task import TaskTemplate
 from utils.discord_types import InteractionLike
@@ -14,15 +14,15 @@ from utils.logger import feedback_and_log
 class Task_EventUpdate(TaskTemplate):
     from bot import Bot
     @Bot.bind
-    def bot(self) -> Bot: ...
+    def _bot(self) -> Bot: ...
 
     from ui.ui_schedule import UISchedule
     @UISchedule.bind
-    def ui_schedule(self) -> UISchedule: ...
+    def _ui_schedule(self) -> UISchedule: ...
 
     from ui.ui_recruitment_post import UIRecruitmentPost
     @UIRecruitmentPost.bind
-    def ui_recruitment_post(self) -> UIRecruitmentPost: ...
+    def _ui_recruitment_post(self) -> UIRecruitmentPost: ...
 
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.EVENT_UPDATE
@@ -58,18 +58,22 @@ class Task_EventUpdate(TaskTemplate):
             event: Event = obj["event"]
             interaction: InteractionLike = obj["interaction"]
             changes: dict = obj.get("changes")
-            await self.ui_schedule.rebuild(event.guild_id)
+            await self._ui_schedule.rebuild(event.guild_id)
             if event.use_recruitment_posts:
-                await self.ui_recruitment_post.create(event.guild_id, event.id)
+                await self._ui_recruitment_post.create(event.guild_id, event.id)
             notification_channel = GuildChannels(event.guild_id).get(GuildChannelFunction.RUN_NOTIFICATION, event.template.type())
             if notification_channel:
-                channel = self.bot.client.guild.get_channel(notification_channel.id)
-                mentions = await GuildPings(event.guild_id).get_mention_string(GuildPingType.RUN_NOTIFICATION, event.type)
-                await channel.send(f'{mentions} {await event.to_string()} has been scheduled.')
+                channel = self._bot.client.guild.get_channel(notification_channel.id)
+                mentions_string = RolesProvider(event.guild_id).as_discord_mention_string(RoleStruct(
+                    guild_id=event.guild_id,
+                    event_type=event.type,
+                    function=GuildRoleFunction.RUN_NOTIFICATION
+                ))
+                await channel.send(f'{mentions_string} {await event.to_string()} has been scheduled.')
             event.create_tasks()
             if changes and changes.get("type"):
-                await self.ui_recruitment_post.remove(event.guild_id, event)
-                await self.ui_recruitment_post.create(interaction.guild_id, event.id)
+                await self._ui_recruitment_post.remove(event.guild_id, event)
+                await self._ui_recruitment_post.create(interaction.guild_id, event.id)
             if changes:
                 if changes.get("datetime") or changes.get("auto_passcode") or changes.get("use_support"):
                     event.recreate_tasks()

@@ -2,8 +2,7 @@ from datetime import datetime
 from typing import override
 from discord import Embed
 from models.channel import ChannelStruct
-from utils.basic_types import GuildChannelFunction, TaskExecutionType
-from utils.basic_types import GuildPingType
+from utils.basic_types import GuildChannelFunction, GuildRoleFunction, TaskExecutionType
 from tasks.task import TaskTemplate
 
 
@@ -25,20 +24,25 @@ class Task_PostMainPasscode(TaskTemplate):
         if obj and obj["guild"] and obj["entry_id"]:
             from data.events.schedule import Schedule
             from services.channels import ChannelsService
-            from data.guilds.guild_pings import GuildPings
+            from services.roles import RolesProvider
+            from models.roles import RoleStruct
 
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event is None: return
-            channel_data = ChannelsService(obj["guild"]).find(
+            channel_struct = ChannelsService(obj["guild"]).find(
                 ChannelStruct(
                     guild_id=obj["guild"],
                     function=GuildChannelFunction.PASSCODES,
                     event_type=event.type))
-            if channel_data is None: return
-            channel = self._bot.client.get_channel(channel_data.channel_id)
+            if channel_struct is None: return
+            channel = self._bot.client.get_channel(channel_struct.channel_id)
             if channel is None: return
-            pings = await GuildPings(obj["guild"]).get_mention_string(GuildPingType.MAIN_PASSCODE, event.type)
-            await channel.send(pings, embed=Embed(
+            mention_string = RolesProvider(obj["guild"]).as_discord_mention_string(RoleStruct(
+                guild_id=obj["guild"],
+                event_type=event.type,
+                function=GuildRoleFunction.MAIN_PASSCODE_PING
+            ))
+            await channel.send(mention_string, embed=Embed(
                 title=event.passcode_post_title,
                 description=event.main_passcode_text))
 

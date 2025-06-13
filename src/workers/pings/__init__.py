@@ -6,7 +6,7 @@ from models.context import ExecutionContext
 from models.roles import RoleStruct
 from providers.channels import ChannelsProvider
 from providers.roles import RolesProvider
-from utils.basic_types import NOTORIOUS_MONSTERS, GuildChannelFunction, GuildRoleFunction, NotoriousMonster
+from utils.basic_types import NOTORIOUS_MONSTERS, GuildChannelFunction, GuildRoleFunction
 from workers._base import BaseWorker
 
 
@@ -36,17 +36,11 @@ class EurekaPingsWorker(BaseWorker):
                 if channel_struct is None: continue
                 channel = self._bot.client.get_channel(channel_struct.channel_id)
                 if channel is None: continue
-                role_structs = RolesProvider(guild.id).find_all(RoleStruct(
+                role_mention_string = RolesProvider(guild.id).as_discord_mention_string(RoleStruct(
                     guild_id=guild.id,
                     event_type=notorious_monster.value,
                     function=GuildRoleFunction.NM_PING
                 ))
-                roles = [
-                    guild.get_role(role.role_id)
-                    for role in role_structs
-                    if role.role_id is not None
-                ]
-                role_mention_string = ' '.join(role.mention for role in roles if role is not None) if roles else ''
                 channel.send(
                     f"{role_mention_string} Notification for {NOTORIOUS_MONSTERS[notorious_monster]} by {
                         self._bot.client.get_user(context.user_id).mention}: {message}"

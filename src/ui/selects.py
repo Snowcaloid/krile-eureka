@@ -3,11 +3,12 @@ import aiohttp
 from discord import ButtonStyle, Interaction, Message, SelectOption
 from discord.ui import Button, Select
 
-from utils.basic_types import EurekaTrackerZone
+from models.channel import ChannelStruct
+from models.roles import RoleStruct
+from providers.roles import RolesProvider
+from services.channels import ChannelsService
+from utils.basic_types import EurekaTrackerZone, GuildRoleFunction
 from utils.basic_types import GuildChannelFunction
-from utils.basic_types import GuildPingType
-from data.guilds.guild_channel import GuildChannels
-from data.guilds.guild_pings import GuildPings
 from ui.modals import EurekaTrackerModal
 from ui.views import TemporaryView
 from utils.logger import guild_log_message
@@ -17,11 +18,11 @@ from utils.functions import default_defer
 class EurekaTrackerZoneSelect(Select):
     from data.eureka_info import EurekaInfo
     @EurekaInfo.bind
-    def eureka_info(self) -> EurekaInfo: ...
+    def _eureka_info(self) -> EurekaInfo: ...
 
     from ui.ui_eureka_info import UIEurekaInfoPost
     @UIEurekaInfoPost.bind
-    def ui_eureka_info(self) -> UIEurekaInfoPost: ...
+    def _ui_eureka_info(self) -> UIEurekaInfoPost: ...
 
     def __init__(self, *, generate: bool = False):
         self.generate = generate
@@ -65,20 +66,28 @@ class EurekaTrackerZoneSelect(Select):
         if self.generate:
             await default_defer(interaction)
             url, passcode = await self.generate_url(zone)
-            if next((tracker for tracker in self.eureka_info._trackers if tracker.url == url), None) is not None:
-                self.eureka_info.remove(url)
-            self.eureka_info.add(url, zone)
-            await self.ui_eureka_info.rebuild(interaction.guild_id)
+            if next((tracker for tracker in self._eureka_info._trackers if tracker.url == url), None) is not None:
+                self._eureka_info.remove(url)
+            self._eureka_info.add(url, zone)
+            await self._ui_eureka_info.rebuild(interaction.guild_id)
             view = TemporaryView()
             view.add_item(Button(url=url, label='Visit the tracker', style=ButtonStyle.link))
             await interaction.followup.send(content=f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view, ephemeral=True)
             await interaction.user.send(f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view)
             await guild_log_message(interaction.guild_id, f'{interaction.user.display_name} has added a tracker for {zone.name} - `{url}`.')
-            notification_channel = GuildChannels(interaction.guild_id).get(GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION, str(zone.value))
-            if notification_channel:
-                channel = interaction.guild.get_channel(notification_channel.id)
-                mentions = await GuildPings(interaction.guild_id).get_mention_string(GuildPingType.EUREKA_TRACKER_NOTIFICATION, str(zone.value))
-                await channel.send(f'{mentions} Tracker {url} has been added for {zone.name} by {interaction.user.mention}.')
+            channel_struct = ChannelsService(interaction.guild_id).find(ChannelStruct(
+                guild_id=interaction.guild_id,
+                function=GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION,
+                event_type=str(zone.value)
+            ))
+            if channel_struct:
+                channel = interaction.guild.get_channel(channel_struct.channel_id)
+                mention_string = RolesProvider(interaction.guild_id).as_discord_mention_string(RoleStruct(
+                    guild_id=interaction.guild_id,
+                    event_type=str(zone.value),
+                    function=GuildRoleFunction.EUREKA_TRACKER_NOTIFICATION_PING
+                ))
+                await channel.send(f'{mention_string} Tracker {url} has been added for {zone.name} by {interaction.user.mention}.')
         else:
             await interaction.response.send_modal(EurekaTrackerModal(zone=zone))
         if self.message:

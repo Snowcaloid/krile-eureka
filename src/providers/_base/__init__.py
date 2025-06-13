@@ -60,7 +60,7 @@ class BaseGuildProvider[T: BaseStruct](GlobalCollection[GuildID], ABC):
 
     from bot import Bot
     @Bot.bind
-    def bot(self) -> Bot: ...
+    def _bot(self) -> Bot: ...
 
     @override
     def constructor(self, key: GuildID = None) -> None:

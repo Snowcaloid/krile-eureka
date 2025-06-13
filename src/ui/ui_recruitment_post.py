@@ -3,14 +3,15 @@ from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
 from data.events.event import Event
 from data.events.schedule import Schedule
-from data.guilds.guild_channel import GuildChannel, GuildChannels
 from models.button.discord_button import DiscordButton
-from utils.basic_types import GuildMessageFunction
-from utils.basic_types import GuildPingType
+from models.channel import ChannelStruct
+from models.roles import RoleStruct
+from providers.channels import ChannelsProvider
+from providers.roles import RolesProvider
+from utils.basic_types import GuildMessageFunction, GuildRoleFunction
 from data.events.event_category import EventCategory
 from utils.basic_types import GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
-from data.guilds.guild_pings import GuildPings
 from ui.base_button import delete_buttons, save_buttons
 from utils.basic_types import ButtonType
 from ui.views import PersistentView
@@ -19,21 +20,29 @@ class UIRecruitmentPost(Bindable):
     """Party leader post."""
     from bot import Bot
     @Bot.bind
-    def bot(self) -> Bot: ...
+    def _bot(self) -> Bot: ...
 
     from data.cache.message_cache import MessageCache
     @MessageCache.bind
-    def message_cache(self) -> MessageCache: ...
+    def _message_cache(self) -> MessageCache: ...
 
     async def create(self, guild_id: int, id: int) -> None:
         event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
-        channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
-        if channel_data is None: return
-        channel: TextChannel = self.bot.client.get_channel(channel_data.id)
+        channel_struct = ChannelsProvider(guild_id).find(ChannelStruct(
+            guild_id=guild_id,
+            function=GuildChannelFunction.PL_CHANNEL,
+            event_type=event.type
+        ))
+        if channel_struct is None: return
+        channel: TextChannel = self._bot.client.get_channel(channel_struct.channel_id)
         if channel is None: return
-        pings = await GuildPings(guild_id).get_mention_string(GuildPingType.PL_POST, event.type)
-        message = await channel.send(pings, embed=Embed(description='...'))
+        mention_string = RolesProvider(guild_id).as_discord_mention_string(RoleStruct(
+            guild_id=guild_id,
+            event_type=event.type,
+            function=GuildRoleFunction.PL_POST_PING
+        ))
+        message = await channel.send(mention_string, embed=Embed(description='...'))
         event.recruitment_post = message.id
         message = await self.rebuild(guild_id, id, True)
         GuildMessages(guild_id).add(message.id, channel.id, GuildMessageFunction.PL_POST)
@@ -43,10 +52,14 @@ class UIRecruitmentPost(Bindable):
     async def rebuild(self, guild_id: int, id: int, recreate_view: bool = False) -> Message:
         event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
-        channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
-        if channel_data is None: return
-        channel: TextChannel = self.bot.client.get_channel(channel_data.id)
-        message = await self.message_cache.get(event.recruitment_post, channel)
+        channel_struct = ChannelsProvider(guild_id).find(ChannelStruct(
+            guild_id=guild_id,
+            function=GuildChannelFunction.PL_CHANNEL,
+            event_type=event.type
+        ))
+        if channel_struct is None: return
+        channel: TextChannel = self._bot.client.get_channel(channel_struct.channel_id)
+        message = await self._message_cache.get(event.recruitment_post, channel)
         if message is None: return
         embed = Embed(title=event.recruitment_post_title, description=event.recruitment_post_text)
         if recreate_view:
@@ -79,10 +92,14 @@ class UIRecruitmentPost(Bindable):
             message = await message.edit(embed=embed)
         return message
 
-    async def remove(self, guild_id: int, event: Event) -> GuildChannel:
-        channel_data = GuildChannels(guild_id).get(GuildChannelFunction.PL_CHANNEL, event.type)
-        if channel_data is None: return
-        channel: TextChannel = self.bot.client.get_channel(channel_data.id)
-        message = await self.message_cache.get(event.recruitment_post, channel)
+    async def remove(self, guild_id: int, event: Event) -> None:
+        channel_struct = ChannelsProvider(guild_id).find(ChannelStruct(
+            guild_id=guild_id,
+            function=GuildChannelFunction.PL_CHANNEL,
+            event_type=event.type
+        ))
+        if channel_struct is None: return
+        channel: TextChannel = self._bot.client.get_channel(channel_struct.channel_id)
+        message = await self._message_cache.get(event.recruitment_post, channel)
         if message is None: return
         await message.delete()

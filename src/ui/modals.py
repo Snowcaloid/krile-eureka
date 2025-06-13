@@ -3,11 +3,13 @@ from re import search
 from discord import ButtonStyle, HTTPException, Interaction, TextStyle
 from discord.ui import Modal, TextInput, Button
 
-from utils.basic_types import EurekaTrackerZone
+from models.channel import ChannelStruct
+from models.roles import RoleStruct
+from providers.channels import ChannelsProvider
+from providers.roles import RolesProvider
+from utils.basic_types import EurekaTrackerZone, GuildRoleFunction
 from utils.basic_types import GuildChannelFunction
 from utils.basic_types import GuildPingType
-from data.guilds.guild_channel import GuildChannels
-from data.guilds.guild_pings import GuildPings
 from ui.views import TemporaryView
 from utils.logger import guild_log_message
 
@@ -48,11 +50,19 @@ class EurekaTrackerModal(Modal):
         await interaction.response.edit_message(content='Successfully assigned tracker.', view=view)
         await guild_log_message(interaction.guild_id, f'{interaction.user.display_name} has added a tracker for {self.zone.name} - `{url}`.')
 
-        notification_channel = GuildChannels(interaction.guild_id).get(GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION, str(self.zone.value))
-        if notification_channel:
-            channel = interaction.guild.get_channel(notification_channel.id)
-            mentions = await GuildPings(interaction.guild_id).get_mention_string(GuildPingType.EUREKA_TRACKER_NOTIFICATION, str(self.zone.value))
-            await channel.send(f'{mentions} Tracker {url} has been added for {self.zone.name} by {interaction.user.mention}.')
+        channel_struct = ChannelsProvider(interaction.guild_id).find(ChannelStruct(
+            guild_id=interaction.guild_id,
+            event_type=str(self.zone.value),
+            function=GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION
+        ))
+        if channel_struct:
+            channel = interaction.guild.get_channel(channel_struct.channel_id)
+            mention_string = RolesProvider(interaction.guild_id).as_discord_mention_string(RoleStruct(
+                guild_id=interaction.guild_id,
+                event_type=str(self.zone.value),
+                function=GuildRoleFunction.EUREKA_TRACKER_NOTIFICATION_PING
+            ))
+            await channel.send(f'{mention_string} Tracker {url} has been added for {self.zone.name} by {interaction.user.mention}.')
 
     async def on_error(self, interaction: Interaction, error: Exception) -> None:
         if isinstance(error, ValueError) or isinstance(error, HTTPException):

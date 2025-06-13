@@ -1,17 +1,19 @@
 from datetime import datetime
 from typing import override
 from discord import Embed
-from utils.basic_types import GuildChannelFunction, TaskExecutionType
-from utils.basic_types import GuildPingType
+from models.channel import ChannelStruct
+from models.roles import RoleStruct
+from providers.channels import ChannelsProvider
+from providers.roles import RolesProvider
+from utils.basic_types import GuildChannelFunction, GuildRoleFunction, TaskExecutionType
 from data.events.schedule import Schedule
-from data.guilds.guild_pings import GuildPings
 from tasks.task import TaskTemplate
 
 
 class Task_PostSupportPasscode(TaskTemplate):
     from bot import Bot
     @Bot.bind
-    def bot(self) -> Bot: ...
+    def _bot(self) -> Bot: ...
 
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.POST_SUPPORT_PASSCODE
@@ -26,13 +28,21 @@ class Task_PostSupportPasscode(TaskTemplate):
         if obj and obj["guild"] and obj["entry_id"]:
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event is None: return
-            channel_data = GuildChannels(obj["guild"]).get(GuildChannelFunction.SUPPORT_PASSCODES, event.type)
-            if channel_data is None: return
-            guild = self.bot.client.get_guild(obj["guild"])
-            channel = guild.get_channel(channel_data.id)
+            channel_struct = ChannelsProvider(obj["guild"]).find(ChannelStruct(
+                guild_id=obj["guild"],
+                event_type=event.type,
+                function=GuildChannelFunction.SUPPORT_PASSCODES
+            ))
+            if channel_struct is None: return
+            guild = self._bot.client.get_guild(obj["guild"])
+            channel = guild.get_channel(channel_struct.channel_id)
             if channel is None: return
-            pings = await GuildPings(obj["guild"]).get_mention_string(GuildPingType.SUPPORT_PASSCODE, event.type)
-            await channel.send(pings, embed=Embed(
+            mention_string = RolesProvider(guild.id).as_discord_mention_string(RoleStruct(
+                guild_id=guild.id,
+                event_type=event.type,
+                function=GuildRoleFunction.SUPPORT_PASSCODE_PING
+            ))
+            await channel.send(mention_string, embed=Embed(
                 title=event.passcode_post_title,
                 description=event.support_passcode_text))
 
