@@ -5,7 +5,7 @@ from centralized_data import YamlAsset, YamlAssetLoader
 from discord import Client
 
 from data.db.sql import SQL, Batch, Record
-from utils.functions import filter_by_current, is_null_or_unassigned
+from utils.functions import filter_choices_by_current, is_null_or_unassigned
 from discord.app_commands import Choice
 
 class TableDefinition(YamlAsset):
@@ -109,7 +109,7 @@ class TableDefinitions(YamlAssetLoader[TableDefinition]):
 
     @classmethod
     def autocomplete(cls, current: str) -> List[Choice]:
-        return filter_by_current([Choice(name=definition.name, value=definition.name) for definition in cls().loaded_assets], current)
+        return filter_choices_by_current([Choice(name=definition.name, value=definition.name) for definition in cls().loaded_assets], current)
 
     @override
     def constructor(self, client: Client) -> None:

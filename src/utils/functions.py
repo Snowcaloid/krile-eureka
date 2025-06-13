@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from random import randint, seed
 import time
 from typing import Any, List
 from discord.app_commands import Choice
@@ -72,8 +73,12 @@ def is_null_or_unassigned(value: Any) -> bool:
     return value is None or value is Unassigned
 
 
-def filter_by_current(list: List[Choice[Any]], current: str) -> List[Choice]:
-        if current == '':
-            return list
-        else:
-            return [choice for choice in list if choice.name.lower().startswith(current.lower())]
+def filter_choices_by_current(list: List[Choice[Any]], current: str) -> List[Choice]:
+    if current == '':
+        return list[:25]
+    else:
+        return [choice for choice in list if choice.name.lower().startswith(current.lower())][:25]
+
+def generate_passcode() -> int:
+    seed(datetime.utcnow().toordinal())
+    return int(''.join(str(randint(0, 9)) for _ in range(4)))

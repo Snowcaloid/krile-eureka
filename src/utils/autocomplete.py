@@ -5,7 +5,11 @@ from typing import List
 from discord import Interaction
 from discord.app_commands import Choice
 
-class AutoCompleteGenerator(Bindable):
+class AutoComplete(Bindable):
+    """Autocompletes for proprietary/discord types."""
+
+    #TODO: "today", "tomorrow", "monday", "tuesday", etc.
+    #TODO: when date is not specified, show weekdays of the current week.
     def date(self, current: str) -> List[Choice]:
         result = []
         if len(current) >= 2 and current[0:2].isdigit():
@@ -20,6 +24,8 @@ class AutoCompleteGenerator(Bindable):
                     result.append(Choice(name=dt, value=dt))
         return result
 
+    #TODO: nobody really uses every 5 minutes. Every 15 minutes suffices.
+    #TODO: when hour is not specified, show round hours.
     def time(self, current: str) -> List[Choice]:
         result = []
         if len(current) >= 2 and current[0:2].isdigit():
@@ -32,9 +38,12 @@ class AutoCompleteGenerator(Bindable):
 
     def raid_leader(self, interaction: Interaction, current: str) -> List[Choice]:
         result: List[Choice] = []
-        currentlower = current.lower()
+        current_lower = current.lower()
+        assert interaction.guild is not None, "Not a guild interaction"
         for member in interaction.guild.members:
-            if not currentlower or member.nick.lower().startswith(currentlower) or member.name.lower().startswith(currentlower):
+            if current_lower == '' or \
+               (member.nick is not None and member.nick.lower().startswith(current_lower)) or \
+                   member.name.lower().startswith(current_lower):
                 for role in member.roles:
                     if role.permissions.administrator or 'raid lead' in role.name.lower():
                         result.append(Choice(name=member.display_name, value=str(member.id)))
@@ -45,6 +54,7 @@ class AutoCompleteGenerator(Bindable):
         users = []
         i = 0
         currentlower = current.lower()
+        assert interaction.guild is not None, "Not a guild interaction"
         for member in interaction.guild.members:
             if member.display_name:
                 if member.display_name.lower().startswith(currentlower):

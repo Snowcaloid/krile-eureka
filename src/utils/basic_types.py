@@ -4,7 +4,7 @@ from discord import ButtonStyle
 from discord.app_commands import Choice
 from typing import Any, Dict, List, Type
 
-from utils.functions import filter_by_current
+from utils.functions import filter_choices_by_current
 
 
 type GuildID = int
@@ -75,7 +75,7 @@ class GuildRoleFunction(Enum):
             Choice(name='Eureka Tracker Notification Ping', value=cls.EUREKA_TRACKER_NOTIFICATION_PING.value),
             Choice(name='Notorious Monster Ping', value=cls.NM_PING.value)
         ]
-        return filter_by_current(choices, current)
+        return filter_choices_by_current(choices, current)
 
 class TaskExecutionType(Enum):
     NONE = 0
@@ -96,7 +96,7 @@ class EurekaTrackerZone(Enum):
 
     @classmethod
     def autocomplete(cls, current: str) -> List[Choice]:
-        return filter_by_current([
+        return filter_choices_by_current([
             Choice(name='Anemos',  value=str(cls.ANEMOS.value)),
             Choice(name='Pagos', value=str(cls.PAGOS.value)),
             Choice(name='Pyros', value=str(cls.PYROS.value)),
@@ -133,7 +133,7 @@ class NotoriousMonster(Enum):
     def autocomplete(cls, current: str) -> List[Choice]:
         nm_choices = [Choice(name=nm_name, value=nm_enum.value) for nm_enum, nm_name in NOTORIOUS_MONSTERS.items()]
         if current:
-            return filter_by_current(nm_choices, current) + cls._alterantive_nm_names(nm_choices, current)
+            return filter_choices_by_current(nm_choices, current) + cls._alterantive_nm_names(nm_choices, current)
         else:
             return nm_choices
 

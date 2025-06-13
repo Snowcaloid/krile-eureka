@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List
 from discord.app_commands import Choice
 
-from utils.functions import filter_by_current
+from utils.functions import filter_choices_by_current
 
 
 class EventCategory(Enum):
@@ -36,11 +36,11 @@ class EventCategory(Enum):
             Choice(name='Bozja', value=cl.BOZJA.value),
             Choice(name='Chaotic', value=cl.CHAOTIC.value)
         ]
-    
+
     @classmethod
     def autocomplete(cls, current: str) -> List[Choice]:
-        return filter_by_current(cls.all_category_choices(), current)
-    
+        return filter_choices_by_current(cls.all_category_choices(), current)
+
     @classmethod
     def autocomplete_short(cls, current: str) -> List[Choice]:
-        return filter_by_current(cls.all_category_choices_short(), current)
+        return filter_choices_by_current(cls.all_category_choices_short(), current)

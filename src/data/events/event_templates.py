@@ -9,7 +9,7 @@ from data.events.event_template import EventTemplate
 
 from typing import List, override
 
-from utils.functions import filter_by_current
+from utils.functions import filter_choices_by_current
 
 class EventTemplates(GlobalCollection[GuildID]):
     _list: List[EventTemplate]
@@ -42,16 +42,16 @@ class EventTemplates(GlobalCollection[GuildID]):
 
     def get_by_categories(self, categories: List[EventCategory]) -> List[EventTemplate]:
         return [template for template in self._list if template.category() in categories]
-    
+
     @classmethod
     def autocomplete(cls, interaction: Interaction, current: str) -> List[Choice]:
         allowed_categories = PermissionValidator().get_raid_leader_permissions(interaction.user)
-        return filter_by_current([
+        return filter_choices_by_current([
             event_template.as_choice() for event_template in cls(interaction.guild_id).get_by_categories(allowed_categories)], current)
-    
+
     @classmethod
     def autocomplete_with_categories(cls, current: str, guild_id: int) -> List[Choice]:
-        return filter_by_current(EventCategory.all_category_choices() + [
+        return filter_choices_by_current(EventCategory.all_category_choices() + [
             event_template.as_choice() for event_template in cls(guild_id).all], current)
 
     def add(self, event_type: str, template: EventTemplate) -> None:

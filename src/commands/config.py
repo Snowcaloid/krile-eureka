@@ -9,7 +9,7 @@ from services.channels import ChannelsService
 from models.channel import ChannelStruct
 from services.roles import RolesService
 from utils.basic_types import EurekaTrackerZone, GuildRoleFunction, NotoriousMonster
-from data.generators.autocomplete_generator import AutoCompleteGenerator
+from utils.autocomplete import AutoComplete
 from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
 from utils.functions import default_defer
@@ -249,16 +249,16 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @ping_add_role.autocomplete('event_type')
     @ping_remove_role.autocomplete('event_type')
     async def autocomplete_event_type_with_all(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().event_type_with_categories(current, interaction.guild_id)
+        return AutoComplete().event_type_with_categories(current, interaction.guild_id)
 
     @eureka_notification_channel.autocomplete('instance')
     async def autocomplete_instance(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().eureka_instance(current)
+        return AutoComplete().eureka_instance(current)
 
     @add_raid_leader_role.autocomplete('event_category')
     @remove_raid_leader_role.autocomplete('event_category')
     async def autocomplete_event_category(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().event_categories(current)
+        return AutoComplete().event_categories(current)
 
     #region error-handling
     @create_schedule_post.error

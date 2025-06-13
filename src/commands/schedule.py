@@ -4,7 +4,7 @@ from discord.app_commands import check, command
 from discord import Interaction
 from typing import Optional
 from data.events.schedule import Schedule
-from data.generators.autocomplete_generator import AutoCompleteGenerator
+from utils.autocomplete import AutoComplete
 from utils.functions import default_defer
 from data.validation.permission_validator import PermissionValidator
 from utils.logger import feedback_and_log, guild_log_message
@@ -85,21 +85,21 @@ class ScheduleCommands(GroupCog, group_name='schedule', group_description='Comma
     @add.autocomplete('event_type')
     @edit.autocomplete('event_type')
     async def autocomplete_schedule_type(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().event_type(interaction, current)
+        return AutoComplete().event_type(interaction, current)
 
     @edit.autocomplete('raid_leader')
     async def autocomplete_leader(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().raid_leader(interaction, current)
+        return AutoComplete().raid_leader(interaction, current)
 
     @add.autocomplete('event_date')
     @edit.autocomplete('event_date')
     async def autocomplete_schedule_date(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().date(current)
+        return AutoComplete().date(current)
 
     @add.autocomplete('event_time')
     @edit.autocomplete('event_time')
     async def autocomplete_schedule_time(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().time(current)
+        return AutoComplete().time(current)
 
     #region error-handling
     @add.error

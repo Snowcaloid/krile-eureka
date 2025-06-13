@@ -1,7 +1,7 @@
 from discord import Interaction
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
-from data.generators.autocomplete_generator import AutoCompleteGenerator
+from utils.autocomplete import AutoComplete
 from models.channel import ChannelStruct
 from models.roles import RoleStruct
 from providers.channels import ChannelsProvider
@@ -52,7 +52,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
 
     @spawn.autocomplete('notorious_monster')
     async def autocomplete_notorious_monster(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().notorious_monster(current)
+        return AutoComplete().notorious_monster(current)
 
     #region error-handling
     @spawn.error
