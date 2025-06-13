@@ -35,7 +35,7 @@ class UI_Embed_Builder(Bindable):
 
     async def load(self, interaction: Interaction, original_message: Message):
         """Interactive Embed builder"""
-        buttons = await ButtonMatrix.from_message(original_message)
+        buttons = ButtonMatrix.from_message(original_message)
         buttons.disabled = True
         message = await interaction.channel.send(embed=original_message.embeds[0], view=buttons.as_view())
         await interaction.response.send_message(

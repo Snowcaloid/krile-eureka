@@ -82,7 +82,7 @@ class EurekaTrackerZoneSelect(Select):
             ))
             if channel_struct:
                 channel = interaction.guild.get_channel(channel_struct.channel_id)
-                mention_string = RolesProvider(interaction.guild_id).as_discord_mention_string(RoleStruct(
+                mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                     guild_id=interaction.guild_id,
                     event_type=str(zone.value),
                     function=GuildRoleFunction.EUREKA_TRACKER_NOTIFICATION_PING

@@ -20,13 +20,6 @@ class EventUserStruct(BaseStruct):
     slot_name: str = Unassigned
 
     @override
-    def __eq__(self, other: EventUserStruct) -> bool:
-        if not is_null_or_unassigned(self.id) and not is_null_or_unassigned(other.id):
-            return self.id == other.id
-        return self.event_id == other.event_id and \
-            self.user_id == other.user_id
-
-    @override
     def __repr__(self) -> str:
         result = []
         if not is_null_or_unassigned(self.id):

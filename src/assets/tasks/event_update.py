@@ -1,7 +1,9 @@
 from typing import override
 
 from data.events.event_templates import EventTemplates
+from models.channel import ChannelStruct
 from models.roles import RoleStruct
+from providers.channels import ChannelsProvider
 from providers.roles import RolesProvider
 from utils.basic_types import GuildChannelFunction, GuildRoleFunction, TaskExecutionType
 from data.events.event import Event
@@ -61,10 +63,14 @@ class Task_EventUpdate(TaskTemplate):
             await self._ui_schedule.rebuild(event.guild_id)
             if event.use_recruitment_posts:
                 await self._ui_recruitment_post.create(event.guild_id, event.id)
-            notification_channel = GuildChannels(event.guild_id).get(GuildChannelFunction.RUN_NOTIFICATION, event.template.type())
-            if notification_channel:
-                channel = self._bot.client.guild.get_channel(notification_channel.id)
-                mentions_string = RolesProvider(event.guild_id).as_discord_mention_string(RoleStruct(
+            channel_struct = ChannelsProvider().find(ChannelStruct(
+                guild_id=event.guild_id,
+                event_type=event.template.type(),
+                function=GuildChannelFunction.RUN_NOTIFICATION
+            ))
+            if channel_struct:
+                channel = self._bot.client.guild.get_channel(channel_struct.id)
+                mentions_string = RolesProvider().as_discord_mention_string(RoleStruct(
                     guild_id=event.guild_id,
                     event_type=event.type,
                     function=GuildRoleFunction.RUN_NOTIFICATION

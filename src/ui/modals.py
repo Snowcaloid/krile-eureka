@@ -9,7 +9,6 @@ from providers.channels import ChannelsProvider
 from providers.roles import RolesProvider
 from utils.basic_types import EurekaTrackerZone, GuildRoleFunction
 from utils.basic_types import GuildChannelFunction
-from utils.basic_types import GuildPingType
 from ui.views import TemporaryView
 from utils.logger import guild_log_message
 
@@ -50,14 +49,14 @@ class EurekaTrackerModal(Modal):
         await interaction.response.edit_message(content='Successfully assigned tracker.', view=view)
         await guild_log_message(interaction.guild_id, f'{interaction.user.display_name} has added a tracker for {self.zone.name} - `{url}`.')
 
-        channel_struct = ChannelsProvider(interaction.guild_id).find(ChannelStruct(
+        channel_struct = ChannelsProvider().find(ChannelStruct(
             guild_id=interaction.guild_id,
             event_type=str(self.zone.value),
             function=GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION
         ))
         if channel_struct:
             channel = interaction.guild.get_channel(channel_struct.channel_id)
-            mention_string = RolesProvider(interaction.guild_id).as_discord_mention_string(RoleStruct(
+            mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                 guild_id=interaction.guild_id,
                 event_type=str(self.zone.value),
                 function=GuildRoleFunction.EUREKA_TRACKER_NOTIFICATION_PING

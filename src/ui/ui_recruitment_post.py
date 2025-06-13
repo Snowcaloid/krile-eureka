@@ -29,7 +29,7 @@ class UIRecruitmentPost(Bindable):
     async def create(self, guild_id: int, id: int) -> None:
         event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
-        channel_struct = ChannelsProvider(guild_id).find(ChannelStruct(
+        channel_struct = ChannelsProvider().find(ChannelStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.PL_CHANNEL,
             event_type=event.type
@@ -37,7 +37,7 @@ class UIRecruitmentPost(Bindable):
         if channel_struct is None: return
         channel: TextChannel = self._bot.client.get_channel(channel_struct.channel_id)
         if channel is None: return
-        mention_string = RolesProvider(guild_id).as_discord_mention_string(RoleStruct(
+        mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
             guild_id=guild_id,
             event_type=event.type,
             function=GuildRoleFunction.PL_POST_PING
@@ -52,7 +52,7 @@ class UIRecruitmentPost(Bindable):
     async def rebuild(self, guild_id: int, id: int, recreate_view: bool = False) -> Message:
         event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
-        channel_struct = ChannelsProvider(guild_id).find(ChannelStruct(
+        channel_struct = ChannelsProvider().find(ChannelStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.PL_CHANNEL,
             event_type=event.type
@@ -93,7 +93,7 @@ class UIRecruitmentPost(Bindable):
         return message
 
     async def remove(self, guild_id: int, event: Event) -> None:
-        channel_struct = ChannelsProvider(guild_id).find(ChannelStruct(
+        channel_struct = ChannelsProvider().find(ChannelStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.PL_CHANNEL,
             event_type=event.type

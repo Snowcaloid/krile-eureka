@@ -37,7 +37,7 @@ class Task_PostMainPasscode(TaskTemplate):
             if channel_struct is None: return
             channel = self._bot.client.get_channel(channel_struct.channel_id)
             if channel is None: return
-            mention_string = RolesProvider(obj["guild"]).as_discord_mention_string(RoleStruct(
+            mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                 guild_id=obj["guild"],
                 event_type=event.type,
                 function=GuildRoleFunction.MAIN_PASSCODE_PING

@@ -28,7 +28,7 @@ class EurekaPingsWorker(BaseWorker):
         with context:
             notorious_monster = self._notorious_monster_user_input.validate_and_fix(nm)
             for guild in self._bot.client.guilds:
-                channel_struct = ChannelsProvider(guild.id).find(ChannelStruct(
+                channel_struct = ChannelsProvider().find(ChannelStruct(
                     guild_id=guild.id,
                     event_type=notorious_monster.value,
                     function=GuildChannelFunction.NM_PINGS
@@ -36,7 +36,7 @@ class EurekaPingsWorker(BaseWorker):
                 if channel_struct is None: continue
                 channel = self._bot.client.get_channel(channel_struct.channel_id)
                 if channel is None: continue
-                role_mention_string = RolesProvider(guild.id).as_discord_mention_string(RoleStruct(
+                role_mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                     guild_id=guild.id,
                     event_type=notorious_monster.value,
                     function=GuildRoleFunction.NM_PING

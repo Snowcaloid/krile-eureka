@@ -18,17 +18,8 @@ class ChannelStruct(BaseStruct):
     def _bot(self) -> Bot: ...
 
     @override
-    def fixup_enums(self) -> None:
+    def fixup_types(self) -> None:
         self.function = fix_enum(GuildChannelFunction, self.function)
-
-    @override
-    def __eq__(self, other: ChannelStruct) -> bool:
-        if other.id and self.id:
-            return self.id == other.id
-        return (other.guild_id is None or self.guild_id == other.guild_id) and \
-            (other.channel_id is None or self.channel_id == other.channel_id) and \
-            (other.event_type is None or self.event_type == other.event_type) and \
-            (other.function is None or self.function == other.function)
 
     @override
     def __repr__(self) -> str:

@@ -22,6 +22,6 @@ class ButtonStruct(BaseStruct):
     event_id: int = Unassigned
 
     @override
-    def fixup_enums(self) -> None:
+    def fixup_types(self) -> None:
         self.button_type = fix_enum(ButtonType, self.button_type)
         self.style = fix_enum(ButtonStyle, self.style)

@@ -18,13 +18,9 @@ class BaseStruct(ABC):
     * `changes_since()`
     * `marshal()`"""
 
-    from bot import Bot
-    @Bot.bind
-    def _bot(self) -> Bot: ...
-
     def __init__(self):
         super().__init__()
-        self.fixup_enums()
+        self.fixup_types()
 
     def _to_constructor_dict(self):
         return {field.name: getattr(self, field.name) for field in fields(self)}
@@ -34,8 +30,8 @@ class BaseStruct(ABC):
         return cls(**record)
 
     @abstractmethod
-    def fixup_enums(self) -> None: ...
-    """Override to change enum fields into actual enums."""
+    def fixup_types(self) -> None: ...
+    """Override to fix types that aren't compatible with the database."""
 
     def to_record(self) -> Record:
         return Record(self._to_constructor_dict())
@@ -47,10 +43,6 @@ class BaseStruct(ABC):
             if value is not Unassigned:
                 setattr(result, field.name, value)
         return result
-
-    @abstractmethod
-    def __eq__(self, other: BaseStruct) -> bool: ...
-    """Override to compare two structs based on their fields."""
 
     @abstractmethod
     def __repr__(self) -> str: ...

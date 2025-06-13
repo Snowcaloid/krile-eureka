@@ -19,7 +19,7 @@ class RolesService(BaseGuildService[RoleStruct]):
         with context:
             context.assert_permissions(Permissions(modules=ModulePermissions(roles=PermissionLevel.FULL)))
             assert role.guild_id is not None, "Role sync failure: RoleStruct is missing Guild ID"
-            found_role = RolesProvider(self.key).find(role)
+            found_role = RolesProvider().find(role)
             if found_role:
                 edited_role = found_role.intersect(role)
                 SQL('roles').update(
@@ -41,7 +41,7 @@ class RolesService(BaseGuildService[RoleStruct]):
         with context:
             context.assert_permissions(Permissions(modules=ModulePermissions(roles=PermissionLevel.FULL)))
             assert role.guild_id is not None, "Role removal failure: RoleStruct is missing Guild ID"
-            found_role = RolesProvider(self.key).find(role)
+            found_role = RolesProvider().find(role)
             if found_role:
                 SQL('roles').delete(f'id={found_role.id}')
                 context.log(f"[ROLES] #{found_role} removed successfully.")

@@ -20,7 +20,7 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
             context.assert_permissions(Permissions(modules=ModulePermissions(channels=PermissionLevel.FULL)))
             self._user_input.validate_and_fix()
             assert channel.guild_id is not None, "Channel sync failure: ChannelStruct is missing Guild ID"
-            found_channel = ChannelsProvider(self.key).find(channel)
+            found_channel = ChannelsProvider().find(channel)
             if found_channel:
                 edited_channel = found_channel.intersect(channel)
                 SQL('channels').update(
@@ -32,7 +32,6 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
                 SQL('channels').insert(channel.to_record())
                 context.log(f"[CHANNELS] #{self.bot.client.get_channel(channel.channel_id).name} added successfully.")
                 context.log(f"Channel:```{channel}```")
-            ChannelsProvider(self.key).load()
 
     def sync_category(self, channel: ChannelStruct,
                       event_category: EventCategory,
@@ -56,7 +55,7 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
 
             context.assert_permissions(Permissions(modules=ModulePermissions(channels=PermissionLevel.FULL)))
             assert channel.guild_id is not None, "Channel removal failure: ChannelStruct is missing Guild ID"
-            found_channel = ChannelsProvider(self.key).find(channel)
+            found_channel = ChannelsProvider().find(channel)
             if found_channel:
                 SQL('channels').delete(f'id={found_channel.id}')
             elif self._user_input.can_remove(channel):
@@ -65,7 +64,6 @@ class ChannelsService(BaseGuildService[ChannelStruct]):
                     f'guild_id={channel.guild_id} and channel_id={channel.channel_id} '
                     f'and function={channel.function.value} {event_type_part}'))
             context.log(f"Channel assignment removed successfully: ```{channel}```")
-            ChannelsProvider(self.key).load()
 
     def remove_category(self, channel: ChannelStruct,
                         event_category: EventCategory,

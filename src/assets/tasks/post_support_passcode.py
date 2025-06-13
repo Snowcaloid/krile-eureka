@@ -28,7 +28,7 @@ class Task_PostSupportPasscode(TaskTemplate):
         if obj and obj["guild"] and obj["entry_id"]:
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event is None: return
-            channel_struct = ChannelsProvider(obj["guild"]).find(ChannelStruct(
+            channel_struct = ChannelsProvider().find(ChannelStruct(
                 guild_id=obj["guild"],
                 event_type=event.type,
                 function=GuildChannelFunction.SUPPORT_PASSCODES
@@ -37,7 +37,7 @@ class Task_PostSupportPasscode(TaskTemplate):
             guild = self._bot.client.get_guild(obj["guild"])
             channel = guild.get_channel(channel_struct.channel_id)
             if channel is None: return
-            mention_string = RolesProvider(guild.id).as_discord_mention_string(RoleStruct(
+            mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                 guild_id=guild.id,
                 event_type=event.type,
                 function=GuildRoleFunction.SUPPORT_PASSCODE_PING

@@ -25,10 +25,6 @@ class EventStruct(BaseStruct):
     is_signup: bool = Unassigned
 
     @override
-    def __eq__(self, other: EventStruct) -> bool:
-        return self.id == other.id
-
-    @override
     def __repr__(self) -> str:
         result = []
         if not is_null_or_unassigned(self.guild_id):

@@ -1,22 +1,22 @@
 
-from typing import List, override
+from typing import override
 
-from discord import Guild
-from providers._base import BaseGuildProvider
+from providers._base import BaseProvider
 from models.roles import RoleStruct
 
 
-class RolesProvider(BaseGuildProvider[RoleStruct]):
+class RolesProvider(BaseProvider[RoleStruct]):
     @override
     def db_table_name(self) -> str:
         return 'roles'
 
-    def find_all(self, role: RoleStruct) -> List[RoleStruct]:
-        return [r for r in self._list if r == role]
+    from bot import Bot
+    @Bot.bind
+    def _bot(self) -> Bot: ...
 
     def as_discord_mention_string(self, role: RoleStruct) -> str:
-        guild = self.bot.client.get_guild(self.key)
-        role_structs = RolesProvider(guild.id).find_all(role)
+        guild = self._bot.client.get_guild(self.key)
+        role_structs = self.find_all(role)
         roles = [
             guild.get_role(role.role_id)
             for role in role_structs

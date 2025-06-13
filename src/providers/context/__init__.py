@@ -16,5 +16,5 @@ def basic_context(user_id: int,
 def discord_context(interaction: Interaction) -> ExecutionContext:
     return basic_context(user_id=interaction.user.id,
                          logger=GuildLogger(interaction.guild_id),
-                         permissions=PermissionProvider().calculate(interaction.guild_id, interaction.user.id),
+                         permissions=PermissionProvider().evaluate_permissions_for_user(interaction.guild_id, interaction.user.id),
                          on_flush=lambda message, exc: GuildLogger(interaction.guild_id).respond(interaction, message))

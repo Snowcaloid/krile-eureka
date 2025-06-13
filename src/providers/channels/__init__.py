@@ -1,9 +1,9 @@
 from typing import override
-from providers._base import BaseGuildProvider
 from models.channel import ChannelStruct
+from providers._base import BaseProvider
 
 
-class ChannelsProvider(BaseGuildProvider[ChannelStruct]):
+class ChannelsProvider(BaseProvider[ChannelStruct]):
     @override
     def db_table_name(self) -> str:
         return 'channels'

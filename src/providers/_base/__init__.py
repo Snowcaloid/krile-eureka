@@ -2,91 +2,47 @@
 from abc import ABC, abstractmethod
 from typing import List, override
 
-from centralized_data import Bindable, GlobalCollection
-
 from data.db.sql import SQL
 from models._base import BaseStruct
-from utils.basic_types import GuildID
+from utils.basic_types import Unassigned
 
 
-class BaseProvider[T: BaseStruct](Bindable, ABC):
+class BaseProvider[T: BaseStruct](ABC):
     """
-    Provides data from the database for a specific guild.
+    Provides data from the database.
     When creating new providers, inherit from this class,
     setting the T-Type and overriding:
     * `db_table_name`
     """
     _list: List[T]
-
-    from bot import Bot
-    @Bot.bind
-    def bot(self) -> Bot: ...
 
     @override
     def init(self):
         super().init()
         self._list = []
-        self.load()
-
-    def find(self, struct: T) -> T:
-        """
-        Find a struct in the list by comparing it with the provided struct.
-        The comparison is done using the `__eq__` method of the struct.
-        """
-        return next((c for c in self._list if c == struct), None)
-
-    def load(self) -> None:
-        """
-        Reload all data from the database for the current guild.
-        This method should be called every time the data is changed.
-        """
-        self._list.clear()
-        if self.key is None: return
         for record in SQL(self.db_table_name()).select(all=True):
             self._list.append(T.from_record(record))
 
-    @abstractmethod
-    def db_table_name(self) -> str: ...
-    """Override to return the name of the database table for this provider."""
-
-class BaseGuildProvider[T: BaseStruct](GlobalCollection[GuildID], ABC):
-    """
-    Provides data from the database for a specific guild.
-    When creating new providers, inherit from this class,
-    setting the T-Type and overriding:
-    * `db_table_name`
-    """
-    _list: List[T]
-
-    from bot import Bot
-    @Bot.bind
-    def _bot(self) -> Bot: ...
-
-    @override
-    def constructor(self, key: GuildID = None) -> None:
-        super().constructor(key)
-        self._list = []
-        self.load()
+    def _is_equal(self, left: T, right: T) -> bool:
+        for field in right.__dataclass_fields__.keys():
+            right_value = getattr(right, field)
+            if right_value is Unassigned: continue
+            if getattr(left, field) != right_value:
+                return False
+        return True
 
     def find(self, struct: T) -> T:
         """
         Find a struct in the list by comparing it with the provided struct.
-        The comparison is done using the `__eq__` method of the struct.
         """
-        return next((c for c in self._list if c == struct), None)
+        return next((c for c in self._list if self.is_equal(c, struct)), None)
 
-    def load(self) -> None:
+    def find_all(self, struct: T) -> List[T]:
         """
-        Reload all data from the database for the current guild.
-        This method should be called every time the data is changed.
+        Find all structs in the list that match the provided struct.
         """
-        self._list.clear()
-        if self.key is None: return
-        for record in SQL(self.db_table_name()).select(where=f'guild_id={self.key}',
-                                                       all=True):
-            self._list.append(T.from_record(record))
+        return [c for c in self._list if self.is_equal(c, struct)]
 
     @abstractmethod
     def db_table_name(self) -> str: ...
     """Override to return the name of the database table for this provider."""
-

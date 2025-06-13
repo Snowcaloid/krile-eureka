@@ -13,7 +13,7 @@ class PermissionProvider(Bindable):
     @Bot.bind
     def bot(self) -> Bot: ...
 
-    def calculate(self, guild_id: GuildID, user_id: int) -> Permissions:
+    def evaluate_permissions_for_user(self, guild_id: GuildID, user_id: int) -> Permissions:
         if guild_id is None or user_id is None: return NO_ACCESS
         user = self.bot.client.get_user(user_id)
         if user is None: return NO_ACCESS
@@ -28,14 +28,14 @@ class PermissionProvider(Bindable):
         )
 
     def _is_developer(self, guild_id: GuildID, user: Member) -> bool:
-        role = RolesProvider(guild_id).find(RoleStruct(
+        role = RolesProvider().find(RoleStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.DEVELOPER
         ))
         return not user.get_role(role.role_id) is None
 
     def _is_admin(self, guild_id: GuildID, user: Member) -> bool:
-        role = RolesProvider(guild_id).find(RoleStruct(
+        role = RolesProvider().find(RoleStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.ADMIN
         ))
@@ -45,7 +45,7 @@ class PermissionProvider(Bindable):
         return user_id == int(getenv('OWNER_ID'))
 
     def _is_raid_leader(self, guild_id: GuildID, user: Member) -> bool:
-        for role in RolesProvider(guild_id).find_all(RoleStruct(
+        for role in RolesProvider().find_all(RoleStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.RAID_LEADER
         )):

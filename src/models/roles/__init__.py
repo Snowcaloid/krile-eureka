@@ -20,17 +20,8 @@ class RoleStruct(BaseStruct):
     def _bot(self) -> Bot: ...
 
     @override
-    def fixup_enums(self) -> None:
+    def fixup_types(self) -> None:
         self.function = fix_enum(GuildRoleFunction, self.function)
-
-    @override
-    def __eq__(self, other: RoleStruct) -> bool:
-        if other.id and self.id:
-            return self.id == other.id
-        return (other.guild_id is None or self.guild_id == other.guild_id) and \
-            (other.role_id is None or self.role_id == other.role_id) and \
-            (other.event_category is None or self.event_category == other.event_category) and \
-            (other.function is None or self.function == other.function)
 
     @override
     def __repr__(self) -> str:

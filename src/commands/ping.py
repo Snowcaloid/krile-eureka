@@ -28,7 +28,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
         await default_defer(interaction)
         notorious_monster = self._user_input.correction.notorious_monster_name_to_type(notorious_monster)
         if self._user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
-        channel_struct = ChannelsProvider(interaction.guild_id).find(ChannelStruct(
+        channel_struct = ChannelsProvider().find(ChannelStruct(
             guild_id=interaction.guild_id,
             event_type=notorious_monster.value,
             function=GuildChannelFunction.NM_PINGS
@@ -36,7 +36,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
         if channel_struct:
             channel = self._bot.client.get_channel(channel_struct.channel_id)
             if channel:
-                mention_string = RolesProvider(interaction.guild_id).as_discord_mention_string(RoleStruct(
+                mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                     guild_id=interaction.guild_id,
                     event_type=notorious_monster.value,
                     function=GuildRoleFunction.NM_PING

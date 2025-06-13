@@ -19,7 +19,7 @@ class PermissionValidator(Bindable):
 
     def is_developer(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
-            role_struct = RolesProvider(interaction.guild_id).find(RoleStruct(
+            role_struct = RolesProvider().find(RoleStruct(
                 function=GuildRoleFunction.DEVELOPER
             ))
             if is_null_or_unassigned(role_struct.role_id): return self.is_owner(interaction)
@@ -28,7 +28,7 @@ class PermissionValidator(Bindable):
 
     def is_admin(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
-            role_struct = RolesProvider(interaction.guild_id).find(RoleStruct(
+            role_struct = RolesProvider().find(RoleStruct(
                 function=GuildRoleFunction.ADMIN
             ))
             if is_null_or_unassigned(role_struct.role_id): return self.is_developer(interaction)
@@ -37,7 +37,7 @@ class PermissionValidator(Bindable):
 
     def is_raid_leader(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
-            role_structs = RolesProvider(interaction.guild_id).find_all(RoleStruct(
+            role_structs = RolesProvider().find_all(RoleStruct(
                 function=GuildRoleFunction.RAID_LEADER
             ))
             for role_struct in role_structs:
@@ -47,10 +47,10 @@ class PermissionValidator(Bindable):
         return False
 
     def get_raid_leader_permissions(self, member: Member) -> List[EventCategory]:
-        admin_role_struct = RolesProvider(member.guild.id).find(RoleStruct(
+        admin_role_struct = RolesProvider().find(RoleStruct(
             function=GuildRoleFunction.ADMIN
         ))
-        rl_role_structs = RolesProvider(member.guild.id).find_all(RoleStruct(
+        rl_role_structs = RolesProvider().find_all(RoleStruct(
             function=GuildRoleFunction.RAID_LEADER
         ))
         categories: List[EventCategory] = []
