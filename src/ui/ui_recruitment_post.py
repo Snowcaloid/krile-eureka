@@ -8,7 +8,7 @@ from models.channel import ChannelStruct
 from models.roles import RoleStruct
 from providers.channels import ChannelsProvider
 from providers.roles import RolesProvider
-from utils.basic_types import GuildMessageFunction, GuildRoleFunction
+from utils.basic_types import GuildMessageFunction, RoleFunction
 from data.events.event_category import EventCategory
 from utils.basic_types import GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
@@ -40,7 +40,7 @@ class UIRecruitmentPost(Bindable):
         mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
             guild_id=guild_id,
             event_type=event.type,
-            function=GuildRoleFunction.PL_POST_PING
+            function=RoleFunction.PL_POST_PING
         ))
         message = await channel.send(mention_string, embed=Embed(description='...'))
         event.recruitment_post = message.id

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import override
 from discord import Embed, TextChannel
 from models.channel import ChannelStruct
-from utils.basic_types import GuildChannelFunction, GuildRoleFunction, TaskExecutionType
+from utils.basic_types import GuildChannelFunction, RoleFunction, TaskExecutionType
 from tasks.task import TaskTemplate
 
 
@@ -40,7 +40,7 @@ class Task_PostMainPasscode(TaskTemplate):
             mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                 guild_id=obj["guild"],
                 event_category=event.type,
-                function=GuildRoleFunction.MAIN_PASSCODE_PING
+                function=RoleFunction.MAIN_PASSCODE_PING
             ))
             await channel.send(mention_string, embed=Embed(
                 title=event.passcode_post_title,

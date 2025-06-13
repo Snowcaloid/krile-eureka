@@ -6,7 +6,7 @@ from models.channel import ChannelStruct
 from models.roles import RoleStruct
 from providers.channels import ChannelsProvider
 from providers.roles import RolesProvider
-from utils.basic_types import GuildChannelFunction, GuildRoleFunction, NotoriousMonster
+from utils.basic_types import GuildChannelFunction, RoleFunction, NotoriousMonster
 from utils.basic_types import NOTORIOUS_MONSTERS
 from utils.logger import guild_log_message
 from utils.functions import default_defer, default_response
@@ -39,7 +39,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
                 mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                     guild_id=interaction.guild_id,
                     event_type=notorious_monster.value,
-                    function=GuildRoleFunction.NM_PING
+                    function=RoleFunction.NM_PING
                 ))
                 message = await channel.send(f'{mention_string} Notification for {NOTORIOUS_MONSTERS[NotoriousMonster(notorious_monster)]} by {interaction.user.mention}: {text}')
                 await default_response(interaction, f'Pinged: {message.jump_url}')

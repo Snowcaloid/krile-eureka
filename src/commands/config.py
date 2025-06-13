@@ -10,7 +10,7 @@ from providers.context import discord_context
 from services.channels import ChannelsService
 from models.channel import ChannelStruct
 from services.roles import RolesService
-from utils.basic_types import EurekaTrackerZone, GuildRoleFunction, NotoriousMonster
+from utils.basic_types import EurekaTrackerZone, RoleFunction, NotoriousMonster
 from utils.autocomplete import AutoComplete
 from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
@@ -112,7 +112,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         RolesService(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=GuildRoleFunction.ADMIN
+            function=RoleFunction.ADMIN
         ),
             discord_context(interaction)
         )
@@ -124,7 +124,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         RolesService(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=GuildRoleFunction.DEVELOPER
+            function=RoleFunction.DEVELOPER
         ),
             discord_context(interaction)
         )
@@ -137,7 +137,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         RolesService(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=GuildRoleFunction.RAID_LEADER,
+            function=RoleFunction.RAID_LEADER,
             event_category=event_category
         ),
             discord_context(interaction)
@@ -150,7 +150,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         RolesService(interaction.guild_id).remove(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=GuildRoleFunction.RAID_LEADER,
+            function=RoleFunction.RAID_LEADER,
             event_category=event_category
         ),
             discord_context(interaction)
@@ -163,7 +163,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         RolesService(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=GuildRoleFunction(ping_type),
+            function=RoleFunction(ping_type),
             event_category=event_type
         ),
             discord_context(interaction)
@@ -176,7 +176,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         RolesService(interaction.guild_id).remove(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=GuildRoleFunction(ping_type),
+            function=RoleFunction(ping_type),
             event_category=event_type
         ),
             discord_context(interaction)
@@ -189,7 +189,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         RolesService(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=GuildRoleFunction.EUREKA_TRACKER_NOTIFICATION_PING,
+            function=RoleFunction.EUREKA_TRACKER_NOTIFICATION_PING,
             event_category=instance
         ),
             discord_context(interaction)
@@ -202,7 +202,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         RolesService(interaction.guild_id).remove(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=GuildRoleFunction.EUREKA_TRACKER_NOTIFICATION_PING,
+            function=RoleFunction.EUREKA_TRACKER_NOTIFICATION_PING,
             event_category=instance
         ),
             discord_context(interaction)
@@ -215,7 +215,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         RolesService(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=GuildRoleFunction.NM_PING,
+            function=RoleFunction.NM_PING,
             event_category=notorious_monster
         ),
             discord_context(interaction)
@@ -228,7 +228,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         RolesService(interaction.guild_id).remove(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=GuildRoleFunction.NM_PING,
+            function=RoleFunction.NM_PING,
             event_category=notorious_monster
         ),
             discord_context(interaction)

@@ -53,17 +53,16 @@ class GuildMessageFunction(Enum):
             Choice(name='Eureka info', value=cls.EUREKA_INFO.value)
         ]
 
-class GuildRoleFunction(Enum):
+class RoleFunction(Enum):
     DEVELOPER = 1
     ADMIN = 2
     RAID_LEADER = 3
     MAIN_PASSCODE_PING = 4
     SUPPORT_PASSCODE_PING = 5
     PL_POST_PING = 6
-    EVENT_NOTIFICATION_PING = 7
-    RUN_NOTIFICATION = 8
-    EUREKA_TRACKER_NOTIFICATION_PING = 9
-    NM_PING = 10
+    RUN_NOTIFICATION = 7
+    EUREKA_TRACKER_NOTIFICATION_PING = 8
+    NM_PING = 9
 
     @classmethod
     def autocomplete(cls, current: str) -> List[Choice]:
@@ -72,11 +71,16 @@ class GuildRoleFunction(Enum):
             Choice(name='Main Passcode Ping', value=cls.MAIN_PASSCODE_PING.value),
             Choice(name='Support Passcode Ping', value=cls.SUPPORT_PASSCODE_PING.value),
             Choice(name='PL Post Ping', value=cls.PL_POST_PING.value),
-            Choice(name='Event Notification Ping', value=cls.EVENT_NOTIFICATION_PING.value),
             Choice(name='Eureka Tracker Notification Ping', value=cls.EUREKA_TRACKER_NOTIFICATION_PING.value),
             Choice(name='Notorious Monster Ping', value=cls.NM_PING.value)
         ]
         return filter_choices_by_current(choices, current)
+
+class RoleDenominator(Enum):
+    EVENT_TYPE = "event_type"
+    EVENT_CATEGORY = "event_category"
+    NOTORIOUS_MONSTER = "notorious_monster"
+    EUREKA_INSTANCE = "eureka_instance"
 
 class TaskExecutionType(Enum):
     NONE = 0

@@ -7,7 +7,7 @@ from models.roles import RoleStruct
 from providers.roles import RolesProvider
 from utils.discord_types import InteractionLike
 from data.events.event_category import EventCategory
-from utils.basic_types import GuildRoleFunction
+from utils.basic_types import RoleFunction
 from utils.functions import is_null_or_unassigned
 
 class PermissionValidator(Bindable):
@@ -20,7 +20,7 @@ class PermissionValidator(Bindable):
     def is_developer(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
             role_struct = RolesProvider().find(RoleStruct(
-                function=GuildRoleFunction.DEVELOPER
+                function=RoleFunction.DEVELOPER
             ))
             if is_null_or_unassigned(role_struct.role_id): return self.is_owner(interaction)
             return not interaction.user.get_role(role_struct.role_id) is None or self.is_owner(interaction)
@@ -29,7 +29,7 @@ class PermissionValidator(Bindable):
     def is_admin(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
             role_struct = RolesProvider().find(RoleStruct(
-                function=GuildRoleFunction.ADMIN
+                function=RoleFunction.ADMIN
             ))
             if is_null_or_unassigned(role_struct.role_id): return self.is_developer(interaction)
             return not interaction.user.get_role(role_struct.role_id) is None or self.is_developer(interaction)
@@ -38,7 +38,7 @@ class PermissionValidator(Bindable):
     def is_raid_leader(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
             role_structs = RolesProvider().find_all(RoleStruct(
-                function=GuildRoleFunction.RAID_LEADER
+                function=RoleFunction.RAID_LEADER
             ))
             for role_struct in role_structs:
                 if not interaction.user.get_role(role_struct.role_id) is None:
@@ -48,10 +48,10 @@ class PermissionValidator(Bindable):
 
     def get_raid_leader_permissions(self, member: Member) -> List[EventCategory]:
         admin_role_struct = RolesProvider().find(RoleStruct(
-            function=GuildRoleFunction.ADMIN
+            function=RoleFunction.ADMIN
         ))
         rl_role_structs = RolesProvider().find_all(RoleStruct(
-            function=GuildRoleFunction.RAID_LEADER
+            function=RoleFunction.RAID_LEADER
         ))
         categories: List[EventCategory] = []
         for role in member.roles:

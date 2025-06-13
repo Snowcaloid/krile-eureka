@@ -5,7 +5,7 @@ from models.channel import ChannelStruct
 from models.roles import RoleStruct
 from providers.channels import ChannelsProvider
 from providers.roles import RolesProvider
-from utils.basic_types import GuildChannelFunction, GuildRoleFunction, TaskExecutionType
+from utils.basic_types import GuildChannelFunction, RoleFunction, TaskExecutionType
 from data.events.schedule import Schedule
 from tasks.task import TaskTemplate
 
@@ -41,7 +41,7 @@ class Task_PostSupportPasscode(TaskTemplate):
             mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                 guild_id=guild.id,
                 event_category=event.type,
-                function=GuildRoleFunction.SUPPORT_PASSCODE_PING
+                function=RoleFunction.SUPPORT_PASSCODE_PING
             ))
             await channel.send(mention_string, embed=Embed(
                 title=event.passcode_post_title,

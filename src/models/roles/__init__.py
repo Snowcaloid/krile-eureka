@@ -1,27 +1,31 @@
 from __future__ import annotations
 from typing import override
 from bot import Bot
-from data.db.sql import Record
 from models._base import BaseStruct
-from utils.basic_types import GuildRoleFunction, Unassigned, fix_enum
+from utils.basic_types import EurekaTrackerZone, RoleDenominator, RoleFunction, NotoriousMonster, Unassigned, fix_enum
 
 from dataclasses import dataclass
 
 
 @dataclass
 class RoleStruct(BaseStruct):
-    guild_id: int = Unassigned
     id: int = Unassigned
+    guild_id: int = Unassigned
     role_id: int = Unassigned
     event_category: str = Unassigned
-    function: GuildRoleFunction = Unassigned
+    event_type: str = Unassigned
+    function: RoleFunction = Unassigned
+    denominator: RoleDenominator = Unassigned
+    notorious_monster: NotoriousMonster = Unassigned
+    eureka_instance: EurekaTrackerZone = Unassigned
+    eureka_instance_name: str = Unassigned
 
     @Bot.bind
     def _bot(self) -> Bot: ...
 
     @override
     def fixup_types(self) -> None:
-        self.function = fix_enum(GuildRoleFunction, self.function)
+        self.function = fix_enum(RoleFunction, self.function)
 
     @override
     def __repr__(self) -> str:

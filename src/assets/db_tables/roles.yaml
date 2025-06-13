@@ -1,0 +1,24 @@
+name: roles
+columns:
+  - name: id
+    type: SERIAL
+    unique: true
+    primary_key: true
+  - name: guild_id
+    type: BIGINT
+  - name: role_id
+    type: BIGINT
+  - name: event_category
+    type: VARCHAR(15)
+  - name: event_type
+    type: VARCHAR(15)
+  - name: function
+    type: INTEGER
+  - name: denominator
+    type: INTEGER
+  - name: notorious_monster
+    type: VARCHAR(30)
+  - name: eureka_instance
+    type: INTEGER
+  - name: eureka_instance_name
+    type: VARCHAR(50)

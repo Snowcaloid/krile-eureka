@@ -6,7 +6,7 @@ from models.context import ExecutionContext
 from models.roles import RoleStruct
 from providers.channels import ChannelsProvider
 from providers.roles import RolesProvider
-from utils.basic_types import NOTORIOUS_MONSTERS, GuildChannelFunction, GuildRoleFunction
+from utils.basic_types import NOTORIOUS_MONSTERS, GuildChannelFunction, RoleFunction
 from workers._base import BaseWorker
 
 
@@ -39,7 +39,7 @@ class EurekaPingsWorker(BaseWorker):
                 role_mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                     guild_id=guild.id,
                     event_type=notorious_monster.value,
-                    function=GuildRoleFunction.NM_PING
+                    function=RoleFunction.NM_PING
                 ))
                 channel.send(
                     f"{role_mention_string} Notification for {NOTORIOUS_MONSTERS[notorious_monster]} by {
