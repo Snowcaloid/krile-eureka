@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Any, List, Union
+from centralized_data import Bindable
 import psycopg2
 import os
 from datetime import datetime
@@ -24,7 +25,7 @@ class DatabaseOperation(Enum):
     """An existing record was updated."""
 
 
-class Database:
+class Database(Bindable):
     """Runtime database access dict
 
     Properties
@@ -37,9 +38,12 @@ class Database:
     _cursor: :class: `pgCursor`
         Currently used cursor for the connection
     """
-    _connection_counter: int = 0
-    _connection: None
-    _cursor: None
+
+    def constructor(self):
+        super().constructor()
+        self._connection_counter: int = 0
+        self._connection: Any = None
+        self._cursor: Any = None
 
     def connected(self):
         return self._connection_counter > 0

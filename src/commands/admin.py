@@ -34,7 +34,7 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
                 (definition for definition in self.table_definitions.loaded_assets if definition.name() == table), None).source["columns"]]
         else:
             column_names = [name.strip() for name in fields.split(',')]
-        result = Record().DATABASE.query(f'select {fields} from {table}{where}{order_by} limit 25')
+        result = Record()._database.query(f'select {fields} from {table}{where}{order_by} limit 25')
         pandas.set_option('display.expand_frame_repr', False)
         pandas.set_option('display.width', 240)
         response = pandas.DataFrame(result, columns=column_names)

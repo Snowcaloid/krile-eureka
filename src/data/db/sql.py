@@ -1,30 +1,33 @@
 from datetime import datetime
 from enum import Enum
-from functools import wraps
-from sys import exc_info
-from typing import Any, Callable, Dict, List, Tuple, TypeVar
+from typing import Any, Callable, Dict, List, Self, Tuple, TypeVar
 
 from data.db.database import Database, PgColumnValue, pg_timestamp
-from utils.basic_types import STRUCT_NULL, Unassigned
+from utils.basic_types import Unassigned
+from utils.functions import is_null_or_unassigned
 
 SQL_ALL_FIELDS = ['*']
 
 class Record(Dict[str, PgColumnValue]):
-    DATABASE: Database = Database()
+    @Database.bind
+    def _database(self) -> Database: ...
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.DATABASE.connect()
+        self._database.connect()
+
+    def __enter__(self) -> Self:
+        return self
 
     def __del__(self):
-        self.DATABASE.disconnect()
+        self._database.disconnect()
 
     def __getitem__(self, key: str) -> PgColumnValue:
         if super().__getitem__(key) is None: return Unassigned
         return super().__getitem__(key)
 
     def _enum_db_value(self, enum: Enum):
-        return enum.value if enum is not None and enum is not STRUCT_NULL else None
+        return None if is_null_or_unassigned(enum) else enum.value
 
     def __setitem__(self, key: str, value: PgColumnValue) -> None:
         if isinstance(value, Enum): super().__setitem__(key, self._enum_db_value(value))
@@ -33,21 +36,26 @@ class Record(Dict[str, PgColumnValue]):
 
 class Transaction(Record):
     def __exit__(self, exc_type, exc_value, traceback):
-        self.DATABASE.disconnect(exc_type is None)
+        self._database.disconnect(exc_type is None)
 
 class Batch(Record):
     def __exit__(self, exc_type, exc_value, traceback):
-        self.DATABASE.disconnect()
+        self._database.disconnect()
+
 
 T = TypeVar('T', bound=Callable[..., Any])
 
+
 class Records(List[Record]):
+    @Database.bind
+    def _database(self) -> Database: ...
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        Record.DATABASE.connect()
+        self._database.connect()
 
     def __del__(self):
-        Record.DATABASE.disconnect()
+        self._database.disconnect()
 
 
 class SQL:
@@ -55,11 +63,14 @@ class SQL:
         self.table_name = table_name
 
     def _get_all_fields(self) -> List[str]:
-        records = Record().DATABASE.query(f"select column_name FROM information_schema.columns WHERE table_name = '{self.table_name}'")
-        if records is None or len(records) == 0:
+        records = self.__class__('information_schema.columns').select(
+            fields=['column_name'],
+            where=f'table_name = \'{self.table_name}\'',
+            all=True)
+        if not isinstance(records, Records):
             raise Exception(f'Table {self.table_name} does not exist.')
 
-        return [record[0] for record in records]
+        return [str(record['column_name']) for record in records]
 
     def _convert_to_sql(self, value: PgColumnValue) -> str:
         if isinstance(value, (int, bool)):
@@ -73,9 +84,9 @@ class SQL:
     def select(self, *,
                fields: List[str] = SQL_ALL_FIELDS,
                where: str = '',
-               all: bool = None,
+               all: bool = True,
                sort_fields: List[str | Tuple[str, bool]] = [],
-               group_by: List[str] = []) -> Record | Records:
+               group_by: List[str] = []) -> Records:
         if fields == SQL_ALL_FIELDS: fields = self._get_all_fields()
         if all is None: all = where == ''
         sql_statement = f'select {", ".join(fields)} from {self.table_name}'
@@ -85,30 +96,29 @@ class SQL:
             sql_statement += f' order by {", ".join([f"{sort[0]} {'asc' if sort[1] else 'desc'}" for sort in sort_fields])}'
         if group_by: sql_statement += ' group by ' + ', '.join(group_by)
         if not all: sql_statement += ' limit 1'
-        if all: records = Records()
-        sql_records = Record().DATABASE.query(sql_statement)
-        for sql_record in sql_records:
-            record = Record()
-            for i, field in enumerate(fields):
-                record[field] = sql_record[i]
-            if all:
+        records = Records()
+        with Batch() as batch:
+            for sql_record in batch._database.query(sql_statement):
+                if not isinstance(sql_record, list): continue
+                record = Record()
+                for i, field in enumerate(fields):
+                    record[field] = sql_record[i]
                 records.append(record)
-            else:
-                return record
-        return records if all else None
+                if not all: break
+        return records
 
-    def insert(self, record: Record, returning_field: str = None) -> PgColumnValue:
+    def insert(self, record: Record, returning_field: str = '') -> PgColumnValue:
         fields = ', '.join(record.keys())
         values = ', '.join([self._convert_to_sql(value) for value in record.values()])
         returning = f' returning {returning_field}' if returning_field else ''
-        return record.DATABASE.query(f'insert into {self.table_name} ({fields}) values ({values}){returning}')
+        return record._database.query(f'insert into {self.table_name} ({fields}) values ({values}){returning}')
 
     def update(self, record: Record, where: str) -> None:
         set_fields = ', '.join([f'{field} = {self._convert_to_sql(value)}' for field, value in record.items()])
-        record.DATABASE.query(f'update {self.table_name} set {set_fields} where {where}')
+        record._database.query(f'update {self.table_name} set {set_fields} where {where}')
 
     def delete(self, where: str) -> None:
-        Record().DATABASE.query(f'delete from {self.table_name} where {where}')
+        Record()._database.query(f'delete from {self.table_name} where {where}')
 
     def drop(self) -> None:
-        Record().DATABASE.query(f'drop table if exists {self.table_name}')
+        Record()._database.query(f'drop table if exists {self.table_name}')
