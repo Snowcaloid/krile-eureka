@@ -1,14 +1,10 @@
 from datetime import datetime, timedelta
 import time
-from typing import List
-from click import Choice
-from discord import Guild, Interaction, Member, Role
+from typing import Any, List
+from discord.app_commands import Choice
+from discord import Guild, Interaction, Role
 from dateutil.tz import tzlocal, tzutc
 from enum import Enum
-
-from bot import Bot
-
-client = Bot().client
 
 class DiscordTimestampType(Enum):
     """Enum for the discord timestamp display format."""
@@ -36,31 +32,17 @@ def get_discord_timestamp(date: datetime, timestamp_type: DiscordTimestampType =
     return f'<t:{int(time.mktime(datetime(*date_tuple).timetuple()))}:{timestamp_type.value}>'
 
 
-async def get_mention(guild_id: int, user_id: int) -> str:
-    if user_id:
-        return client.get_guild(guild_id).get_member(user_id).mention
-    else:
-        return ''
-
-
-async def get_discord_member(guild_id: int, user_id: int) -> Member:
-    """Get a discord member dict to work with.
-    Useful for retrieving the username and mentions.
-
-    :param guild_id: The ID of the guild.
-    :param user_id: The ID of the user.
-    :return: The discord.Member dict.
-    """
-    return await client.get_guild(guild_id).fetch_member(user_id)
-
 async def default_defer(interaction: Interaction, ephemeral: bool = True):
     await interaction.response.defer(thinking=True, ephemeral=ephemeral)
+
 
 async def default_response(interaction: Interaction, text: str):
     return await interaction.followup.send(text, wait=True)
 
+
 def decode_emoji(emoji: str) -> str:
     return emoji.encode('ascii').decode('unicode-escape').encode('utf-16', 'surrogatepass').decode('utf-16')
+
 
 def delta_to_string(delta: timedelta) -> str:
     hours = delta.seconds // 3600
@@ -70,19 +52,27 @@ def delta_to_string(delta: timedelta) -> str:
         result = f'{str(delta.days)} days, {result}'
     return result
 
+
 def find_nearest_role(guild: Guild, role_name: str) -> Role:
     return next(role for role in guild.roles if role.name.lower().startswith(role_name.lower()))
 
 
 def user_display_name(guild_id: int, user_id: int) -> str:
-    if user_id is None or user_id < 1: return None
-    return client.get_guild(guild_id).get_member(user_id).display_name
+    from bot import Bot
+    if user_id is None or user_id < 1: return ''
+    guild = Bot().client.get_guild(guild_id)
+    if guild is None: return ''
+    member = guild.get_member(user_id)
+    if member is None: return ''
+    return member.display_name
 
-def is_null_or_unassigned(value: any) -> bool:
+
+def is_null_or_unassigned(value: Any) -> bool:
     from utils.basic_types import Unassigned
     return value is None or value is Unassigned
 
-def filter_by_current(list: List[Choice], current: str) -> List[Choice]:
+
+def filter_by_current(list: List[Choice[Any]], current: str) -> List[Choice]:
         if current == '':
             return list
         else:

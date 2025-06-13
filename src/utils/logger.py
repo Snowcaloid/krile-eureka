@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 import os
 from datetime import datetime
+from typing import Optional
 
 from centralized_data import GlobalCollection
-from discord import Guild, Interaction
+from discord import Guild, Interaction, TextChannel
 from models.channel import ChannelStruct
 from utils.basic_types import GuildID, GuildChannelFunction
 from utils.functions import default_response, get_discord_timestamp
@@ -15,7 +16,8 @@ class BaseLogger(ABC):
 
     @abstractmethod
     def log(self, message: str) -> None: ...
-    def flush(self, message: str, exc_type: type = None) -> None:
+
+    def flush(self, message: str, exc_type: Optional[type] = None) -> None:
         self.log(message)
 
 
@@ -29,10 +31,10 @@ class ConsoleLogger(BaseLogger):
 
 
 class FileLogger(BaseLogger):
-    def __init__(self, guild_id: int = None):
-        file_path = datetime.now().strftime(os.getenv('LOG_FILE_PATH', './logs/bot.log'))
-        file_path = file_path.replace('{guild_id}', str(guild_id) if guild_id else '000000000000000000')
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    def __init__(self, guild_id: Optional[int] = None):
+        self.file_path = datetime.now().strftime(os.getenv('LOG_FILE_PATH', './logs/bot.log'))
+        self.file_path = self.file_path.replace('{guild_id}', str(guild_id) if guild_id else '000000000000000000')
+        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
 
     def log(self, message: str) -> None:
         """
@@ -46,14 +48,17 @@ class FileLogger(BaseLogger):
 async def _guild_respond(interaction: Interaction, message: str, guild: Guild):
     if hasattr(interaction, 'response'):
         await default_response(interaction, f'{message}')
-    from services.channels import ChannelsService
-    channel = ChannelsService(interaction.guild_id).find(ChannelStruct(
+    from providers.channels import ChannelsProvider
+
+    assert interaction.guild_id is not None, "Guild Interaction must have a guild ID"
+
+    channel = ChannelsProvider().find(ChannelStruct(
         guild_id=interaction.guild_id,
         function=GuildChannelFunction.LOGGING
     ))
     if channel is None: return
     channel = guild.get_channel(channel.channel_id)
-    if channel is None: return
+    if not isinstance(channel, TextChannel): return
     await channel.send(f'{get_discord_timestamp(datetime.utcnow())} {message}')
 
 

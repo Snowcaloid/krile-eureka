@@ -11,8 +11,7 @@ from data.generators.event_passcode_generator import EventPasscodeGenerator
 from utils.basic_types import GuildChannelFunction
 from utils.basic_types import TaskExecutionType
 
-from data.guilds.guild_channel import GuildChannels
-from utils.functions import DiscordTimestampType, get_discord_member, get_discord_timestamp, user_display_name
+from utils.functions import DiscordTimestampType, get_discord_timestamp, user_display_name
 
 class EventUserData:
     event_id: int
@@ -332,7 +331,10 @@ class Event:
         self.delete_tasks()
         self.create_tasks()
 
-    async def to_string(self) -> str:
-        raid_leader = await get_discord_member(self.guild_id, self.users.raid_leader)
+    def to_string(self) -> str:
+        guild = self.bot.client.get_guild(self.guild_id)
+        assert guild is not None, "Guild not found"
+        raid_leader = guild.get_member(self.users.raid_leader)
+        assert raid_leader is not None, "Raid leader not found"
         discord_timestamp = get_discord_timestamp(self.time, DiscordTimestampType.RELATIVE)
         return f'{self.template.short_description()} by {raid_leader.display_name} at {self.time} ST {discord_timestamp}'

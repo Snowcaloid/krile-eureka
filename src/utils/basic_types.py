@@ -2,24 +2,28 @@
 from enum import Enum
 from discord import ButtonStyle
 from discord.app_commands import Choice
-from typing import Dict, List, Type
+from typing import Any, Dict, List, Type
 
 from utils.functions import filter_by_current
 
 
 type GuildID = int
 
+
 class _Unassigned:
     def __repr__(self) -> str:
         return "<unassigned value>"
 
+
 Unassigned = _Unassigned()
 
-def fix_enum(enum_type: Type[Enum], value: any):
+
+def fix_enum(enum_type: Type[Enum], value: Any):
     if isinstance(value, enum_type):
         return value
     else:
         return enum_type(value) if value is not None and value is not Unassigned else None
+
 
 class GuildChannelFunction(Enum):
     NONE = 0
@@ -59,7 +63,7 @@ class GuildRoleFunction(Enum):
     RUN_NOTIFICATION = 8
     EUREKA_TRACKER_NOTIFICATION_PING = 9
     NM_PING = 10
-    
+
     @classmethod
     def autocomplete(cls, current: str) -> List[Choice]:
         choices = [
@@ -113,7 +117,7 @@ class NotoriousMonster(Enum):
     CETO = 'CETO'
     PROVENANCE_WATCHER = 'PW'
     SUPPORT = 'SUPPORT'
-    
+
     @staticmethod
     def _alterantive_nm_names(nm_choices: List[Choice], current: str) -> List[Choice]:
         choices: List[Choice] = []
@@ -124,7 +128,7 @@ class NotoriousMonster(Enum):
                     if alias.lower().startswith(current.lower()):
                         choices.append(Choice(name=alias, value=choice.value))
         return choices
-    
+
     @classmethod
     def autocomplete(cls, current: str) -> List[Choice]:
         nm_choices = [Choice(name=nm_name, value=nm_enum.value) for nm_enum, nm_name in NOTORIOUS_MONSTERS.items()]
@@ -132,6 +136,7 @@ class NotoriousMonster(Enum):
             return filter_by_current(nm_choices, current) + cls._alterantive_nm_names(nm_choices, current)
         else:
             return nm_choices
+
 
 NOTORIOUS_MONSTERS: Dict[NotoriousMonster, str] = {
     NotoriousMonster.PAZUZU: 'Pazuzu',
@@ -178,16 +183,22 @@ BUTTON_STYLE_DESCRIPTIONS: Dict[ButtonStyle, str] = {
     ButtonStyle.danger: 'Red',
     ButtonStyle.link: 'Blue Link'
 }
+
+
 BUTTON_TYPE_DESCRIPTIONS: Dict[ButtonType, str] = {
     ButtonType.ROLE_SELECTION: 'Role',
     ButtonType.ROLE_DISPLAY: 'Role display'
 }
+
+
 BUTTON_TYPE_CHOICES: Dict[str, ButtonType] = {
     'role': ButtonType.ROLE_SELECTION,
     'r': ButtonType.ROLE_SELECTION,
     'roledisp': ButtonType.ROLE_DISPLAY,
     'rd': ButtonType.ROLE_DISPLAY,
 }
+
+
 BUTTON_STYLE_CHOICES: Dict[str, ButtonStyle] = {
     'grey': ButtonStyle.secondary,
     'gray': ButtonStyle.secondary,
