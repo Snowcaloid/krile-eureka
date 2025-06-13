@@ -38,7 +38,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
     def sort_runtime_tasks_by_time(self) -> None:
         self._runtime_tasks = sorted(self._runtime_tasks, key=lambda task: task.time)
 
-    def add_task(self, time: datetime, task_type: TaskExecutionType, data: object = None) -> Any:
+    def add_task(self, time: datetime, task_type: TaskExecutionType, data: dict = None) -> Any:
         if self.task_template(task_type).runtime_only():
             task = Task(self.loaded_assets)
             task.time = time
@@ -109,7 +109,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
             SQL('tasks').delete(f'task_type={type.value}')
             self.load()
 
-    def remove_task_by_data(self, type: TaskExecutionType, data: object):
+    def remove_task_by_data(self, type: TaskExecutionType, data: dict):
         if data is None:
             return
 

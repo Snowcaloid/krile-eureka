@@ -12,7 +12,7 @@ class TableDefinition(YamlAsset):
         return self.source.get("name")
 
     @property
-    def columns(self) -> List[object]:
+    def columns(self) -> List[dict]:
         return self.source.get("columns", [])
 
     def to_sql_create(self) -> str:
@@ -23,7 +23,7 @@ class TableDefinition(YamlAsset):
         """Get Alter Table SQL statement."""
         columns = ''
         for column_object in self.columns:
-            column: object = column_object
+            column: dict = column_object
             unique = 'unique' if column.get('unique', False) else ''
 
             if columns:

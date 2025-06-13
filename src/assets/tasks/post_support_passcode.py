@@ -19,11 +19,11 @@ class Task_PostSupportPasscode(TaskTemplate):
     def type(self) -> TaskExecutionType: return TaskExecutionType.POST_SUPPORT_PASSCODE
 
     @override
-    def description(self, data: object, timestamp: datetime) -> str:
+    def description(self, data: dict, timestamp: datetime) -> str:
         return f'Post Support Passcode for event {data["entry_id"]} at {timestamp.strftime("%Y-%m %H:%M ST")}'
 
     @override
-    async def execute(self, obj: object) -> None:
+    async def execute(self, obj: dict) -> None:
         """Sends the support party passcode embed to the allocated passcode channel."""
         if obj and obj["guild"] and obj["entry_id"]:
             event = Schedule(obj["guild"]).get(obj["entry_id"])

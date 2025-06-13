@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import override
-from discord import Embed
+from discord import Embed, TextChannel
 from models.channel import ChannelStruct
 from utils.basic_types import GuildChannelFunction, GuildRoleFunction, TaskExecutionType
 from tasks.task import TaskTemplate
@@ -15,31 +15,31 @@ class Task_PostMainPasscode(TaskTemplate):
     def type(self) -> TaskExecutionType: return TaskExecutionType.POST_MAIN_PASSCODE
 
     @override
-    def description(self, data: object, timestamp: datetime) -> str:
+    def description(self, data: dict, timestamp: datetime) -> str:
         return f'Post Main Passcode for event {data["entry_id"]} at {timestamp.strftime("%Y-%m %H:%M ST")}'
 
     @override
-    async def execute(self, obj: object) -> None:
+    async def execute(self, obj: dict) -> None:
         """Sends the main party passcode embed to the allocated passcode channel."""
         if obj and obj["guild"] and obj["entry_id"]:
             from data.events.schedule import Schedule
-            from services.channels import ChannelsService
+            from providers.channels import ChannelsProvider
             from services.roles import RolesProvider
             from models.roles import RoleStruct
 
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event is None: return
-            channel_struct = ChannelsService(obj["guild"]).find(
+            channel_struct = ChannelsProvider().find(
                 ChannelStruct(
                     guild_id=obj["guild"],
                     function=GuildChannelFunction.PASSCODES,
                     event_type=event.type))
             if channel_struct is None: return
             channel = self._bot.client.get_channel(channel_struct.channel_id)
-            if channel is None: return
+            if not isinstance(channel, TextChannel): return
             mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                 guild_id=obj["guild"],
-                event_type=event.type,
+                event_category=event.type,
                 function=GuildRoleFunction.MAIN_PASSCODE_PING
             ))
             await channel.send(mention_string, embed=Embed(

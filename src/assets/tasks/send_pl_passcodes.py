@@ -15,11 +15,11 @@ class Task_SendPLPasscodes(TaskTemplate):
     def type(self) -> TaskExecutionType: return TaskExecutionType.SEND_PL_PASSCODES
 
     @override
-    def description(self, data: object, timestamp: datetime) -> str:
+    def description(self, data: dict, timestamp: datetime) -> str:
         return f'Send Party Leader Passcodes for event {data["entry_id"]} at {timestamp.strftime("%Y-%m %H:%M ST")}'
 
     @override
-    async def execute(self, obj: object) -> None:
+    async def execute(self, obj: dict) -> None:
         if obj and obj["guild"] and obj["entry_id"]:
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event:

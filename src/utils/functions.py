@@ -42,12 +42,12 @@ async def get_mention(guild_id: int, user_id: int) -> str:
 
 
 async def get_discord_member(guild_id: int, user_id: int) -> Member:
-    """Get a discord member object to work with.
+    """Get a discord member dict to work with.
     Useful for retrieving the username and mentions.
 
     :param guild_id: The ID of the guild.
     :param user_id: The ID of the user.
-    :return: The discord.Member object.
+    :return: The discord.Member dict.
     """
     return await client.get_guild(guild_id).fetch_member(user_id)
 

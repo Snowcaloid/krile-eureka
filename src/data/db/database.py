@@ -25,7 +25,7 @@ class DatabaseOperation(Enum):
 
 
 class Database:
-    """Runtime database access object
+    """Runtime database access dict
 
     Properties
     ----------

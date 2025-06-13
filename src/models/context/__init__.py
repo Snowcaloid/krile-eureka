@@ -52,5 +52,5 @@ class ExecutionContext:
         self._message += message + '\n'
 
     def assert_permissions(self, permissions: Permissions) -> None:
-        assert self.permissions is not None, "context object must have permissions set for this action."
+        assert self.permissions is not None, "context dict must have permissions set for this action."
         self.permissions.full_check(permissions)

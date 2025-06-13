@@ -22,7 +22,7 @@ class Task_UpdateStatus(TaskTemplate):
     def type(self) -> TaskExecutionType: return TaskExecutionType.UPDATE_STATUS
 
     @override
-    async def handle_exception(self, e: Exception, obj: object) -> None:
+    async def handle_exception(self, e: Exception, obj: dict) -> None:
         self.tasks.remove_all(TaskExecutionType.UPDATE_STATUS)
         self.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskExecutionType.UPDATE_STATUS)
 
@@ -30,9 +30,9 @@ class Task_UpdateStatus(TaskTemplate):
     def runtime_only(self) -> bool: return True
 
     @override
-    async def execute(self, obj: object) -> None:
+    async def execute(self, obj: dict) -> None:
         next_exec = datetime.utcnow() + timedelta(minutes=1)
-        try: # TODO: Isn't it more efficient to use the runtime data object?
+        try: # TODO: Isn't it more efficient to use the runtime data dict?
             record = SQL('events').select(fields=['id'],
                                           where=('timestamp > (current_timestamp at time zone \'UTC\') '
                                                  'and (not canceled or canceled is null) and '

@@ -16,7 +16,7 @@ class TaskTemplate(PythonAsset):
     @abstractmethod
     def type(self) -> TaskExecutionType: return TaskExecutionType.NONE
 
-    async def handle_exception(self, e: Exception, obj: object) -> None:
+    async def handle_exception(self, e: Exception, obj: dict) -> None:
         if obj.get("guild"):
             await guild_log_message(obj["guild"], e)
         else:
@@ -26,17 +26,17 @@ class TaskTemplate(PythonAsset):
     def runtime_only(self) -> bool: return False
 
     @abstractmethod
-    def description(self, data: object, timestamp: datetime) -> str: ...
+    def description(self, data: dict, timestamp: datetime) -> str: ...
 
     @abstractmethod
-    async def execute(self, data: object) -> None: pass
+    async def execute(self, data: dict) -> None: pass
 
 
 class Task:
     template: TaskTemplate
     id: int
     time: datetime
-    data: object
+    data: dict
     signature: Any
     _task_templates: List[TaskTemplate]
 

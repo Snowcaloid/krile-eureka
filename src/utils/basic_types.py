@@ -29,14 +29,6 @@ class GuildChannelFunction(Enum):
     EUREKA_TRACKER_NOTIFICATION = 7
     NM_PINGS = 8
 
-class GuildPingType(Enum):
-    NONE = 0
-    MAIN_PASSCODE = 1
-    SUPPORT_PASSCODE = 2
-    PL_POST = 3
-    RUN_NOTIFICATION = 4
-    EUREKA_TRACKER_NOTIFICATION = 5
-    NM_PING = 6
 
 class GuildMessageFunction(Enum):
     NONE = 0
@@ -60,10 +52,11 @@ class GuildRoleFunction(Enum):
     RAID_LEADER = 3
     MAIN_PASSCODE_PING = 4
     SUPPORT_PASSCODE_PING = 5
-    PL_POST_PING = 4
-    EVENT_NOTIFICATION_PING = 5
-    EUREKA_TRACKER_NOTIFICATION_PING = 6
-    NM_PING = 7
+    PL_POST_PING = 6
+    EVENT_NOTIFICATION_PING = 7
+    RUN_NOTIFICATION = 8
+    EUREKA_TRACKER_NOTIFICATION_PING = 9
+    NM_PING = 10
 
     @classmethod
     def all_function_choices(cl) -> List[Choice]:
@@ -86,9 +79,7 @@ class TaskExecutionType(Enum):
     POST_MAIN_PASSCODE = 5
     POST_SUPPORT_PASSCODE = 6
     UPDATE_EUREKA_INFO_POSTS = 9
-    EVENT_UPDATE = 10
-    RUN_ASYNC_METHOD = 11
-    EVENT_CANCEL = 12
+    RUN_ASYNC_METHOD = 10
 
 class EurekaTrackerZone(Enum):
     ANEMOS = 1

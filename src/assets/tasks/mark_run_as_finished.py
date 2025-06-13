@@ -18,7 +18,7 @@ class Task_MarkRunAsFinished(TaskTemplate):
     def type(self) -> TaskExecutionType: return TaskExecutionType.MARK_RUN_AS_FINISHED
 
     @override
-    async def execute(self, obj: object) -> None:
+    async def execute(self, obj: dict) -> None:
         if obj and obj["id"]:
             Schedule(obj["guild"]).finish(obj["id"])
             for guild in self.bot.client.guilds:

@@ -12,7 +12,7 @@ class Task_RunAsyncMethod(TaskTemplate):
     def runtime_only(self) -> bool: return True
 
     @override
-    async def execute(self, obj: object) -> None:
+    async def execute(self, obj: dict) -> None:
         if obj.get("method"):
             method: callable = obj["method"]
             args = obj.get("args", [])

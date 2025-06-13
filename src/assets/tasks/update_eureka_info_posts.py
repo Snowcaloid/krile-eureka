@@ -27,7 +27,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
     def type(self) -> TaskExecutionType: return TaskExecutionType.UPDATE_EUREKA_INFO_POSTS
 
     @override
-    async def handle_exception(self, e: Exception, obj: object) -> None:
+    async def handle_exception(self, e: Exception, obj: dict) -> None:
         self.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
         self.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
 
@@ -35,7 +35,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
     def runtime_only(self) -> bool: return True
 
     @override
-    async def execute(self, obj: object) -> None:
+    async def execute(self, obj: dict) -> None:
         next_exec = datetime.utcnow() + timedelta(minutes=1)
         try:
             self.eureka_info.remove_old()

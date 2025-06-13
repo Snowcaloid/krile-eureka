@@ -16,11 +16,11 @@ class Task_RemoveRecruitmentPost(TaskTemplate):
     def type(self) -> TaskExecutionType: return TaskExecutionType.REMOVE_RECRUITMENT_POST
 
     @override
-    def description(self, data: object, timestamp: datetime) -> str:
+    def description(self, data: dict, timestamp: datetime) -> str:
         return f'Remove Recruitment Post at {timestamp.strftime("%Y-%m %H:%M ST")}'
 
     @override
-    async def execute(self, obj: object) -> None:
+    async def execute(self, obj: dict) -> None:
         if obj and obj["guild"] and obj["message_id"]:
             messages = GuildMessages(obj["guild"])
             message_data = messages.get_by_message_id(obj["message_id"])

@@ -55,4 +55,4 @@ class BaseStruct(ABC):
 
     @abstractmethod
     def marshal(self) -> dict: ...
-    """Override to provide an object representation of the struct."""
+    """Override to provide an dict representation of the struct."""
