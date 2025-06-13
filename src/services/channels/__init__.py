@@ -9,7 +9,7 @@ from models.context import ExecutionContext
 from services._base import BaseService
 
 from models.permissions import ModulePermissions, PermissionLevel, Permissions
-from utils.basic_types import EurekaTrackerZone, EventType, GuildChannelFunction, NotoriousMonsters
+from utils.basic_types import EurekaInstance, EventType, GuildChannelFunction, NotoriousMonsters
 
 #TODO: add concept for using a category instead of having a category be a for loop for all event types.
 #that likely needs new database fields
@@ -27,8 +27,8 @@ class ChannelsService(BaseService[ChannelStruct]):
                 f"Invalid function: {struct.function}"
         match struct.function:
             case GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION:
-                struct.event_type = EurekaTrackerZone.name_to_value_str(struct.event_type)
-                assert EurekaTrackerZone.is_eureka_zone(struct.event_type), \
+                struct.event_type = EurekaInstance.name_to_value_str(struct.event_type)
+                assert EurekaInstance.is_eureka_zone(struct.event_type), \
                     f"Invalid eureka zone: {struct.event_type}"
             case GuildChannelFunction.NM_PINGS:
                 struct.event_type = NotoriousMonsters.name_to_type_str(struct.event_type)

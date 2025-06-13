@@ -19,7 +19,7 @@ class EventTemplates(GlobalCollection[GuildID]):
     def default_templates(self) -> DefaultEventTemplates: ...
 
     @override
-    def constructor(self, key: GuildID = None):
+    def constructor(self, key: GuildID) -> None:
         super().constructor(key)
         self._list = []
         self.load()
@@ -47,20 +47,20 @@ class EventTemplates(GlobalCollection[GuildID]):
     def autocomplete(cls, interaction: Interaction, current: str) -> List[Choice]:
         allowed_categories = PermissionValidator().get_raid_leader_permissions(interaction.user)
         return filter_choices_by_current([
-            event_template.as_choice() for event_template in cls(interaction.guild_id).get_by_categories(allowed_categories)], current)
+            event_template.choice() for event_template in cls(interaction.guild_id).get_by_categories(allowed_categories)], current)
 
     @classmethod
     def autocomplete_with_categories(cls, current: str, guild_id: int) -> List[Choice]:
         return filter_choices_by_current(EventCategory.all_category_choices() + [
-            event_template.as_choice() for event_template in cls(guild_id).all], current)
+            event_template.choice() for event_template in cls(guild_id).all], current)
 
     def add(self, event_type: str, template: EventTemplate) -> None:
-        SQL('event_templates').insert(Record(guild_id=self.key, event_type=event_type, data=template.data))
+        SQL('event_templates').insert(Record(guild_id=self.key, event_type=event_type, data=template.json_string))
         self.load()
 
     def set(self, event_type: str, template: EventTemplate) -> None:
         if self.get(event_type):
-            SQL('event_templates').update(Record(data=template.data), f"event_type='{event_type}' and guild_id={self.key}")
+            SQL('event_templates').update(Record(data=template.json_string), f"event_type='{event_type}' and guild_id={self.key}")
             self.load()
         else:
             self.add(event_type, template)

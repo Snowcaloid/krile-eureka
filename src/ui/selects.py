@@ -7,7 +7,7 @@ from models.channel import ChannelStruct
 from models.roles import RoleStruct
 from providers.roles import RolesProvider
 from services.channels import ChannelsService
-from utils.basic_types import EurekaTrackerZone, RoleFunction
+from utils.basic_types import EurekaInstance, RoleFunction
 from utils.basic_types import GuildChannelFunction
 from ui.modals import EurekaTrackerModal
 from ui.views import TemporaryView
@@ -28,16 +28,16 @@ class EurekaTrackerZoneSelect(Select):
         self.generate = generate
         self.message: Message = None
         options = [
-            SelectOption(label='Anemos', value=str(EurekaTrackerZone.ANEMOS.value)),
-            SelectOption(label='Pagos', value=str(EurekaTrackerZone.PAGOS.value)),
-            SelectOption(label='Pyros', value=str(EurekaTrackerZone.PYROS.value)),
-            SelectOption(label='Hydatos', value=str(EurekaTrackerZone.HYDATOS.value))
+            SelectOption(label='Anemos', value=str(EurekaInstance.ANEMOS.value)),
+            SelectOption(label='Pagos', value=str(EurekaInstance.PAGOS.value)),
+            SelectOption(label='Pyros', value=str(EurekaInstance.PYROS.value)),
+            SelectOption(label='Hydatos', value=str(EurekaInstance.HYDATOS.value))
         ]
         super().__init__(placeholder="Select Eureka Instance",
                          options=options)
 
 
-    async def generate_url(self, zone: EurekaTrackerZone) -> Tuple[str, str]:
+    async def generate_url(self, zone: EurekaInstance) -> Tuple[str, str]:
         async with aiohttp.ClientSession() as session:
             async with session.post('https://ffxiv-eureka.com/api/instances', json=
                 {
@@ -62,7 +62,7 @@ class EurekaTrackerZoneSelect(Select):
 
     async def callback(self, interaction: Interaction):
         # check if user has access to send messages to channel
-        zone = EurekaTrackerZone(int(self.values[0]))
+        zone = EurekaInstance(int(self.values[0]))
         if self.generate:
             await default_defer(interaction)
             url, passcode = await self.generate_url(zone)

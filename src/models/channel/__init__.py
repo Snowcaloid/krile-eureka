@@ -2,8 +2,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import override
 from bot import Bot
+from data.events.event_category import EventCategory
 from models._base import BaseStruct
-from utils.basic_types import Unassigned, GuildChannelFunction, fix_enum
+from utils.basic_types import EurekaInstance, NotoriousMonster, Unassigned, GuildChannelFunction, fix_enum, ChannelDenominator
 
 
 @dataclass
@@ -13,6 +14,11 @@ class ChannelStruct(BaseStruct):
     channel_id: int = Unassigned #type: ignore
     event_type: str = Unassigned #type: ignore
     function: GuildChannelFunction = Unassigned #type: ignore
+    denominator: ChannelDenominator = Unassigned #type: ignore
+    event_category: EventCategory = Unassigned #type: ignore
+    notorious_monster: NotoriousMonster = Unassigned #type: ignore
+    eureka_instance: EurekaInstance = Unassigned #type: ignore
+    eureka_instance_name: str = Unassigned #type: ignore
 
     @Bot.bind
     def _bot(self) -> Bot: ...
@@ -22,6 +28,18 @@ class ChannelStruct(BaseStruct):
         fixed_enum = fix_enum(GuildChannelFunction, self.function)
         assert isinstance(fixed_enum, GuildChannelFunction), f"Invalid GuildChannelFunction: {self.function}"
         self.function = fixed_enum
+        fixed_enum = fix_enum(ChannelDenominator, self.denominator)
+        assert isinstance(fixed_enum, ChannelDenominator), f"Invalid GuildChannelDenominator: {self.denominator}"
+        self.denominator = fixed_enum
+        fixed_enum = fix_enum(EventCategory, self.event_category)
+        assert isinstance(fixed_enum, EventCategory), f"Invalid EventCategory: {self.event_category}"
+        self.event_category = fixed_enum
+        fixed_enum = fix_enum(NotoriousMonster, self.notorious_monster)
+        assert isinstance(fixed_enum, NotoriousMonster), f"Invalid NotoriousMonster: {self.notorious_monster}"
+        self.notorious_monster = fixed_enum
+        fixed_enum = fix_enum(EurekaInstance, self.eureka_instance)
+        assert isinstance(fixed_enum, EurekaInstance), f"Invalid EurekaTrackerZone: {self.eureka_instance}"
+        self.eureka_instance = fixed_enum
 
     @override
     def __repr__(self) -> str:
@@ -37,6 +55,14 @@ class ChannelStruct(BaseStruct):
             result.append(f"Event Type: {self.event_type}")
         if isinstance(self.function, GuildChannelFunction):
             result.append(f"Function: {self.function.name}")
+        if isinstance(self.denominator, ChannelDenominator):
+            result.append(f"Denominator: {self.denominator.name}")
+        if isinstance(self.event_category, EventCategory):
+            result.append(f"Event Category: {self.event_category.name}")
+        if isinstance(self.notorious_monster, NotoriousMonster):
+            result.append(f"Notorious Monster: {self.notorious_monster.name}")
+        if isinstance(self.eureka_instance, EurekaInstance):
+            result.append(f"Eureka Instance: {self.eureka_instance.name} ({self.eureka_instance.value})")
         return ', '.join(result)
 
     @override

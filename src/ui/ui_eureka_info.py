@@ -1,7 +1,7 @@
 from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
 from models.button.discord_button import DiscordButton
-from utils.basic_types import EurekaTrackerZone
+from utils.basic_types import EurekaInstance
 from utils.basic_types import GuildMessageFunction
 from data.guilds.guild_messages import GuildMessages
 from ui.base_button import save_buttons
@@ -38,7 +38,7 @@ class UIEurekaInfoPost(Bindable):
         await self.rebuild(guild_id)
         save_buttons(message, view)
 
-    def get_trackers_text(self, zone: EurekaTrackerZone) -> str:
+    def get_trackers_text(self, zone: EurekaInstance) -> str:
         result = ''
         trackers = self.eureka_info.get(zone)
         if trackers:
@@ -56,10 +56,10 @@ class UIEurekaInfoPost(Bindable):
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return
 
-        anemos_trackers = self.get_trackers_text(EurekaTrackerZone.ANEMOS)
-        pagos_trackers = self.get_trackers_text(EurekaTrackerZone.PAGOS)
-        pyros_trackers = self.get_trackers_text(EurekaTrackerZone.PYROS)
-        hydatos_trackers = self.get_trackers_text(EurekaTrackerZone.HYDATOS)
+        anemos_trackers = self.get_trackers_text(EurekaInstance.ANEMOS)
+        pagos_trackers = self.get_trackers_text(EurekaInstance.PAGOS)
+        pyros_trackers = self.get_trackers_text(EurekaInstance.PYROS)
+        hydatos_trackers = self.get_trackers_text(EurekaInstance.HYDATOS)
 
         embed = Embed(title='Eureka Info', description=(
             f'## Anemos {next_4_weathers(EurekaZones.ANEMOS)}\n'

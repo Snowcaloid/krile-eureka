@@ -1,13 +1,23 @@
 name: channels
 columns:
-  - name: id
-    type: SERIAL
-    unique: true
-  - name: guild_id
-    type: BIGINT
-  - name: event_type
-    type: VARCHAR(15)
-  - name: channel_id
-    type: BIGINT
-  - name: function
-    type: INTEGER
+- name: id
+  type: SERIAL
+  unique: true
+- name: guild_id
+  type: BIGINT
+- name: event_type
+  type: VARCHAR(15)
+- name: channel_id
+  type: BIGINT
+- name: function
+  type: INTEGER
+- name: denominator
+  type: VARCHAR(20)
+- name: event_category
+  type: VARCHAR(15)
+- name: notorious_monster
+  type: VARCHAR(30)
+- name: eureka_instance
+  type: INTEGER
+- name: eureka_instance_name
+  type: VARCHAR(50)

@@ -7,7 +7,7 @@ from models.channel import ChannelStruct
 from models.roles import RoleStruct
 from providers.channels import ChannelsProvider
 from providers.roles import RolesProvider
-from utils.basic_types import EurekaTrackerZone, RoleFunction
+from utils.basic_types import EurekaInstance, RoleFunction
 from utils.basic_types import GuildChannelFunction
 from ui.views import TemporaryView
 from utils.logger import guild_log_message
@@ -21,7 +21,7 @@ class EurekaTrackerModal(Modal):
     @UIEurekaInfoPost.bind
     def ui_eureka_info(self) -> UIEurekaInfoPost: ...
 
-    def __init__(self, *, zone: EurekaTrackerZone = None) -> None:
+    def __init__(self, *, zone: EurekaInstance = None) -> None:
         self.zone = zone
         super().__init__(title="Enter tracker URL or ID", timeout=None)
 

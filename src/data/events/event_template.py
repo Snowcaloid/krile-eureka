@@ -18,10 +18,10 @@ class EventTemplate(YamlAsset):
             EventCategory.DRS: 3,
             EventCategory.BOZJA: 4
         }
-        return category_weight[self.category()] * 100 + 10 - len(self.type()) # the longer the type, the less specific it is
+        return category_weight[self.category] * 100 + 10 - len(self.type) # the longer the type, the less specific it is
 
     @property
-    def data(self) -> str:
+    def json_string(self) -> str:
         return dumps(self.source)
 
     def _handle_support_text(self, use_support: bool, template_text: str) -> str:
@@ -37,26 +37,32 @@ class EventTemplate(YamlAsset):
         elif '%!support=' in template_text:
             template_text = template_text[:template_text.find('%!support=')]
 
-        if self.use_support() and use_support:
+        if self.use_support and use_support:
             return template_text.replace('%support', support_text)
         else:
             return template_text.replace('%support', no_support_text)
 
+    @property
     def type(self) -> str:
         return self.source.get('type', 'CUSTOM')
 
+    @property
     def description(self) -> str:
         return self.source.get('description', 'Custom run')
 
+    @property
     def short_description(self) -> str:
         return self.source.get('short_description', 'Custom run')
 
+    @property
     def category(self) -> EventCategory:
         return EventCategory(self.source.get('category', 'CUSTOM'))
 
+    @property
     def use_recruitment_posts(self) -> bool:
         return self.source.get('use_recruitment_posts', False)
 
+    @property
     def use_passcodes(self) -> bool:
         return self.source.get('use_passcodes', False)
 
@@ -65,7 +71,7 @@ class EventTemplate(YamlAsset):
             '%time ST (%localtime LT): %description Party Leader Recruitment'
         ))
         return value.replace('%time', time.strftime(f"%A, %d-%b-%y %H:%M ST")).replace('%localtime', get_discord_timestamp(time)).replace(
-            '%description', self.description())
+            '%description', self.description)
 
     def recruitment_post_text(self,
                               rl: str, pl1: str, pl2: str, pl3: str,
@@ -89,21 +95,25 @@ class EventTemplate(YamlAsset):
         return value.replace('%rl', rl).replace('%pl1', pl1).replace('%pl2', pl2).replace('%pl3', pl3).replace(
             '%pl4', pl4).replace('%pl5', pl5).replace('%pl6', pl6).replace('%pls', pls)
 
+    @property
     def pl_button_texts(self) -> Tuple[str, str, str, str, str, str, str]:
         list = self.source.get('pl_button_texts', ['1', '2', '3', '4', '5', '6', 'Support'])
         if len(list) < 7: list = list + [''] * (7 - len(list)) # Fill up with empty strings
         return tuple(list)
 
+    @property
     def use_recruitment_post_threads(self) -> bool:
         return self.source.get('use_recruitment_post_threads', False)
 
+    @property
     def delete_recruitment_posts(self) -> bool:
         return self.source.get('delete_recruitment_posts', True)
 
     def recruitment_post_thread_title(self, time: datetime) -> str:
-        value = self.source.get('recruitment_post_thread_title', f'%time {self.description()}')
+        value = self.source.get('recruitment_post_thread_title', f'%time {self.description}')
         return value.replace('%time', time.strftime('%A, %d %B %Y'))
 
+    @property
     def use_support(self) -> bool:
         return self.source.get('use_support', False)
 
@@ -135,7 +145,7 @@ class EventTemplate(YamlAsset):
             '%time ST (%localtime LT) %description Passcode Notification'
         ))
         return value.replace('%time', time.strftime(f"%A, %d-%b-%y %H:%M ST")).replace('%localtime', get_discord_timestamp(time)).replace(
-            '%description', self.description())
+            '%description', self.description)
 
     def party_leader_dm_text(self, party: str, passcode: int) -> str:
         value = self.source.get('party_leader_dm_text', (
@@ -163,12 +173,15 @@ class EventTemplate(YamlAsset):
         value = self._handle_support_text(use_support, value)
         return value.replace('%passcode_main', str(passcode_main).zfill(4)).replace('%passcode_support', str(passcode_supp).zfill(4))
 
+    @property
     def pl_passcode_delay(self) -> timedelta:
         return timedelta(minutes=self.source.get('pl_passcode_delay', 30))
 
+    @property
     def support_passcode_delay(self) -> timedelta:
       return timedelta(minutes=self.source.get('support_passcode_delay', 20))
 
+    @property
     def main_passcode_delay(self) -> timedelta:
         return timedelta(minutes=self.source.get('main_passcode_delay', 15))
 
@@ -181,17 +194,19 @@ class EventTemplate(YamlAsset):
             custom = f'[{custom}]'
 
         return value.replace('%time', time.strftime('%H:%M')).replace('%localtime', get_discord_timestamp(time)).replace(
-            '%description', custom).replace('%rl', rl).replace('%type', self.short_description())
+            '%description', custom).replace('%rl', rl).replace('%type', self.short_description)
 
     def passcode_post_title(self, time: datetime) -> str:
         value = self.source.get('passcode_post_title', (
             '%time ST (%localtime LT): %description Passcode'
         ))
         return value.replace('%time', time.strftime(f"%A, %d-%b-%y %H:%M ST")).replace('%localtime', get_discord_timestamp(time)).replace(
-            '%description', self.description())
+            '%description', self.description)
 
+    @property
     def is_signup(self) -> bool:
         return self.source.get('is_signup', False)
 
-    def as_choice(self) -> Choice:
-        return Choice(name=self.description(), value=self.type())
+    @property
+    def choice(self) -> Choice:
+        return Choice(name=self.description, value=self.type)

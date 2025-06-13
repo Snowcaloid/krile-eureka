@@ -37,6 +37,13 @@ class GuildChannelFunction(Enum):
     NM_PINGS = 8
 
 
+class ChannelDenominator(Enum):
+    EVENT_TYPE = "event_type"
+    EVENT_CATEGORY = "event_category"
+    EUREKA_INSTANCE = "eureka_instance"
+    NOTORIOUS_MONSTER = "notorious_monster"
+
+
 class GuildMessageFunction(Enum):
     NONE = 0
     SCHEDULE_POST = 1
@@ -93,11 +100,11 @@ class TaskExecutionType(Enum):
     UPDATE_EUREKA_INFO_POSTS = 9
     RUN_ASYNC_METHOD = 10
 
-class EurekaTrackerZone(Enum):
-    ANEMOS = 1
-    PAGOS = 2
-    PYROS = 3
-    HYDATOS = 4
+class EurekaInstance(Enum):
+    ANEMOS = "Anemos"
+    PAGOS = "Pagos"
+    PYROS = "Pyros"
+    HYDATOS = "Hydatos"
 
     @classmethod
     def autocomplete(cls, current: str) -> List[Choice]:
@@ -105,7 +112,7 @@ class EurekaTrackerZone(Enum):
             Choice(name='Anemos',  value=str(cls.ANEMOS.value)),
             Choice(name='Pagos', value=str(cls.PAGOS.value)),
             Choice(name='Pyros', value=str(cls.PYROS.value)),
-            Choice(name='Hydatos', value=str(EurekaTrackerZone.HYDATOS.value))
+            Choice(name='Hydatos', value=str(EurekaInstance.HYDATOS.value))
         ], current)
 
     @classmethod

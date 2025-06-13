@@ -5,7 +5,7 @@ from datetime import datetime
 from centralized_data import Bindable
 from discord import Member, TextChannel
 
-from utils.basic_types import EurekaTrackerZone, NotoriousMonster, TaskExecutionType
+from utils.basic_types import EurekaInstance, NotoriousMonster, TaskExecutionType
 from data.events.event_category import EventCategory
 from utils.basic_types import NOTORIOUS_MONSTERS
 from data.events.event_templates import EventTemplates
@@ -50,7 +50,7 @@ class _InputChecker(Bindable):
         return user_id == event.users.raid_leader or self.permissions.is_admin(interaction)
 
     def is_eureka_instance(self, instance: str) -> bool:
-        return int(instance) in EurekaTrackerZone._value2member_map_
+        return int(instance) in EurekaInstance._value2member_map_
 
     def event_time(self, dt: datetime) -> bool:
         return dt >= datetime.utcnow()

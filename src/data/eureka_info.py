@@ -3,7 +3,7 @@ from typing import List
 
 from centralized_data import Bindable
 
-from utils.basic_types import EurekaTrackerZone
+from utils.basic_types import EurekaInstance
 from data.db.database import pg_timestamp
 from data.db.sql import SQL, Record
 
@@ -12,7 +12,7 @@ class EurekaTracker:
     def load(self, url: str) -> None:
         self.url = url
         for record in SQL('trackers').select(fields=['zone', 'timestamp'], where=f'url=\'{url}\'', all=True):
-            self.zone = EurekaTrackerZone(record['zone'])
+            self.zone = EurekaInstance(record['zone'])
             self.timestamp: datetime = record['timestamp']
 
 
@@ -29,10 +29,10 @@ class EurekaInfo(Bindable):
             tracker.load(record['url'])
             self._trackers.append(tracker)
 
-    def get(self, zone: EurekaTrackerZone) -> List[EurekaTracker]:
+    def get(self, zone: EurekaInstance) -> List[EurekaTracker]:
         return [tracker for tracker in self._trackers if tracker.zone == zone]
 
-    def add(self, url: str, zone: EurekaTrackerZone) -> None:
+    def add(self, url: str, zone: EurekaInstance) -> None:
         SQL('trackers').insert(Record(url=url, zone=zone.value, timestamp=datetime.utcnow()))
         self.load()
 

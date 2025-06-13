@@ -10,7 +10,7 @@ from providers.context import discord_context
 from services.channels import ChannelsService
 from models.channel import ChannelStruct
 from services.roles import RolesService
-from utils.basic_types import EurekaTrackerZone, RoleFunction, NotoriousMonster
+from utils.basic_types import EurekaInstance, RoleFunction, NotoriousMonster
 from utils.autocomplete import AutoComplete
 from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
@@ -237,7 +237,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @ping_add_eureka_role.autocomplete('instance')
     @ping_remove_eureka_role.autocomplete('instance')
     async def autocomplete_eureka_tracker_zone(self, interaction: Interaction, current: str):
-        return EurekaTrackerZone.autocomplete(current)
+        return EurekaInstance.autocomplete(current)
 
     @ping_add_nm_role.autocomplete('notorious_monster')
     @ping_remove_nm_role.autocomplete('notorious_monster')
