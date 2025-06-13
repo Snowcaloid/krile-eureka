@@ -5,63 +5,7 @@ from typing import List
 from discord import Interaction
 from discord.app_commands import Choice
 
-from utils.basic_types import NOTORIOUS_MONSTERS, EurekaTrackerZone, NotoriousMonster
-
-from data.events.event_category import EventCategory
-from utils.basic_types import GuildPingType
-from utils.basic_types import GuildChannelFunction
-from utils.basic_types import NM_ALIASES
-from data.events.event_templates import EventTemplates
-from utils.basic_types import ButtonType
-from data.validation.permission_validator import PermissionValidator
-
-
 class AutoCompleteGenerator(Bindable):
-    from data.db.definition import TableDefinitions
-    @TableDefinitions.bind
-    def table_definitions(self) -> TableDefinitions: ...
-
-    def filter_by_current(self, list: List[Choice], current: str) -> List[Choice]:
-        if current == '':
-            return list
-        else:
-            return [choice for choice in list if choice.name.lower().startswith(current.lower())]
-
-    def event_type(self, interaction: Interaction, current: str) -> List[Choice]:
-        allowed_categories = PermissionValidator().get_raid_leader_permissions(interaction.user)
-        return self.filter_by_current([
-            event_template.as_choice() for event_template in EventTemplates(interaction.guild_id).get_by_categories(allowed_categories)], current)
-
-    def event_type_with_categories(self, current: str, guild_id: int) -> List[Choice]:
-        return self.filter_by_current(EventCategory.all_category_choices() + [
-            event_template.as_choice() for event_template in EventTemplates(guild_id).all], current)
-
-    def event_categories(self, current: str) -> List[Choice]:
-        return self.filter_by_current(EventCategory.all_category_choices(), current)
-
-    def event_categories_short(self, current: str) -> List[Choice]:
-        return self.filter_by_current(EventCategory.all_category_choices_short(), current)
-
-    def guild_role_functions(self, current: str) -> List[Choice]:
-        return self.filter_by_current(GuildChannelFunction.all_function_choices(), current)
-
-    def alterantive_nm_names(self, nm_choices: List[Choice], current: str) -> List[Choice]:
-        choices: List[Choice] = []
-        for choice in nm_choices:
-            aliases = NM_ALIASES.get(NotoriousMonster(choice.value), None)
-            if aliases:
-                for alias in aliases:
-                    if alias.lower().startswith(current.lower()):
-                        choices.append(Choice(name=alias, value=choice.value))
-        return choices
-
-    def notorious_monster(self, current: str) -> List[Choice]:
-        nm_choices = [Choice(name=nm_name, value=nm_enum.value) for nm_enum, nm_name in NOTORIOUS_MONSTERS.items()]
-        if current:
-            return self.filter_by_current(nm_choices, current) + self.alterantive_nm_names(nm_choices, current)
-        else:
-            return nm_choices
-
     def date(self, current: str) -> List[Choice]:
         result = []
         if len(current) >= 2 and current[0:2].isdigit():
@@ -112,20 +56,3 @@ class AutoCompleteGenerator(Bindable):
             if i == 25:
                 break
         return users
-
-    def eureka_instance(self, current: str) -> List[Choice]:
-        return self.filter_by_current([
-            Choice(name='Anemos',  value=str(EurekaTrackerZone.ANEMOS.value)),
-            Choice(name='Pagos', value=str(EurekaTrackerZone.PAGOS.value)),
-            Choice(name='Pyros', value=str(EurekaTrackerZone.PYROS.value)),
-            Choice(name='Hydatos', value=str(EurekaTrackerZone.HYDATOS.value))
-        ], current)
-
-    def button_type(self, current: str) -> List[Choice]:
-        return [
-            Choice(name='Role selection Button', value=ButtonType.ROLE_SELECTION.value),
-            Choice(name='Role display Button', value=ButtonType.ROLE_DISPLAY.value)
-        ]
-
-    def table(self, current: str) -> List[Choice]:
-        return self.filter_by_current([Choice(name=definition.name(), value=definition.name()) for definition in self.table_definitions.loaded_assets], current)

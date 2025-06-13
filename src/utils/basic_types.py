@@ -4,6 +4,8 @@ from discord import ButtonStyle
 from discord.app_commands import Choice
 from typing import Dict, List, Type
 
+from utils.functions import filter_by_current
+
 
 type GuildID = int
 
@@ -38,12 +40,12 @@ class GuildMessageFunction(Enum):
     EUREKA_INFO = 6
 
     @classmethod
-    def all_function_choices(cl) -> List[Choice]:
+    def all_function_choices(cls) -> List[Choice]:
         return [
-            Choice(name='Schedule Posts', value=GuildMessageFunction.SCHEDULE_POST.value),
-            Choice(name='Party leader posts', value=GuildMessageFunction.PL_POST.value),
-            Choice(name='Eureka weather posts', value=GuildMessageFunction.WEATHER_POST.value),
-            Choice(name='Eureka info', value=GuildMessageFunction.EUREKA_INFO.value)
+            Choice(name='Schedule Posts', value=cls.SCHEDULE_POST.value),
+            Choice(name='Party leader posts', value=cls.PL_POST.value),
+            Choice(name='Eureka weather posts', value=cls.WEATHER_POST.value),
+            Choice(name='Eureka info', value=cls.EUREKA_INFO.value)
         ]
 
 class GuildRoleFunction(Enum):
@@ -57,18 +59,19 @@ class GuildRoleFunction(Enum):
     RUN_NOTIFICATION = 8
     EUREKA_TRACKER_NOTIFICATION_PING = 9
     NM_PING = 10
-
+    
     @classmethod
-    def all_function_choices(cl) -> List[Choice]:
-        return [
-            Choice(name='Raid Leader', value=GuildRoleFunction.RAID_LEADER.value),
-            Choice(name='Main Passcode Ping', value=GuildRoleFunction.MAIN_PASSCODE_PING.value),
-            Choice(name='Support Passcode Ping', value=GuildRoleFunction.SUPPORT_PASSCODE_PING.value),
-            Choice(name='PL Post Ping', value=GuildRoleFunction.PL_POST_PING.value),
-            Choice(name='Event Notification Ping', value=GuildRoleFunction.EVENT_NOTIFICATION_PING.value),
-            Choice(name='Eureka Tracker Notification Ping', value=GuildRoleFunction.EUREKA_TRACKER_NOTIFICATION_PING.value),
-            Choice(name='Notorious Monster Ping', value=GuildRoleFunction.NM_PING.value)
+    def autocomplete(cls, current: str) -> List[Choice]:
+        choices = [
+            Choice(name='Raid Leader', value=cls.RAID_LEADER.value),
+            Choice(name='Main Passcode Ping', value=cls.MAIN_PASSCODE_PING.value),
+            Choice(name='Support Passcode Ping', value=cls.SUPPORT_PASSCODE_PING.value),
+            Choice(name='PL Post Ping', value=cls.PL_POST_PING.value),
+            Choice(name='Event Notification Ping', value=cls.EVENT_NOTIFICATION_PING.value),
+            Choice(name='Eureka Tracker Notification Ping', value=cls.EUREKA_TRACKER_NOTIFICATION_PING.value),
+            Choice(name='Notorious Monster Ping', value=cls.NM_PING.value)
         ]
+        return filter_by_current(choices, current)
 
 class TaskExecutionType(Enum):
     NONE = 0
@@ -87,6 +90,15 @@ class EurekaTrackerZone(Enum):
     PYROS = 3
     HYDATOS = 4
 
+    @classmethod
+    def autocomplete(cls, current: str) -> List[Choice]:
+        return filter_by_current([
+            Choice(name='Anemos',  value=str(cls.ANEMOS.value)),
+            Choice(name='Pagos', value=str(cls.PAGOS.value)),
+            Choice(name='Pyros', value=str(cls.PYROS.value)),
+            Choice(name='Hydatos', value=str(EurekaTrackerZone.HYDATOS.value))
+        ], current)
+
 class NotoriousMonster(Enum):
     PAZUZU = 'PAZUZU'
     KING_ARTHRO = 'CRAB'
@@ -101,6 +113,25 @@ class NotoriousMonster(Enum):
     CETO = 'CETO'
     PROVENANCE_WATCHER = 'PW'
     SUPPORT = 'SUPPORT'
+    
+    @staticmethod
+    def _alterantive_nm_names(nm_choices: List[Choice], current: str) -> List[Choice]:
+        choices: List[Choice] = []
+        for choice in nm_choices:
+            aliases = NM_ALIASES.get(NotoriousMonster(choice.value), None)
+            if aliases:
+                for alias in aliases:
+                    if alias.lower().startswith(current.lower()):
+                        choices.append(Choice(name=alias, value=choice.value))
+        return choices
+    
+    @classmethod
+    def autocomplete(cls, current: str) -> List[Choice]:
+        nm_choices = [Choice(name=nm_name, value=nm_enum.value) for nm_enum, nm_name in NOTORIOUS_MONSTERS.items()]
+        if current:
+            return filter_by_current(nm_choices, current) + cls._alterantive_nm_names(nm_choices, current)
+        else:
+            return nm_choices
 
 NOTORIOUS_MONSTERS: Dict[NotoriousMonster, str] = {
     NotoriousMonster.PAZUZU: 'Pazuzu',

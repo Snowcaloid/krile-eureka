@@ -4,8 +4,8 @@ import pandas
 from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Interaction
+from data.db.definition import TableDefinitions
 from data.db.sql import Record
-from data.generators.autocomplete_generator import AutoCompleteGenerator
 from utils.functions import default_defer, default_response
 from data.validation.permission_validator import PermissionValidator
 from utils.logger import guild_log_message
@@ -50,10 +50,9 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
         await Bot().client.reload_data_classes()
         await default_response(interaction, 'Successfully reloaded.')
 
-
     @query.autocomplete('table')
     async def autocomplete_table(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().table(current)
+        return TableDefinitions.autocomplete(current)
 
 
     #region error-handling

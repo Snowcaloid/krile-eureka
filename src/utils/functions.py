@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 import time
+from typing import List
+from click import Choice
 from discord import Guild, Interaction, Member, Role
 from dateutil.tz import tzlocal, tzutc
 from enum import Enum
@@ -79,3 +81,9 @@ def user_display_name(guild_id: int, user_id: int) -> str:
 def is_null_or_unassigned(value: any) -> bool:
     from utils.basic_types import Unassigned
     return value is None or value is Unassigned
+
+def filter_by_current(list: List[Choice], current: str) -> List[Choice]:
+        if current == '':
+            return list
+        else:
+            return [choice for choice in list if choice.name.lower().startswith(current.lower())]

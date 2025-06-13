@@ -1,12 +1,13 @@
 from typing import List, Type, override
 
-from centralized_data import Singleton, YamlAsset, YamlAssetLoader
+from centralized_data import YamlAsset, YamlAssetLoader
 from discord import Client
 
 from data.db.sql import SQL, Batch, Record
+from utils.functions import filter_by_current
+from discord.app_commands import Choice
 
 class TableDefinition(YamlAsset):
-
     @property
     def name(self) -> str:
         return self.source.get("name")
@@ -103,6 +104,10 @@ class TableDefinitions(YamlAssetLoader[TableDefinition]):
     def execute_migrations(self) -> None:
         self._migrate_pings_to_roles()
         self._migrate_events_to_event_users()
+
+    @classmethod
+    def autocomplete(cls, current: str) -> List[Choice]:
+        return filter_by_current([Choice(name=definition.name, value=definition.name) for definition in cls().loaded_assets], current)
 
     @override
     def constructor(self, client: Client) -> None:

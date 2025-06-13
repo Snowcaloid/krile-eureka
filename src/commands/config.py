@@ -8,7 +8,7 @@ from providers.context import discord_context
 from services.channels import ChannelsService
 from models.channel import ChannelStruct
 from services.roles import RolesService
-from utils.basic_types import GuildRoleFunction
+from utils.basic_types import EurekaTrackerZone, GuildRoleFunction, NotoriousMonster
 from data.generators.autocomplete_generator import AutoCompleteGenerator
 from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildChannelFunction
 from data.guilds.guild_messages import GuildMessages
@@ -232,21 +232,15 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
             discord_context(interaction)
         )
 
-    @ping_add_role.autocomplete('ping_type')
-    @ping_remove_role.autocomplete('ping_type')
-    async def autocomplete_ping_type(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().ping_type(current)
-
     @ping_add_eureka_role.autocomplete('instance')
     @ping_remove_eureka_role.autocomplete('instance')
-    async def autocomplete_eureka_instance(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().eureka_instance(current)
+    async def autocomplete_eureka_tracker_zone(self, interaction: Interaction, current: str):
+        return EurekaTrackerZone.autocomplete(current)
 
-    @nm_notification_channel.autocomplete('notorious_monster')
     @ping_add_nm_role.autocomplete('notorious_monster')
     @ping_remove_nm_role.autocomplete('notorious_monster')
-    async def autocomplete_eureka_instance(self, interaction: Interaction, current: str):
-        return AutoCompleteGenerator().notorious_monster(current)
+    async def autocomplete_notorious_monster(self, interaction: Interaction, current: str):
+        return NotoriousMonster.autocomplete(current)
 
     @passcode_channel.autocomplete('event_type')
     @party_leader_channel.autocomplete('event_type')
