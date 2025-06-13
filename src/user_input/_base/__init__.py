@@ -13,7 +13,7 @@ class SimpleUserInput[T](Bindable, ABC):
     """
 
     @abstractmethod
-    def validate_and_fix(self, value: any) -> T: ...
+    def validate_and_fix(self, value: T) -> None: ...
     """Override to add assertions and user input fixing logic."""
 
 class BaseUserInput[T: BaseStruct](Bindable, ABC):

@@ -7,11 +7,10 @@ from typing import List, Tuple, Type
 from data.db.sql import SQL, Record, Transaction
 from data.events.event_template import EventTemplate
 from data.events.event_templates import EventTemplates
-from data.generators.event_passcode_generator import EventPasscodeGenerator
 from utils.basic_types import GuildChannelFunction
 from utils.basic_types import TaskExecutionType
 
-from utils.functions import DiscordTimestampType, get_discord_timestamp, user_display_name
+from utils.functions import DiscordTimestampType, generate_passcode, get_discord_timestamp, user_display_name
 
 class EventUserData:
     event_id: int
@@ -170,8 +169,8 @@ class Event:
     def auto_passcode(self, value: bool) -> None:
         if value == self.auto_passcode: return
         if value:
-            SQL('events').update(Record(pass_main=EventPasscodeGenerator.generate(),
-                                        pass_supp=EventPasscodeGenerator.generate()),
+            SQL('events').update(Record(pass_main=generate_passcode(),
+                                        pass_supp=generate_passcode(False)),
                                  f'id={self.id}')
         else:
             SQL('events').update(Record(pass_main=0, pass_supp=0),

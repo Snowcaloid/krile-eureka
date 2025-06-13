@@ -1,14 +1,10 @@
 from typing import override
 from user_input._base import BaseUserInput
 from models.channel import ChannelStruct
-from utils.basic_types import GuildChannelFunction
+from utils.basic_types import EurekaTrackerZone, GuildChannelFunction, NotoriousMonsters
 
 
 class ChannelUserInput(BaseUserInput[ChannelStruct]):
-    from services.validators.eureka_types_service import EurekaTypesService
-    @EurekaTypesService.bind
-    def _eureka_types_service(self) -> EurekaTypesService: ...
-
     def validate_and_fix(self, struct: ChannelStruct) -> None:
         if struct.guild_id is not None:
             assert self._bot.client.get_guild(struct.guild_id), \
@@ -21,12 +17,12 @@ class ChannelUserInput(BaseUserInput[ChannelStruct]):
                 f"Invalid function: {struct.function}"
         match struct.function:
             case GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION:
-                struct.event_type = self._eureka_types_service.eureka_zone_name_to_value_str(struct.event_type)
-                assert self._eureka_types_service.is_eureka_zone(struct.event_type), \
+                struct.event_type = EurekaTrackerZone.name_to_value_str(struct.event_type)
+                assert EurekaTrackerZone.is_eureka_zone(struct.event_type), \
                     f"Invalid eureka zone: {struct.event_type}"
             case GuildChannelFunction.NM_PINGS:
-                struct.event_type = self._eureka_types_service.nm_name_to_nm_type_str(struct.event_type)
-                assert self._eureka_types_service.is_nm_type(struct.event_type), \
+                struct.event_type = NotoriousMonsters.name_to_type_str(struct.event_type)
+                assert NotoriousMonsters.is_nm_type(struct.event_type), \
                     f"Invalid NM type: {struct.event_type}"
             case _:
                 from services.validators.event_types_service import EventTypesService

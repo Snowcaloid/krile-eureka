@@ -79,6 +79,7 @@ def filter_choices_by_current(list: List[Choice[Any]], current: str) -> List[Cho
     else:
         return [choice for choice in list if choice.name.lower().startswith(current.lower())][:25]
 
-def generate_passcode() -> int:
-    seed(datetime.utcnow().toordinal())
+def generate_passcode(change_seed: bool = True) -> int:
+    if change_seed:
+        seed(datetime.utcnow().toordinal())
     return int(''.join(str(randint(0, 9)) for _ in range(4)))

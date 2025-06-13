@@ -17,14 +17,3 @@ class EventTypesService(GlobalCollection[GuildID]):
             if event.description() == event_type:
                 return event.type()
         return event_type
-
-    # Event categories
-    def is_event_category(self, event_type: str) -> bool:
-        """Check if the given event type is a valid event category."""
-        return event_type.replace('_CATEGORY', '') in EventCategory._value2member_map_
-
-    def event_category_name_to_category(self, event_category_name: str) -> EventCategory:
-        for choice in EventCategory.all_category_choices():
-            if choice.name == event_category_name:
-                return choice.value
-        return EventCategory(event_category_name)

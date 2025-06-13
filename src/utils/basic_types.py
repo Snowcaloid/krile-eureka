@@ -103,6 +103,19 @@ class EurekaTrackerZone(Enum):
             Choice(name='Hydatos', value=str(EurekaTrackerZone.HYDATOS.value))
         ], current)
 
+    @classmethod
+    def is_eureka_zone(cls, eureka_instance: str) -> bool:
+        return eureka_instance.upper() in cls._member_names_
+
+    @classmethod
+    def name_to_value_str(cls, eureka_instance: str) -> str:
+        for intance in cls._value2member_map_:
+            if intance.name == eureka_instance.upper():
+                return str(intance.value)
+        if isinstance(eureka_instance, int):
+            return str(eureka_instance)
+        return eureka_instance
+
 class NotoriousMonster(Enum):
     PAZUZU = 'PAZUZU'
     KING_ARTHRO = 'CRAB'
@@ -122,11 +135,11 @@ class NotoriousMonster(Enum):
     def _alterantive_nm_names(nm_choices: List[Choice], current: str) -> List[Choice]:
         choices: List[Choice] = []
         for choice in nm_choices:
-            aliases = NM_ALIASES.get(NotoriousMonster(choice.value), None)
-            if aliases:
-                for alias in aliases:
-                    if alias.lower().startswith(current.lower()):
-                        choices.append(Choice(name=alias, value=choice.value))
+            aliases = NOTORIOUS_MONSTERS.aliases.get(NotoriousMonster(choice.value), None)
+            if aliases is None: continue
+            for alias in aliases:
+                if alias.lower().startswith(current.lower()):
+                    choices.append(Choice(name=alias, value=choice.value))
         return choices
 
     @classmethod
@@ -137,33 +150,51 @@ class NotoriousMonster(Enum):
         else:
             return nm_choices
 
+class NotoriousMonsters(Dict[NotoriousMonster, str]):
+    def __init__(self):
+        super().__init__()
+        self.aliases = {
+            NotoriousMonster.KING_ARTHRO: ['Roi Arthro', 'König Athro', 'Crab'],
+            NotoriousMonster.LOUHI: ['Luigi'],
+            NotoriousMonster.CASSIE: ['Cassie la copieuse', 'Kopierende Cassie', 'Cassie'],
+            NotoriousMonster.PENTHESILEA: ['Penthésilée', 'Penny'],
+            NotoriousMonster.GOLDEMAR: ['Roi Goldemar', 'Goldemar'],
+            NotoriousMonster.PROVENANCE_WATCHER: ['PW', 'Gardien de Provenance', 'Kristallwächter'],
+            NotoriousMonster.LAMEBRIX: ['Wüterix-Söldner'],
+            NotoriousMonster.SKOLL: ['Skalli']
+        }
+        self.update({
+            NotoriousMonster.PAZUZU: 'Pazuzu',
+            NotoriousMonster.KING_ARTHRO: 'King Arthro',
+            NotoriousMonster.CASSIE: 'Copycat Cassie',
+            NotoriousMonster.LOUHI: 'Louhi',
+            NotoriousMonster.LAMEBRIX: 'Lamebrix Strikebocks',
+            NotoriousMonster.YING_YANG: 'Ying-Yang',
+            NotoriousMonster.SKOLL: 'Skoll',
+            NotoriousMonster.PENTHESILEA: 'Penthesilea',
+            NotoriousMonster.MOLECH: 'Molech',
+            NotoriousMonster.GOLDEMAR: 'King Goldemar',
+            NotoriousMonster.CETO: 'Ceto',
+            NotoriousMonster.PROVENANCE_WATCHER: 'Provenance Watcher',
+            NotoriousMonster.SUPPORT: 'Support FATE'
+        })
 
-NOTORIOUS_MONSTERS: Dict[NotoriousMonster, str] = {
-    NotoriousMonster.PAZUZU: 'Pazuzu',
-    NotoriousMonster.KING_ARTHRO: 'King Arthro',
-    NotoriousMonster.CASSIE: 'Copycat Cassie',
-    NotoriousMonster.LOUHI: 'Louhi',
-    NotoriousMonster.LAMEBRIX: 'Lamebrix Strikebocks',
-    NotoriousMonster.YING_YANG: 'Ying-Yang',
-    NotoriousMonster.SKOLL: 'Skoll',
-    NotoriousMonster.PENTHESILEA: 'Penthesilea',
-    NotoriousMonster.MOLECH: 'Molech',
-    NotoriousMonster.GOLDEMAR: 'King Goldemar',
-    NotoriousMonster.CETO: 'Ceto',
-    NotoriousMonster.PROVENANCE_WATCHER: 'Provenance Watcher',
-    NotoriousMonster.SUPPORT: 'Support FATE',
-}
+    @classmethod
+    def is_nm_type(cls, notorious_monster: str) -> bool:
+        return notorious_monster in NOTORIOUS_MONSTERS.values()
 
-NM_ALIASES: Dict[NotoriousMonster, List[str]] = {
-    NotoriousMonster.KING_ARTHRO: ['Roi Arthro', 'König Athro', 'Crab'],
-    NotoriousMonster.LOUHI: ['Luigi'],
-    NotoriousMonster.CASSIE: ['Cassie la copieuse', 'Kopierende Cassie', 'Cassie'],
-    NotoriousMonster.PENTHESILEA: ['Penthésilée', 'Penny'],
-    NotoriousMonster.GOLDEMAR: ['Roi Goldemar', 'Goldemar'],
-    NotoriousMonster.PROVENANCE_WATCHER: ['PW', 'Gardien de Provenance', 'Kristallwächter'],
-    NotoriousMonster.LAMEBRIX: ['Wüterix-Söldner'],
-    NotoriousMonster.SKOLL: ['Skalli']
-}
+    @classmethod
+    def name_to_type_str(cls, notorious_monster: str) -> str:
+        for nm_type, nm_name in NOTORIOUS_MONSTERS.items():
+            if nm_name == notorious_monster:
+                return nm_type.value
+        for nm_type, aliases in NOTORIOUS_MONSTERS.aliases.items():
+            if notorious_monster in aliases:
+                return nm_type.value
+        return notorious_monster
+
+
+NOTORIOUS_MONSTERS = NotoriousMonsters()
 
 
 class ButtonType(Enum):

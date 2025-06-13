@@ -15,7 +15,7 @@ if (
     # Load all environment variables before doing anything else
     load_dotenv()
 
-    if os.getenv('WAIT_DEBUG').upper() == 'TRUE':
+    if os.getenv('WAIT_DEBUG', '').upper() == 'TRUE':
         print('Waiting for Debugger to attach.')
         debugpy.wait_for_client()
 
@@ -30,6 +30,6 @@ if (
     client = bot_init.client
 
     async def main():
-        await client.start(os.getenv('DISCORD_TOKEN'))
+        await client.start(os.getenv('DISCORD_TOKEN', ''))
 
     asyncio.run(main())
