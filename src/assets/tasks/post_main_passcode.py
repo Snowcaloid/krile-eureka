@@ -35,7 +35,7 @@ class Task_PostMainPasscode(TaskTemplate):
                     function=GuildChannelFunction.PASSCODES,
                     event_type=event.type))
             if channel_struct is None: return
-            channel = self._bot.client.get_channel(channel_struct.channel_id)
+            channel = self._bot._client.get_channel(channel_struct.channel_id)
             if not isinstance(channel, TextChannel): return
             mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                 guild_id=obj["guild"],

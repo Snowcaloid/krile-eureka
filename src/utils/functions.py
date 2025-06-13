@@ -61,7 +61,7 @@ def find_nearest_role(guild: Guild, role_name: str) -> Role:
 def user_display_name(guild_id: int, user_id: int) -> str:
     from bot import Bot
     if user_id is None or user_id < 1: return ''
-    guild = Bot().client.get_guild(guild_id)
+    guild = Bot()._client.get_guild(guild_id)
     if guild is None: return ''
     member = guild.get_member(user_id)
     if member is None: return ''
@@ -78,6 +78,7 @@ def filter_choices_by_current(list: List[Choice[Any]], current: str) -> List[Cho
         return list[:25]
     else:
         return [choice for choice in list if choice.name.lower().startswith(current.lower())][:25]
+
 
 def generate_passcode(change_seed: bool = True) -> int:
     if change_seed:

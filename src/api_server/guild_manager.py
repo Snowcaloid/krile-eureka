@@ -18,7 +18,7 @@ class SimpleGuild:
         self.name = name
 
     def marshal(self) -> dict:
-        guild = self._bot.client.get_guild(self.id)
+        guild = self._bot._client.get_guild(self.id)
         raid_leaders = []
         for member in guild.members:
             categories = self._permissions.get_raid_leader_permissions(member)
@@ -50,7 +50,7 @@ class GuildManager(GlobalCollection[int]):
 
     def load(self) -> None:
         self._guilds.clear()
-        user = self.bot.client.get_user(self.key)
+        user = self.bot._client.get_user(self.key)
         if user is None: return
         for guild in user.mutual_guilds:
             self._guilds.append(SimpleGuild(guild.id, guild.name))

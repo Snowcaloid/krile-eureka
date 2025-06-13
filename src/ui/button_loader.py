@@ -26,7 +26,7 @@ class ButtonLoader(Bindable):
                 discord_button = DiscordButton(self._button_provider.find(
                     ButtonStruct(button_id=record['button_id'])))
                 view.add_item(discord_button)
-            self.bot.client.add_view(view)
+            self.bot._client.add_view(view)
 
     def delete(self, message_id: int) -> None:
         delete_buttons(message_id)

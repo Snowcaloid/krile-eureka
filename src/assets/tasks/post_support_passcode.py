@@ -34,7 +34,7 @@ class Task_PostSupportPasscode(TaskTemplate):
                 function=GuildChannelFunction.SUPPORT_PASSCODES
             ))
             if channel_struct is None: return
-            guild = self._bot.client.get_guild(obj["guild"])
+            guild = self._bot._client.get_guild(obj["guild"])
             if not isinstance(guild, Guild): return
             channel = guild.get_channel(channel_struct.channel_id)
             if not isinstance(channel, TextChannel): return

@@ -71,7 +71,7 @@ async def reload_hook(client: Bot, initial: bool):
     if not tasks.contains(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS):
         tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
 
-client = Bot().client
+client = Bot()._client
 
 # What the bot does upon connecting to discord for the first time
 @client.event

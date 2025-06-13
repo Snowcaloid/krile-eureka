@@ -2,7 +2,7 @@
 from enum import Enum
 from discord import ButtonStyle
 from discord.app_commands import Choice
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Set, Type
 
 from utils.functions import filter_choices_by_current
 
@@ -10,12 +10,13 @@ from utils.functions import filter_choices_by_current
 type GuildID = int
 
 
-class _Unassigned:
+class UNASSIGNED_TYPE:
+    name: None
     def __repr__(self) -> str:
         return "<unassigned value>"
 
 
-Unassigned = _Unassigned()
+Unassigned = UNASSIGNED_TYPE()
 
 
 def fix_enum(enum_type: Type[Enum], value: Any):
@@ -108,7 +109,7 @@ class EurekaTrackerZone(Enum):
         return eureka_instance.upper() in cls._member_names_
 
     @classmethod
-    def name_to_value_str(cls, eureka_instance: str) -> str:
+    def name_to_value_str(cls, eureka_instance: Any) -> str:
         for intance in cls._value2member_map_:
             if intance.name == eureka_instance.upper():
                 return str(intance.value)
@@ -184,7 +185,7 @@ class NotoriousMonsters(Dict[NotoriousMonster, str]):
         return notorious_monster in NOTORIOUS_MONSTERS.values()
 
     @classmethod
-    def name_to_type_str(cls, notorious_monster: str) -> str:
+    def name_to_type_str(cls, notorious_monster: Any) -> str:
         for nm_type, nm_name in NOTORIOUS_MONSTERS.items():
             if nm_name == notorious_monster:
                 return nm_type.value
@@ -238,3 +239,30 @@ BUTTON_STYLE_CHOICES: Dict[str, ButtonStyle] = {
     'red': ButtonStyle.danger,
     'link': ButtonStyle.link
 }
+
+class EventType(str):
+    valid_types: Dict[int, Set[str]] = {}
+
+    def is_valid(self, guild_id: int) -> bool:
+        """Check if the event type is valid for the given guild ID."""
+        return guild_id in self.valid_types and self in self.valid_types[guild_id]
+
+    @classmethod
+    def name_to_type(cls, event_type: str, guild_id: int) -> str:
+        """TODO: implement this."""
+        raise NotImplementedError("TODO.")
+
+    @classmethod
+    def register(cls, guild_id: int, event_type: str) -> None:
+        """Register a new event type for a guild."""
+        if guild_id not in cls.valid_types:
+            cls.valid_types[guild_id] = set()
+        cls.valid_types[guild_id].add(event_type)
+
+    @classmethod
+    def unregister(cls, guild_id: int, event_type: str) -> None:
+        """Unregister an event type for a guild."""
+        if guild_id in cls.valid_types and event_type in cls.valid_types[guild_id]:
+            cls.valid_types[guild_id].remove(event_type)
+            if not cls.valid_types[guild_id]:
+                del cls.valid_types[guild_id]

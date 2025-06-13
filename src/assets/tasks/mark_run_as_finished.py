@@ -21,7 +21,7 @@ class Task_MarkRunAsFinished(TaskTemplate):
     async def execute(self, obj: dict) -> None:
         if obj and obj["id"]:
             Schedule(obj["guild"]).finish(obj["id"])
-            for guild in self.bot.client.guilds:
+            for guild in self.bot._client.guilds:
                 await self.ui_schedule.rebuild(guild.id)
 
 

@@ -25,7 +25,7 @@ class Task_RemoveRecruitmentPost(TaskTemplate):
             messages = GuildMessages(obj["guild"])
             message_data = messages.get_by_message_id(obj["message_id"])
             if message_data:
-                channel = self.bot.client.get_channel(message_data.channel_id)
+                channel = self.bot._client.get_channel(message_data.channel_id)
                 if channel:
                     message = await MessageCache().get(message_data.message_id, channel)
                     if message:

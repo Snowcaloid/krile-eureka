@@ -20,7 +20,7 @@ class UIWeatherPost(Bindable):
         if message is None:
             message_data = GuildMessages(guild_id).get(GuildMessageFunction.WEATHER_POST)
             if message_data is None: return
-            channel: TextChannel = self.bot.client.get_channel(message_data.channel_id)
+            channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
             if channel is None: return
             message = await self.message_cache.get(message_data.message_id, channel)
 
@@ -57,7 +57,7 @@ class UIWeatherPost(Bindable):
         messages = GuildMessages(guild_id)
         message_data = messages.get(GuildMessageFunction.WEATHER_POST)
         if message_data is None: return
-        channel: TextChannel = self.bot.client.get_channel(message_data.channel_id)
+        channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
         if channel is None: return
         message = await self.message_cache.get(message_data.message_id, channel)
         if message is None: return

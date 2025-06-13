@@ -15,7 +15,7 @@ class RolesProvider(BaseProvider[RoleStruct]):
     def _bot(self) -> Bot: ...
 
     def as_discord_mention_string(self, role: RoleStruct) -> str:
-        guild = self._bot.client.get_guild(self.key)
+        guild = self._bot._client.get_guild(self.key)
         role_structs = self.find_all(role)
         roles = [
             guild.get_role(role.role_id)

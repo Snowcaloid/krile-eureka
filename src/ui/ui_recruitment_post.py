@@ -35,7 +35,7 @@ class UIRecruitmentPost(Bindable):
             event_type=event.type
         ))
         if channel_struct is None: return
-        channel: TextChannel = self._bot.client.get_channel(channel_struct.channel_id)
+        channel: TextChannel = self._bot._client.get_channel(channel_struct.channel_id)
         if channel is None: return
         mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
             guild_id=guild_id,
@@ -58,7 +58,7 @@ class UIRecruitmentPost(Bindable):
             event_type=event.type
         ))
         if channel_struct is None: return
-        channel: TextChannel = self._bot.client.get_channel(channel_struct.channel_id)
+        channel: TextChannel = self._bot._client.get_channel(channel_struct.channel_id)
         message = await self._message_cache.get(event.recruitment_post, channel)
         if message is None: return
         embed = Embed(title=event.recruitment_post_title, description=event.recruitment_post_text)
@@ -99,7 +99,7 @@ class UIRecruitmentPost(Bindable):
             event_type=event.type
         ))
         if channel_struct is None: return
-        channel: TextChannel = self._bot.client.get_channel(channel_struct.channel_id)
+        channel: TextChannel = self._bot._client.get_channel(channel_struct.channel_id)
         message = await self._message_cache.get(event.recruitment_post, channel)
         if message is None: return
         await message.delete()

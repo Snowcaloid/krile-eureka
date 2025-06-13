@@ -47,7 +47,7 @@ class AdminCommands(GroupCog, group_name='admin', group_description='Bot adminis
     async def reload(self, interaction: Interaction):
         await default_defer(interaction)
         from bot import Bot
-        await Bot().client.reload_data_classes()
+        await Bot()._client.reload_data_classes()
         await default_response(interaction, 'Successfully reloaded.')
 
     @query.autocomplete('table')

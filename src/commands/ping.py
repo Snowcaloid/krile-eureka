@@ -34,7 +34,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
             function=GuildChannelFunction.NM_PINGS
         ))
         if channel_struct:
-            channel = self._bot.client.get_channel(channel_struct.channel_id)
+            channel = self._bot._client.get_channel(channel_struct.channel_id)
             if channel:
                 mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                     guild_id=interaction.guild_id,

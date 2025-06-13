@@ -8,12 +8,46 @@ from models.channel import ChannelStruct
 from models.context import ExecutionContext
 from services._base import BaseService
 
+from models.permissions import ModulePermissions, PermissionLevel, Permissions
+from utils.basic_types import EurekaTrackerZone, EventType, GuildChannelFunction, NotoriousMonsters
+
 #TODO: add concept for using a category instead of having a category be a for loop for all event types.
 #that likely needs new database fields
 class ChannelsService(BaseService[ChannelStruct]):
-    from services.channels.user_input import ChannelUserInput
-    @ChannelUserInput.bind
-    def _user_input(self) -> ChannelUserInput: ...
+
+    def _validate_and_fix(self, struct: ChannelStruct) -> None:
+        if struct.guild_id is not None:
+            assert self._bot.get_guild(struct.guild_id), \
+                f"Invalid guild ID: {struct.guild_id}"
+        if struct.channel_id is not None:
+            assert self._bot.get_text_channel(struct.channel_id), \
+                f"Invalid channel ID: {struct.channel_id}"
+        if struct.function is not None:
+            assert struct.function in GuildChannelFunction, \
+                f"Invalid function: {struct.function}"
+        match struct.function:
+            case GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION:
+                struct.event_type = EurekaTrackerZone.name_to_value_str(struct.event_type)
+                assert EurekaTrackerZone.is_eureka_zone(struct.event_type), \
+                    f"Invalid eureka zone: {struct.event_type}"
+            case GuildChannelFunction.NM_PINGS:
+                struct.event_type = NotoriousMonsters.name_to_type_str(struct.event_type)
+                assert NotoriousMonsters.is_nm_type(struct.event_type), \
+                    f"Invalid NM type: {struct.event_type}"
+            case _:
+                struct.event_type = EventType.name_to_type(struct.event_type, struct.guild_id)
+                assert EventType(struct.event_type).is_valid(struct.guild_id), \
+                    f"Invalid event type: {struct.event_type}"
+
+    def _can_insert(self, struct: ChannelStruct) -> bool:
+        assert struct.channel_id is not None, "Channel sync insert failure: ChannelStruct is missing Channel ID"
+        assert struct.function is not None, "Channel sync insert failure: ChannelStruct is missing function"
+        return True
+
+    def _can_remove(self, struct: ChannelStruct) -> bool:
+        assert struct.channel_id is not None, "Channel removal failure: ChannelStruct is missing Channel ID"
+        assert struct.function is not None, "Channel removal failure: ChannelStruct is missing function"
+        return True
 
     from bot import Bot
     @Bot.bind
@@ -23,9 +57,8 @@ class ChannelsService(BaseService[ChannelStruct]):
     def sync(self, channel: ChannelStruct,
              context: ExecutionContext) -> None:
         with context:
-            from models.permissions import ModulePermissions, PermissionLevel, Permissions
             context.assert_permissions(Permissions(modules=ModulePermissions(channels=PermissionLevel.FULL)))
-            self._user_input.validate_and_fix(channel)
+            self._validate_and_fix(channel)
             assert channel.guild_id is not None, "Channel sync failure: ChannelStruct is missing Guild ID"
             found_channel = ChannelsProvider().find(channel)
             if found_channel:
@@ -33,13 +66,13 @@ class ChannelsService(BaseService[ChannelStruct]):
                 SQL('channels').update(
                     edited_channel.to_record(),
                     f'id={found_channel.id}')
-                discord_channel = self._bot.client.get_channel(edited_channel.channel_id)
+                discord_channel = self._bot._client.get_channel(edited_channel.channel_id)
                 assert isinstance(discord_channel, TextChannel), f'Channel sync failure: Wrong channel type: {discord_channel.__class__.__name__}'
                 context.log(f"[CHANNELS] #{discord_channel.name} updated successfully.")
                 context.log(f"Changes: ```{edited_channel.changes_since(found_channel)}```")
-            elif self._user_input.can_insert(channel):
+            elif self._can_insert(channel):
                 SQL('channels').insert(channel.to_record())
-                discord_channel = self._bot.client.get_channel(channel.channel_id)
+                discord_channel = self._bot._client.get_channel(channel.channel_id)
                 assert isinstance(discord_channel, TextChannel), f'Channel sync failure: Wrong channel type: {discord_channel.__class__.__name__}'
                 context.log(f"[CHANNELS] #{discord_channel.name} added successfully.")
                 context.log(f"Channel:```{channel}```")
@@ -62,14 +95,12 @@ class ChannelsService(BaseService[ChannelStruct]):
     def remove(self, channel: ChannelStruct,
                context: ExecutionContext) -> None:
         with context:
-            from models.permissions import ModulePermissions, PermissionLevel, Permissions
-
             context.assert_permissions(Permissions(modules=ModulePermissions(channels=PermissionLevel.FULL)))
             assert channel.guild_id is not None, "Channel removal failure: ChannelStruct is missing Guild ID"
             found_channel = ChannelsProvider().find(channel)
             if found_channel:
                 SQL('channels').delete(f'id={found_channel.id}')
-            elif self._user_input.can_remove(channel):
+            elif self._can_remove(channel):
                 event_type_part = f"and event_type='{channel.event_type}'" if channel.event_type else ''
                 SQL('channels').delete((
                     f'guild_id={channel.guild_id} and channel_id={channel.channel_id} '

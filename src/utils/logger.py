@@ -71,7 +71,7 @@ class GuildLogger(GlobalCollection[GuildID], BaseLogger):
         super().__init__(guild_id)
         self.console_logger = ConsoleLogger()
         self.file_logger = FileLogger(guild_id)
-        self.guild = self._bot.client.get_guild(guild_id)
+        self.guild = self._bot._client.get_guild(guild_id)
 
     def log(self, message: str) -> None:
         """

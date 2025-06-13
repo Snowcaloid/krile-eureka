@@ -27,14 +27,14 @@ class EurekaPingsWorker(BaseWorker):
                 context: ExecutionContext) -> None:
         with context:
             notorious_monster = self._notorious_monster_user_input.validate_and_fix(nm)
-            for guild in self._bot.client.guilds:
+            for guild in self._bot._client.guilds:
                 channel_struct = ChannelsProvider().find(ChannelStruct(
                     guild_id=guild.id,
                     event_type=notorious_monster.value,
                     function=GuildChannelFunction.NM_PINGS
                 ))
                 if channel_struct is None: continue
-                channel = self._bot.client.get_channel(channel_struct.channel_id)
+                channel = self._bot._client.get_channel(channel_struct.channel_id)
                 if channel is None: continue
                 role_mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                     guild_id=guild.id,
@@ -43,5 +43,5 @@ class EurekaPingsWorker(BaseWorker):
                 ))
                 channel.send(
                     f"{role_mention_string} Notification for {NOTORIOUS_MONSTERS[notorious_monster]} by {
-                        self._bot.client.get_user(context.user_id).mention}: {message}"
+                        self._bot._client.get_user(context.user_id).mention}: {message}"
                 )

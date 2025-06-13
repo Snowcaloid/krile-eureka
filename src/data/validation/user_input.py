@@ -93,7 +93,7 @@ class _InputCorrection(Bindable):
         if member_name is None: return None
         if member_name.isnumeric():
             return int(member_name)
-        guild = self.bot.client.get_guild(guild_id)
+        guild = self.bot._client.get_guild(guild_id)
         member = guild.get_member_named(member_name)
         if member:
             return member.id

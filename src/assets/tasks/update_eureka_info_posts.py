@@ -39,7 +39,7 @@ class Task_UpdateEurekaInfoPosts(TaskTemplate):
         next_exec = datetime.utcnow() + timedelta(minutes=1)
         try:
             self.eureka_info.remove_old()
-            for guild in self.bot.client.guilds:
+            for guild in self.bot._client.guilds:
                 await self.ui_eureka_info.rebuild(guild.id)
         finally:
             self.tasks.remove_all(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)

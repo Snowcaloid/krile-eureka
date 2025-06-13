@@ -508,7 +508,7 @@ class SendToChannelSelect(discord.ui.ChannelSelect):
         # check if user has access to send messages to channel
         channel_id = self.values[0].id
 
-        channel = self.bot.client.get_channel(channel_id)
+        channel = self.bot._client.get_channel(channel_id)
 
         user_perms = channel.permissions_for(interaction.user)
 
@@ -592,7 +592,7 @@ class ReplaceChannelSelect(discord.ui.ChannelSelect):
     async def callback(self, interaction: discord.Interaction):
         # check if user has access to send messages to channel
         channel_id = self.values[0].id
-        channel = self.bot.client.get_channel(channel_id)
+        channel = self.bot._client.get_channel(channel_id)
         await interaction.response.send_modal(ReplaceMessageModal(_embed=self.embed, buttons=self.buttons, channel=channel, parent_view=self.parent_view))
 
 

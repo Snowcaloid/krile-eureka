@@ -1,16 +1,16 @@
 import asyncio
 
 from centralized_data import Bindable
-from discord import Intents
+from discord import Guild, Intents, Member, TextChannel
 from discord.ext.commands import Bot as DiscordBot
-from typing import Callable, Coroutine
+from typing import Any, Callable, Coroutine
 
 class Bot(Bindable):
     """General bot class."""
     class _InnerClient(DiscordBot):
         def __init__(self):
-            self.krile_setup_hook: Callable[[DiscordBot], Coroutine[None, None, None]] = None
-            self.krile_reload_hook: Callable[[DiscordBot, bool], Coroutine[None, None, None]] = None
+            self.krile_setup_hook: Callable[[DiscordBot], Coroutine[None, None, None]]
+            self.krile_reload_hook: Callable[[DiscordBot, bool], Coroutine[None, None, None]]
             intents = Intents.all()
             intents.message_content = True
             intents.emojis = True
@@ -34,4 +34,18 @@ class Bot(Bindable):
             await self.krile_setup_hook(self)
 
     def constructor(self):
-        self.client = Bot._InnerClient()
+        self._client = Bot._InnerClient()
+
+    def get_guild(self, guild_id: Any) -> Guild:
+        """Get a guild by its ID, assuming it exists."""
+        return self._client.get_guild(guild_id) #type: ignore seriously...
+
+    def get_text_channel(self, channel_id: Any) -> TextChannel:
+        """Get a text channel by its ID."""
+        channel = self._client.get_channel(channel_id)
+        assert isinstance(channel, TextChannel), f'Expected TextChannel, got {channel.__class__.__name__}'
+        return channel
+
+    def get_member(self, guild_id: Any, member_id: Any) -> Member:
+        """Get a member by its ID in a specific guild, assuming it exists."""
+        return self.get_guild(guild_id).get_member(member_id) #type: ignore seriously...

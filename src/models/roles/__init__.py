@@ -31,7 +31,7 @@ class RoleStruct(BaseStruct):
         if self.id is not None:
             result.append(f"ID: {self.id}")
         if self.role_id is not None:
-            role_name = self._bot.client.get_guild(self.guild_id).get_role(self.role_id).name if self.role_id else 'Unknown'
+            role_name = self._bot._client.get_guild(self.guild_id).get_role(self.role_id).name if self.role_id else 'Unknown'
             result.append(f"Role: @{role_name} ({str(self.role_id)})")
         if self.event_category is not None:
             result.append(f"Event Type: {self.event_category}")
@@ -45,8 +45,8 @@ class RoleStruct(BaseStruct):
         if other.id != self.id:
             result.append(f"ID: {other.id} -> {self.id}")
         if other.role_id != self.role_id:
-            role_name = self._bot.client.get_guild(self.guild_id).get_role(self.role_id).name if self.role_id else 'Unknown'
-            other_role_name = self._bot.client.get_guild(self.guild_id).get_role(other.role_id).name if other.role_id else 'Unknown'
+            role_name = self._bot._client.get_guild(self.guild_id).get_role(self.role_id).name if self.role_id else 'Unknown'
+            other_role_name = self._bot._client.get_guild(self.guild_id).get_role(other.role_id).name if other.role_id else 'Unknown'
             result.append(f"Role: @{other_role_name} ({str(other.role_id)}) -> #{role_name} ({str(self.role_id)})")
         if other.event_category != self.event_category:
             result.append(f"Event Type: {other.event_category} -> {self.event_category}")
@@ -61,7 +61,7 @@ class RoleStruct(BaseStruct):
             'id': str(self.id),
             'role': {
                 'id': str(self.role_id),
-                'name': self._bot.client.get_guild(self.guild_id).get_role(self.role_id).name
+                'name': self._bot._client.get_guild(self.guild_id).get_role(self.role_id).name
             },
             'event_category': self.event_category,
             'function': self.function.name

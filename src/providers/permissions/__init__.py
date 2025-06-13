@@ -15,9 +15,9 @@ class PermissionProvider(Bindable):
 
     def evaluate_permissions_for_user(self, guild_id: GuildID, user_id: int) -> Permissions:
         if guild_id is None or user_id is None: return NO_ACCESS
-        user = self.bot.client.get_user(user_id)
+        user = self.bot._client.get_user(user_id)
         if user is None: return NO_ACCESS
-        guild = self.bot.client.get_guild(guild_id)
+        guild = self.bot._client.get_guild(guild_id)
         if guild is None: return NO_ACCESS
         if self._is_owner(user_id): return FULL_ACCESS
         if self._is_developer(guild_id, user): return DEV_ACCESS

@@ -44,7 +44,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
         messages = GuildMessages(interaction.guild_id)
         message_data = messages.get(GuildMessageFunction.SCHEDULE_POST)
         if message_data:
-            old_channel = self.bot.client.get_channel(message_data.channel_id)
+            old_channel = self.bot._client.get_channel(message_data.channel_id)
             if old_channel:
                 old_message = await MessageCache().get(message_data.message_id, old_channel)
                 if old_message:
