@@ -3,9 +3,9 @@ from re import search
 from discord import ButtonStyle, HTTPException, Interaction, TextStyle
 from discord.ui import Modal, TextInput, Button
 
-from models.channel import ChannelStruct
+from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
-from providers.channels import ChannelsProvider
+from providers.channel_assignments import ChannelAssignmentProvider
 from providers.roles import RolesProvider
 from utils.basic_types import EurekaInstance, RoleFunction
 from utils.basic_types import GuildChannelFunction
@@ -49,7 +49,7 @@ class EurekaTrackerModal(Modal):
         await interaction.response.edit_message(content='Successfully assigned tracker.', view=view)
         await guild_log_message(interaction.guild_id, f'{interaction.user.display_name} has added a tracker for {self.zone.name} - `{url}`.')
 
-        channel_struct = ChannelsProvider().find(ChannelStruct(
+        channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=interaction.guild_id,
             event_type=str(self.zone.value),
             function=GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION

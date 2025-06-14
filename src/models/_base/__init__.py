@@ -1,10 +1,12 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import fields
-from typing import Self
+from enum import Enum
+from typing import Any, Self
 
 from data.db.sql import Record
 from utils.basic_types import Unassigned
+from utils.functions import is_null_or_unassigned
 
 
 class BaseStruct(ABC):
@@ -24,7 +26,11 @@ class BaseStruct(ABC):
         self.fixup_types()
 
     def _to_constructor_dict(self):
-        return {field.name: getattr(self, field.name) for field in fields(self)} #type: ignore
+        return {
+            field.name: getattr(self, field.name)
+            for field in fields(self) #type: ignore
+            if getattr(self, field.name) is not Unassigned
+        }
 
     @classmethod
     def from_record(cls, record: Record) -> Self:
@@ -35,7 +41,7 @@ class BaseStruct(ABC):
     """Override to fix types that aren't compatible with the database."""
 
     def to_record(self) -> Record:
-        return Record(self._to_constructor_dict())
+        return Record(**self._to_constructor_dict())
 
     def intersect(self, other: Self) -> Self:
         result = self.__class__(**self._to_constructor_dict())
@@ -57,3 +63,13 @@ class BaseStruct(ABC):
     @abstractmethod
     def marshal(self) -> dict: ...
     """Override to provide an dict representation of the struct."""
+
+    def marshal_value(self, value: Any) -> Any:
+        """Override to provide a custom marshaling for a value."""
+        if is_null_or_unassigned(value):
+            return None
+        if isinstance(value, Enum):
+            return value.name
+        if isinstance(value, int) and value > 1000000000: # weak ass javascript
+            return str(value)
+        return value

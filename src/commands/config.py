@@ -7,8 +7,8 @@ from data.events.event_category import EventCategory
 from data.events.event_templates import EventTemplates
 from models.roles import RoleStruct
 from providers.context import discord_context
-from services.channels import ChannelsService
-from models.channel import ChannelStruct
+from services.channel_assignments import ChannelAssignmentsService
+from models.channel_assignment import ChannelAssignmentStruct
 from services.roles import RolesService
 from utils.basic_types import EurekaInstance, RoleFunction, NotoriousMonster
 from utils.autocomplete import AutoComplete
@@ -78,8 +78,8 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                                     channel: TextChannel,
                                     function: int):
         await default_defer(interaction)
-        ChannelsService(interaction.guild_id).sync_category( #TODO: undefined method?
-            ChannelStruct(
+        ChannelAssignmentsService(interaction.guild_id).sync_category( #TODO: undefined method?
+            ChannelAssignmentStruct(
                 guild_id=interaction.guild_id,
                 channel_id=channel.id,
                 function=GuildChannelFunction(function)
@@ -95,8 +95,8 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                                     event_type: str,
                                     channel: TextChannel):
         await default_defer(interaction)
-        ChannelsService(interaction.guild_id).sync(
-            ChannelStruct(
+        ChannelAssignmentsService(interaction.guild_id).sync(
+            ChannelAssignmentStruct(
                 guild_id=interaction.guild_id,
                 channel_id=channel.id,
                 event_type=event_type,

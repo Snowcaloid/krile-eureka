@@ -15,6 +15,9 @@ class UNASSIGNED_TYPE:
     def __repr__(self) -> str:
         return "<unassigned value>"
 
+    def __bool__(self) -> bool:
+        return False
+
 
 Unassigned = UNASSIGNED_TYPE()
 
@@ -38,10 +41,38 @@ class GuildChannelFunction(Enum):
 
 
 class ChannelDenominator(Enum):
+    NONE = ""
     EVENT_TYPE = "event_type"
     EVENT_CATEGORY = "event_category"
     EUREKA_INSTANCE = "eureka_instance"
     NOTORIOUS_MONSTER = "notorious_monster"
+
+    def functions(self) -> List[GuildChannelFunction]:
+        """Return a list of GuildChannelFunction that this ChannelDenominator is used for."""
+        match self:
+            case ChannelDenominator.NONE: return [GuildChannelFunction.NONE]
+            case ChannelDenominator.EVENT_TYPE: return [
+                GuildChannelFunction.PASSCODES,
+                GuildChannelFunction.SUPPORT_PASSCODES,
+                GuildChannelFunction.PL_CHANNEL,
+                GuildChannelFunction.RUN_NOTIFICATION
+            ]
+            case ChannelDenominator.EVENT_CATEGORY: return [
+                GuildChannelFunction.PASSCODES,
+                GuildChannelFunction.SUPPORT_PASSCODES,
+                GuildChannelFunction.PL_CHANNEL,
+                GuildChannelFunction.RUN_NOTIFICATION
+            ]
+            case ChannelDenominator.EUREKA_INSTANCE: return [
+                GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION
+            ]
+            case ChannelDenominator.NOTORIOUS_MONSTER: return [
+                GuildChannelFunction.NM_PINGS
+            ]
+
+    def is_allowed_function(self, function: GuildChannelFunction) -> bool:
+        """Check if the function is allowed for this ChannelDenominator."""
+        return function in self.functions()
 
 
 class GuildMessageFunction(Enum):
@@ -107,17 +138,31 @@ class EurekaInstance(Enum):
     HYDATOS = "Hydatos"
 
     @classmethod
-    def autocomplete(cls, current: str) -> List[Choice]:
-        return filter_choices_by_current([
+    def choices(cls) -> List[Choice]:
+        return [
             Choice(name='Anemos',  value=str(cls.ANEMOS.value)),
             Choice(name='Pagos', value=str(cls.PAGOS.value)),
             Choice(name='Pyros', value=str(cls.PYROS.value)),
             Choice(name='Hydatos', value=str(EurekaInstance.HYDATOS.value))
-        ], current)
+        ]
 
     @classmethod
-    def is_eureka_zone(cls, eureka_instance: str) -> bool:
-        return eureka_instance.upper() in cls._member_names_
+    def autocomplete(cls, current: str) -> List[Choice]:
+        return filter_choices_by_current(cls.choices(), current)
+
+    def _missing_(self, value: Any) -> str:
+        """This method is used to handle cases where the value is not found in the enum."""
+        if isinstance(value, int):
+            match value:
+                case 1: return "Anemos"
+                case 2: return "Pagos"
+                case 3: return "Pyros"
+                case 4: return "Hydatos"
+        if isinstance(value, str):
+            choice = next((choice for choice in self.choices() if choice.name.lower() == value.lower()), None)
+            if choice:
+                return choice.value
+        return f"Invalid Eureka instance name: {value}"
 
     @classmethod
     def name_to_value_str(cls, eureka_instance: Any) -> str:
@@ -143,24 +188,25 @@ class NotoriousMonster(Enum):
     PROVENANCE_WATCHER = 'PW'
     SUPPORT = 'SUPPORT'
 
-    @staticmethod
-    def _alterantive_nm_names(nm_choices: List[Choice], current: str) -> List[Choice]:
-        choices: List[Choice] = []
-        for choice in nm_choices:
-            aliases = NOTORIOUS_MONSTERS.aliases.get(NotoriousMonster(choice.value), None)
-            if aliases is None: continue
-            for alias in aliases:
-                if alias.lower().startswith(current.lower()):
-                    choices.append(Choice(name=alias, value=choice.value))
-        return choices
-
     @classmethod
     def autocomplete(cls, current: str) -> List[Choice]:
-        nm_choices = [Choice(name=nm_name, value=nm_enum.value) for nm_enum, nm_name in NOTORIOUS_MONSTERS.items()]
+        nm_choices = NotoriousMonsters.choices()
         if current:
-            return filter_choices_by_current(nm_choices, current) + cls._alterantive_nm_names(nm_choices, current)
+            return filter_choices_by_current(nm_choices, current) + filter_choices_by_current(NotoriousMonsters.alias_choices(), current)
         else:
             return nm_choices
+
+    def _missing_(self, value: Any) -> str:
+        """This method is used to handle cases where the value is not found in the enum."""
+        if isinstance(value, str):
+            choice = next((choice for choice in NotoriousMonsters.choices() if choice.name.lower() == value.lower()), None)
+            if choice:
+                return choice.value
+            choice = next((choice for choice in NotoriousMonsters.alias_choices() if choice.name.lower() == value.lower()), None)
+            if choice:
+                return choice.value
+        return f"Invalid Notorious Monster name: {value}"
+
 
 class NotoriousMonsters(Dict[NotoriousMonster, str]):
     def __init__(self):
@@ -204,6 +250,14 @@ class NotoriousMonsters(Dict[NotoriousMonster, str]):
             if notorious_monster in aliases:
                 return nm_type.value
         return notorious_monster
+
+    @classmethod
+    def choices(cls) -> List[Choice]:
+        return [Choice(name=nm_name, value=nm_enum.value) for nm_enum, nm_name in NOTORIOUS_MONSTERS.items()]
+
+    @classmethod
+    def alias_choices(cls) -> List[Choice]:
+        return [Choice(name=alias, value=nm_enum.value) for nm_enum, aliases in NOTORIOUS_MONSTERS.aliases.items() for alias in aliases]
 
 
 NOTORIOUS_MONSTERS = NotoriousMonsters()
@@ -250,30 +304,3 @@ BUTTON_STYLE_CHOICES: Dict[str, ButtonStyle] = {
     'red': ButtonStyle.danger,
     'link': ButtonStyle.link
 }
-
-class EventType(str):
-    valid_types: Dict[int, Set[str]] = {}
-
-    def is_valid(self, guild_id: int) -> bool:
-        """Check if the event type is valid for the given guild ID."""
-        return guild_id in self.valid_types and self in self.valid_types[guild_id]
-
-    @classmethod
-    def name_to_type(cls, event_type: str, guild_id: int) -> str:
-        """TODO: implement this."""
-        raise NotImplementedError("TODO.")
-
-    @classmethod
-    def register(cls, guild_id: int, event_type: str) -> None:
-        """Register a new event type for a guild."""
-        if guild_id not in cls.valid_types:
-            cls.valid_types[guild_id] = set()
-        cls.valid_types[guild_id].add(event_type)
-
-    @classmethod
-    def unregister(cls, guild_id: int, event_type: str) -> None:
-        """Unregister an event type for a guild."""
-        if guild_id in cls.valid_types and event_type in cls.valid_types[guild_id]:
-            cls.valid_types[guild_id].remove(event_type)
-            if not cls.valid_types[guild_id]:
-                del cls.valid_types[guild_id]

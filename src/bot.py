@@ -1,7 +1,7 @@
 import asyncio
 
 from centralized_data import Bindable
-from discord import Guild, Intents, Member, TextChannel
+from discord import Guild, Intents, Member, Role, TextChannel
 from discord.ext.commands import Bot as DiscordBot
 from typing import Any, Callable, Coroutine
 
@@ -43,9 +43,13 @@ class Bot(Bindable):
     def get_text_channel(self, channel_id: Any) -> TextChannel:
         """Get a text channel by its ID."""
         channel = self._client.get_channel(channel_id)
-        assert isinstance(channel, TextChannel), f'Expected TextChannel, got {channel.__class__.__name__}'
+        assert isinstance(channel, TextChannel), f'expected TextChannel, got {channel.__class__.__name__}'
         return channel
 
     def get_member(self, guild_id: Any, member_id: Any) -> Member:
         """Get a member by its ID in a specific guild, assuming it exists."""
         return self.get_guild(guild_id).get_member(member_id) #type: ignore seriously...
+
+    def get_role(self, guild_id: Any, role_id: Any) -> Role:
+        """Get a role by its ID in a specific guild, assuming it exists."""
+        return self.get_guild(guild_id).get_role(role_id) #type: ignore seriously...

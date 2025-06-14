@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Self, Tuple, TypeVar
+from typing import Any, Callable, Dict, List, Self, Tuple, TypeVar, Union, overload
 
 from data.db.database import Database, PgColumnValue, pg_timestamp
 from utils.basic_types import Unassigned
@@ -117,8 +117,21 @@ class SQL:
         set_fields = ', '.join([f'{field} = {self._convert_to_sql(value)}' for field, value in record.items()])
         record._database.query(f'update {self.table_name} set {set_fields} where {where}')
 
-    def delete(self, where: str) -> None:
-        Record()._database.query(f'delete from {self.table_name} where {where}')
+    @overload
+    def delete(self, condition: str) -> None: ...
+    """Delete records from the table based on a where clause."""
+
+    @overload
+    def delete(self, condition: Record) -> None: ...
+    """Delete records from the table based on a Record."""
+
+    def delete(self, condition: Union[str, Record]) -> None:
+        if isinstance(condition, str):
+            Record()._database.query(f'delete from {self.table_name} where {condition}')
+        elif isinstance(condition, Record):
+            where = ' and '.join([f'{field} = {self._convert_to_sql(condition[field])}' for field in condition.keys()])
+            Record()._database.query(f'delete from {self.table_name} where {where}')
+        raise TypeError(f'Unsupported type for delete: {type(condition)}')
 
     def drop(self) -> None:
         Record()._database.query(f'drop table if exists {self.table_name}')

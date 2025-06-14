@@ -5,7 +5,7 @@ from typing import Optional
 
 from centralized_data import GlobalCollection
 from discord import Guild, Interaction, TextChannel
-from models.channel import ChannelStruct
+from models.channel_assignment import ChannelAssignmentStruct
 from utils.basic_types import GuildID, GuildChannelFunction
 from utils.functions import default_response, get_discord_timestamp
 
@@ -48,11 +48,11 @@ class FileLogger(BaseLogger):
 async def _guild_respond(interaction: Interaction, message: str, guild: Guild):
     if hasattr(interaction, 'response'):
         await default_response(interaction, f'{message}')
-    from providers.channels import ChannelsProvider
+    from providers.channel_assignments import ChannelAssignmentProvider
 
     assert interaction.guild_id is not None, "Guild Interaction must have a guild ID"
 
-    channel = ChannelsProvider().find(ChannelStruct(
+    channel = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
         guild_id=interaction.guild_id,
         function=GuildChannelFunction.LOGGING
     ))

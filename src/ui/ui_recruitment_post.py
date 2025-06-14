@@ -4,9 +4,9 @@ from discord import ButtonStyle, Embed, Message, TextChannel
 from data.events.event import Event
 from data.events.schedule import Schedule
 from models.button.discord_button import DiscordButton
-from models.channel import ChannelStruct
+from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
-from providers.channels import ChannelsProvider
+from providers.channel_assignments import ChannelAssignmentProvider
 from providers.roles import RolesProvider
 from utils.basic_types import GuildMessageFunction, RoleFunction
 from data.events.event_category import EventCategory
@@ -29,7 +29,7 @@ class UIRecruitmentPost(Bindable):
     async def create(self, guild_id: int, id: int) -> None:
         event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
-        channel_struct = ChannelsProvider().find(ChannelStruct(
+        channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.PL_CHANNEL,
             event_type=event.type
@@ -52,7 +52,7 @@ class UIRecruitmentPost(Bindable):
     async def rebuild(self, guild_id: int, id: int, recreate_view: bool = False) -> Message:
         event = Schedule(guild_id).get(id)
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
-        channel_struct = ChannelsProvider().find(ChannelStruct(
+        channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.PL_CHANNEL,
             event_type=event.type
@@ -93,7 +93,7 @@ class UIRecruitmentPost(Bindable):
         return message
 
     async def remove(self, guild_id: int, event: Event) -> None:
-        channel_struct = ChannelsProvider().find(ChannelStruct(
+        channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=guild_id,
             function=GuildChannelFunction.PL_CHANNEL,
             event_type=event.type

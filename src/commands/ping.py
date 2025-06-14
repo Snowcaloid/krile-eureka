@@ -2,9 +2,9 @@ from discord import Interaction
 from discord.ext.commands import GroupCog
 from discord.app_commands import command
 from utils.autocomplete import AutoComplete
-from models.channel import ChannelStruct
+from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
-from providers.channels import ChannelsProvider
+from providers.channel_assignments import ChannelAssignmentProvider
 from providers.roles import RolesProvider
 from utils.basic_types import GuildChannelFunction, RoleFunction, NotoriousMonster
 from utils.basic_types import NOTORIOUS_MONSTERS
@@ -28,7 +28,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
         await default_defer(interaction)
         notorious_monster = self._user_input.correction.notorious_monster_name_to_type(notorious_monster)
         if self._user_input.fail.is_not_notorious_monster(interaction, notorious_monster): return
-        channel_struct = ChannelsProvider().find(ChannelStruct(
+        channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=interaction.guild_id,
             event_type=notorious_monster.value,
             function=GuildChannelFunction.NM_PINGS

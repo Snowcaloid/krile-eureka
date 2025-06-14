@@ -5,10 +5,11 @@ from bot import Bot
 from data.events.event_category import EventCategory
 from models._base import BaseStruct
 from utils.basic_types import EurekaInstance, NotoriousMonster, Unassigned, GuildChannelFunction, fix_enum, ChannelDenominator
+from utils.functions import is_null_or_unassigned
 
 
 @dataclass
-class ChannelStruct(BaseStruct):
+class ChannelAssignmentStruct(BaseStruct):
     guild_id: int = Unassigned #type: ignore
     id: int = Unassigned #type: ignore
     channel_id: int = Unassigned #type: ignore
@@ -66,7 +67,7 @@ class ChannelStruct(BaseStruct):
         return ', '.join(result)
 
     @override
-    def changes_since(self, other: ChannelStruct) -> str:
+    def changes_since(self, other: ChannelAssignmentStruct) -> str:
         result = []
         if isinstance(self.id, int) and other.id != self.id:
             result.append(f"ID: {other.id} -> {self.id}")
@@ -78,18 +79,33 @@ class ChannelStruct(BaseStruct):
             result.append(f"Event Type: {other.event_type} -> {self.event_type}")
         if isinstance(self.function, GuildChannelFunction) and other.function != self.function:
             result.append(f"Function: {other.function.name} -> {self.function.name}")
+        if isinstance(self.denominator, ChannelDenominator) and other.denominator != self.denominator:
+            result.append(f"Denominator: {other.denominator.name} -> {self.denominator.name}")
+        if isinstance(self.event_category, EventCategory) and other.event_category != self.event_category:
+            result.append(f"Event Category: {other.event_category.name} -> {self.event_category.name}")
+        if isinstance(self.notorious_monster, NotoriousMonster) and other.notorious_monster != self.notorious_monster:
+            result.append(f"Notorious Monster: {other.notorious_monster.name} -> {self.notorious_monster.name}")
+        if isinstance(self.eureka_instance, EurekaInstance) and other.eureka_instance != self.eureka_instance:
+            result.append(f"Eureka Instance: {other.eureka_instance.name} ({other.eureka_instance.value}) -> {self.eureka_instance.name} ({self.eureka_instance.value})")
+        if isinstance(self.eureka_instance_name, str) and other.eureka_instance_name != self.eureka_instance_name:
+            result.append(f"Eureka Instance Name: {other.eureka_instance_name} -> {self.eureka_instance_name}")
         if not result:
             return "No changes"
         return '\n'.join(result)
 
     def marshal(self) -> dict:
         return {
-            'guild_id': str(self.guild_id),
-            'id': str(self.id),
+            'guild_id': self.marshal_value(self.guild_id),
+            'id': self.marshal_value(self.id),
             'channel': {
-                'id': str(self.channel_id),
-                'name': self._bot.get_text_channel(self.channel_id).name
+                'id': self.marshal_value(self.channel_id),
+                'name': self._bot.get_text_channel(self.channel_id).name if self.channel_id else 'Unknown'
             },
-            'event_type': self.event_type,
-            'function': self.function.name
+            'event_type': self.marshal_value(self.event_type),
+            'function': self.marshal_value(self.function.name),
+            'denominator': self.marshal_value(self.denominator.name),
+            'event_category': self.marshal_value(self.event_category.name),
+            'notorious_monster': self.marshal_value(self.notorious_monster.name),
+            'eureka_instance': self.marshal_value(self.eureka_instance.name),
+            'eureka_instance_name': self.marshal_value(self.eureka_instance_name)
         }

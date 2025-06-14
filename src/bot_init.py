@@ -46,7 +46,7 @@ def _load_singleton(singleton: Singleton, initial: bool = False):
         singleton.load()
 
 from data.events.schedule import Schedule
-from services.channels import ChannelsService
+from services.channel_assignments import ChannelAssignmentsService
 from data.guilds.guild_messages import GuildMessages
 from ui.button_loader import ButtonLoader
 from data.eureka_info import EurekaInfo
@@ -59,7 +59,7 @@ async def reload_hook(client: Bot, initial: bool):
     _load_singleton(EurekaInfo(), initial)
     for guild in client.guilds:
         _load_singleton(Schedule(guild.id), initial)
-        _load_singleton(ChannelsService(guild.id), initial)
+        _load_singleton(ChannelAssignmentsService(guild.id), initial)
         _load_singleton(GuildMessages(guild.id), initial)
         await ui_schedule.rebuild(guild.id)
 

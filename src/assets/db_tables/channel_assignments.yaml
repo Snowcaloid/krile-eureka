@@ -1,4 +1,4 @@
-name: channels
+name: channel_assignments
 columns:
 - name: id
   type: SERIAL

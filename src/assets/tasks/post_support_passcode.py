@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import override
 from discord import Embed, Guild, TextChannel
-from models.channel import ChannelStruct
+from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
-from providers.channels import ChannelsProvider
+from providers.channel_assignments import ChannelAssignmentProvider
 from providers.roles import RolesProvider
 from utils.basic_types import GuildChannelFunction, RoleFunction, TaskExecutionType
 from data.events.schedule import Schedule
@@ -28,7 +28,7 @@ class Task_PostSupportPasscode(TaskTemplate):
         if obj and obj["guild"] and obj["entry_id"]:
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event is None: return
-            channel_struct = ChannelsProvider().find(ChannelStruct(
+            channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
                 guild_id=obj["guild"],
                 event_type=event.type,
                 function=GuildChannelFunction.SUPPORT_PASSCODES

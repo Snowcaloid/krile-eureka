@@ -3,10 +3,10 @@ import aiohttp
 from discord import ButtonStyle, Interaction, Message, SelectOption
 from discord.ui import Button, Select
 
-from models.channel import ChannelStruct
+from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
 from providers.roles import RolesProvider
-from services.channels import ChannelsService
+from services.channel_assignments import ChannelAssignmentsService
 from utils.basic_types import EurekaInstance, RoleFunction
 from utils.basic_types import GuildChannelFunction
 from ui.modals import EurekaTrackerModal
@@ -75,7 +75,7 @@ class EurekaTrackerZoneSelect(Select):
             await interaction.followup.send(content=f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view, ephemeral=True)
             await interaction.user.send(f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view)
             await guild_log_message(interaction.guild_id, f'{interaction.user.display_name} has added a tracker for {zone.name} - `{url}`.')
-            channel_struct = ChannelsService(interaction.guild_id).find(ChannelStruct(
+            channel_struct = ChannelAssignmentsService(interaction.guild_id).find(ChannelAssignmentStruct(
                 guild_id=interaction.guild_id,
                 function=GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION,
                 event_type=str(zone.value)

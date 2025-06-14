@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import override
 from discord import Embed, TextChannel
-from models.channel import ChannelStruct
+from models.channel_assignment import ChannelAssignmentStruct
 from utils.basic_types import GuildChannelFunction, RoleFunction, TaskExecutionType
 from tasks.task import TaskTemplate
 
@@ -23,14 +23,14 @@ class Task_PostMainPasscode(TaskTemplate):
         """Sends the main party passcode embed to the allocated passcode channel."""
         if obj and obj["guild"] and obj["entry_id"]:
             from data.events.schedule import Schedule
-            from providers.channels import ChannelsProvider
+            from providers.channel_assignments import ChannelAssignmentProvider
             from services.roles import RolesProvider
             from models.roles import RoleStruct
 
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event is None: return
-            channel_struct = ChannelsProvider().find(
-                ChannelStruct(
+            channel_struct = ChannelAssignmentProvider().find(
+                ChannelAssignmentStruct(
                     guild_id=obj["guild"],
                     function=GuildChannelFunction.PASSCODES,
                     event_type=event.type))

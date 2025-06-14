@@ -1,10 +1,10 @@
 
 
 from typing import override
-from models.channel import ChannelStruct
+from models.channel_assignment import ChannelAssignmentStruct
 from models.context import ExecutionContext
 from models.roles import RoleStruct
-from providers.channels import ChannelsProvider
+from providers.channel_assignments import ChannelAssignmentProvider
 from providers.roles import RolesProvider
 from utils.basic_types import NOTORIOUS_MONSTERS, GuildChannelFunction, RoleFunction
 from workers._base import BaseWorker
@@ -28,7 +28,7 @@ class EurekaPingsWorker(BaseWorker):
         with context:
             notorious_monster = self._notorious_monster_user_input.validate_and_fix(nm)
             for guild in self._bot._client.guilds:
-                channel_struct = ChannelsProvider().find(ChannelStruct(
+                channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
                     guild_id=guild.id,
                     event_type=notorious_monster.value,
                     function=GuildChannelFunction.NM_PINGS

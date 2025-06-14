@@ -27,9 +27,9 @@ class ExecutionContext:
     user_id: int
     logger: BaseLogger
     """Handles logging."""
-    on_flush: ContextResponse = None
+    on_flush: ContextResponse = None #type: ignore
     """Event handler for additional actions when the log is flushed."""
-    permissions: Permissions = None
+    permissions: Permissions = None #type: ignore
     """Current permissions of the context."""
     _message: str = ''
     _level: int = 0
