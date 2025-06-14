@@ -30,22 +30,22 @@ def fix_enum(enum_type: Type[Enum], value: Any):
 
 
 class GuildChannelFunction(Enum):
-    NONE = 0
-    PASSCODES = 1
-    SUPPORT_PASSCODES = 2
-    LOGGING = 3
-    PL_CHANNEL = 5
-    RUN_NOTIFICATION = 6
-    EUREKA_TRACKER_NOTIFICATION = 7
-    NM_PINGS = 8
+    NONE = ''
+    PASSCODES = 'passcodes'
+    SUPPORT_PASSCODES = 'support_passcodes'
+    LOGGING = 'logging'
+    RECRUITMENT = 'recruitment'
+    EVENT_NOTIFICATION = 'ev_notif'
+    EUREKA_TRACKER_NOTIFICATION = 'eureka_tr_notif'
+    NM_PINGS = 'nm_pings'
 
 
 class ChannelDenominator(Enum):
-    NONE = ""
-    EVENT_TYPE = "event_type"
-    EVENT_CATEGORY = "event_category"
-    EUREKA_INSTANCE = "eureka_instance"
-    NOTORIOUS_MONSTER = "notorious_monster"
+    NONE = ''
+    EVENT_TYPE = 'event_type'
+    EVENT_CATEGORY = 'event_category'
+    EUREKA_INSTANCE = 'eureka_instance'
+    NOTORIOUS_MONSTER = 'notorious_monster'
 
     def functions(self) -> List[GuildChannelFunction]:
         """Return a list of GuildChannelFunction that this ChannelDenominator is used for."""
@@ -54,14 +54,14 @@ class ChannelDenominator(Enum):
             case ChannelDenominator.EVENT_TYPE: return [
                 GuildChannelFunction.PASSCODES,
                 GuildChannelFunction.SUPPORT_PASSCODES,
-                GuildChannelFunction.PL_CHANNEL,
-                GuildChannelFunction.RUN_NOTIFICATION
+                GuildChannelFunction.RECRUITMENT,
+                GuildChannelFunction.EVENT_NOTIFICATION
             ]
             case ChannelDenominator.EVENT_CATEGORY: return [
                 GuildChannelFunction.PASSCODES,
                 GuildChannelFunction.SUPPORT_PASSCODES,
-                GuildChannelFunction.PL_CHANNEL,
-                GuildChannelFunction.RUN_NOTIFICATION
+                GuildChannelFunction.RECRUITMENT,
+                GuildChannelFunction.EVENT_NOTIFICATION
             ]
             case ChannelDenominator.EUREKA_INSTANCE: return [
                 GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION
@@ -76,31 +76,31 @@ class ChannelDenominator(Enum):
 
 
 class GuildMessageFunction(Enum):
-    NONE = 0
-    SCHEDULE_POST = 1
-    PL_POST = 2
-    WEATHER_POST = 5
-    EUREKA_INFO = 6
+    NONE = ''
+    SCHEDULE = 'schedule'
+    RECRUITMENT_POST = 'recruitment_post'
+    WEATHER_POST = 'weather_post'
+    EUREKA_INSTANCE_INFO = 'eureka_instance_info'
 
     @classmethod
     def all_function_choices(cls) -> List[Choice]:
         return [
-            Choice(name='Schedule Posts', value=cls.SCHEDULE_POST.value),
-            Choice(name='Party leader posts', value=cls.PL_POST.value),
+            Choice(name='Schedule Posts', value=cls.SCHEDULE.value),
+            Choice(name='Party leader posts', value=cls.RECRUITMENT_POST.value),
             Choice(name='Eureka weather posts', value=cls.WEATHER_POST.value),
-            Choice(name='Eureka info', value=cls.EUREKA_INFO.value)
+            Choice(name='Eureka info', value=cls.EUREKA_INSTANCE_INFO.value)
         ]
 
 class RoleFunction(Enum):
-    DEVELOPER = 1
-    ADMIN = 2
-    RAID_LEADER = 3
-    MAIN_PASSCODE_PING = 4
-    SUPPORT_PASSCODE_PING = 5
-    PL_POST_PING = 6
-    RUN_NOTIFICATION = 7
-    EUREKA_TRACKER_NOTIFICATION_PING = 8
-    NM_PING = 9
+    DEVELOPER = 'dev'
+    ADMIN = 'admin'
+    RAID_LEADER = 'rl'
+    MAIN_PASSCODE_PING = 'pass_ping'
+    SUPPORT_PASSCODE_PING = 'supp_pass_ping'
+    RECRUITMENT_POST_PING = 'recr_post_ping'
+    RUN_NOTIFICATION = 'run_notif'
+    EUREKA_TRACKER_NOTIFICATION = 'eureka_tr_notif'
+    NOTORIOUS_MONSTER_NOTIFICATION = 'nm_ping'
 
     @classmethod
     def autocomplete(cls, current: str) -> List[Choice]:
@@ -108,34 +108,35 @@ class RoleFunction(Enum):
             Choice(name='Raid Leader', value=cls.RAID_LEADER.value),
             Choice(name='Main Passcode Ping', value=cls.MAIN_PASSCODE_PING.value),
             Choice(name='Support Passcode Ping', value=cls.SUPPORT_PASSCODE_PING.value),
-            Choice(name='PL Post Ping', value=cls.PL_POST_PING.value),
-            Choice(name='Eureka Tracker Notification Ping', value=cls.EUREKA_TRACKER_NOTIFICATION_PING.value),
-            Choice(name='Notorious Monster Ping', value=cls.NM_PING.value)
+            Choice(name='PL Post Ping', value=cls.RECRUITMENT_POST_PING.value),
+            Choice(name='Run Notification', value=cls.RUN_NOTIFICATION.value),
+            Choice(name='Eureka Tracker Notification Ping', value=cls.EUREKA_TRACKER_NOTIFICATION.value),
+            Choice(name='Notorious Monster Ping', value=cls.NOTORIOUS_MONSTER_NOTIFICATION.value)
         ]
         return filter_choices_by_current(choices, current)
 
 class RoleDenominator(Enum):
-    EVENT_TYPE = "event_type"
-    EVENT_CATEGORY = "event_category"
-    NOTORIOUS_MONSTER = "notorious_monster"
-    EUREKA_INSTANCE = "eureka_instance"
+    EVENT_TYPE = 'event_type'
+    EVENT_CATEGORY = 'event_category'
+    NOTORIOUS_MONSTER = 'notorious_monster'
+    EUREKA_INSTANCE = 'eureka_instance'
 
 class TaskExecutionType(Enum):
-    NONE = 0
-    UPDATE_STATUS = 1
-    SEND_PL_PASSCODES = 2
-    MARK_RUN_AS_FINISHED = 3
-    REMOVE_RECRUITMENT_POST = 4
-    POST_MAIN_PASSCODE = 5
-    POST_SUPPORT_PASSCODE = 6
-    UPDATE_EUREKA_INFO_POSTS = 9
-    RUN_ASYNC_METHOD = 10
+    NONE = ''
+    UPDATE_STATUS = 'update_status'
+    SEND_PL_PASSCODES = 'send_pl_passcodes'
+    MARK_RUN_AS_FINISHED = 'mark_run_as_finished'
+    REMOVE_RECRUITMENT_POST = 'remove_recruitment_post'
+    POST_MAIN_PASSCODE = 'post_main_passcode'
+    POST_SUPPORT_PASSCODE = 'post_support_passcode'
+    UPDATE_EUREKA_INFO_POSTS = 'update_eureka_info_posts'
+    RUN_ASYNC_METHOD = 'run_async_method'
 
 class EurekaInstance(Enum):
-    ANEMOS = "Anemos"
-    PAGOS = "Pagos"
-    PYROS = "Pyros"
-    HYDATOS = "Hydatos"
+    ANEMOS = 'Anemos'
+    PAGOS = 'Pagos'
+    PYROS = 'Pyros'
+    HYDATOS = 'Hydatos'
 
     @classmethod
     def choices(cls) -> List[Choice]:
@@ -154,15 +155,15 @@ class EurekaInstance(Enum):
         """This method is used to handle cases where the value is not found in the enum."""
         if isinstance(value, int):
             match value:
-                case 1: return "Anemos"
-                case 2: return "Pagos"
-                case 3: return "Pyros"
-                case 4: return "Hydatos"
+                case 1: return 'Anemos'
+                case 2: return 'Pagos'
+                case 3: return 'Pyros'
+                case 4: return 'Hydatos'
         if isinstance(value, str):
             choice = next((choice for choice in self.choices() if choice.name.lower() == value.lower()), None)
             if choice:
                 return choice.value
-        return f"Invalid Eureka instance name: {value}"
+        return f'Invalid Eureka instance name: {value}'
 
     @classmethod
     def name_to_value_str(cls, eureka_instance: Any) -> str:
@@ -174,19 +175,19 @@ class EurekaInstance(Enum):
         return eureka_instance
 
 class NotoriousMonster(Enum):
-    PAZUZU = 'PAZUZU'
-    KING_ARTHRO = 'CRAB'
-    CASSIE = 'CASSIE'
-    LOUHI = 'LOUHI'
-    LAMEBRIX = 'LAME'
-    YING_YANG = 'YY'
-    SKOLL = 'SKOLL'
-    PENTHESILEA = 'PENNY'
-    MOLECH = 'MOLECH'
-    GOLDEMAR = 'GOLDEMAR'
-    CETO = 'CETO'
-    PROVENANCE_WATCHER = 'PW'
-    SUPPORT = 'SUPPORT'
+    PAZUZU = 'Pazuzu'
+    KING_ARTHRO = 'Crab'
+    CASSIE = 'Cassie'
+    LOUHI = 'Louhi'
+    LAMEBRIX = 'Lame'
+    YING_YANG = 'Yy'
+    SKOLL = 'Skoll'
+    PENTHESILEA = 'Penny'
+    MOLECH = 'Molech'
+    GOLDEMAR = 'Goldemar'
+    CETO = 'Ceto'
+    PROVENANCE_WATCHER = 'Pw'
+    SUPPORT = 'Support'
 
     @classmethod
     def autocomplete(cls, current: str) -> List[Choice]:
@@ -264,13 +265,13 @@ NOTORIOUS_MONSTERS = NotoriousMonsters()
 
 
 class ButtonType(Enum):
-    PICK_BUTTON = 0
-    ROLE_SELECTION = 1
-    ROLE_DISPLAY = 2
-    PL_POST = 3
-    ASSIGN_TRACKER = 5
-    GENERATE_TRACKER = 6
-    SEND_PL_GUIDE = 7
+    POSITION_PICK_BUTTON = 'position_pick_button'
+    ROLE_SELECTION = 'role_selection'
+    ROLE_DISPLAY = 'role_display'
+    RECRUITMENT = 'recruitment'
+    ASSIGN_TRACKER = 'assign_tracker'
+    GENERATE_TRACKER = 'generate_tracker'
+    SEND_PL_GUIDE = 'send_pl_guide'
 
 
 BUTTON_STYLE_DESCRIPTIONS: Dict[ButtonStyle, str] = {

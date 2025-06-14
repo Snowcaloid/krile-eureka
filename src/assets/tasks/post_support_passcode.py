@@ -3,8 +3,8 @@ from typing import override
 from discord import Embed, Guild, TextChannel
 from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
-from providers.channel_assignments import ChannelAssignmentProvider
-from providers.roles import RolesProvider
+from data_providers.channel_assignments import ChannelAssignmentProvider
+from data_providers.roles import RolesProvider
 from utils.basic_types import GuildChannelFunction, RoleFunction, TaskExecutionType
 from data.events.schedule import Schedule
 from tasks.task import TaskTemplate

@@ -1,7 +1,7 @@
 from models.context import ExecutionContext
 from discord import Interaction
 from models.permissions import Permissions
-from providers.permissions import PermissionProvider
+from data_providers.permissions import PermissionProvider
 from utils.logger import BaseLogger, GuildLogger
 
 def basic_context(user_id: int,

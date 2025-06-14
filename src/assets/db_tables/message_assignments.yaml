@@ -1,23 +1,24 @@
-name: channel_assignments
+name: message_assignments
 columns:
 - name: id
   type: SERIAL
   unique: true
+  primary_key: true
 - name: guild_id
   type: BIGINT
-- name: event_type
-  type: VARCHAR(30)
+- name: guild_name
+  type: VARCHAR(100)
 - name: channel_id
   type: BIGINT
 - name: channel_name
   type: VARCHAR(100)
+- name: message_id
+  type: BIGINT
 - name: function
   type: VARCHAR(30)
 - name: denominator
   type: VARCHAR(30)
+- name: event_type
+  type: VARCHAR(30)
 - name: event_category
-  type: VARCHAR(30)
-- name: notorious_monster
-  type: VARCHAR(30)
-- name: eureka_instance
   type: VARCHAR(30)

@@ -2,16 +2,16 @@ from __future__ import annotations
 from typing import override
 
 from data.db.sql import SQL
-from providers.channel_assignments import ChannelAssignmentProvider
+from data_providers.channel_assignments import ChannelAssignmentProvider
 from models.channel_assignment import ChannelAssignmentStruct
 from models.context import ExecutionContext
-from services._base import BaseService
+from data_writers._base import BaseWriter
 
 from models.permissions import ModulePermissions, PermissionLevel, Permissions
 from utils.basic_types import ChannelDenominator, GuildChannelFunction
 from utils.functions import is_null_or_unassigned
 
-class ChannelAssignmentsService(BaseService[ChannelAssignmentStruct]):
+class ChannelAssignmentsWriter(BaseWriter[ChannelAssignmentStruct]):
     from bot import Bot
     @Bot.bind
     def _bot(self) -> Bot: ...

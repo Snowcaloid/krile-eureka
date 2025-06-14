@@ -3,7 +3,7 @@ import asyncio
 from centralized_data import Bindable
 from discord import Guild, Intents, Member, Role, TextChannel
 from discord.ext.commands import Bot as DiscordBot
-from typing import Any, Callable, Coroutine
+from typing import Any, Callable, Coroutine, Sequence
 
 class Bot(Bindable):
     """General bot class."""
@@ -34,6 +34,7 @@ class Bot(Bindable):
             await self.krile_setup_hook(self)
 
     def constructor(self):
+        super().constructor()
         self._client = Bot._InnerClient()
 
     def get_guild(self, guild_id: Any) -> Guild:
@@ -46,6 +47,10 @@ class Bot(Bindable):
         assert isinstance(channel, TextChannel), f'expected TextChannel, got {channel.__class__.__name__}'
         return channel
 
+    def get_user(self, user_id: Any) -> Member:
+        """Get a user by its ID, assuming it exists."""
+        return self._client.get_user(user_id) #type: ignore seriously...
+
     def get_member(self, guild_id: Any, member_id: Any) -> Member:
         """Get a member by its ID in a specific guild, assuming it exists."""
         return self.get_guild(guild_id).get_member(member_id) #type: ignore seriously...
@@ -53,3 +58,8 @@ class Bot(Bindable):
     def get_role(self, guild_id: Any, role_id: Any) -> Role:
         """Get a role by its ID in a specific guild, assuming it exists."""
         return self.get_guild(guild_id).get_role(role_id) #type: ignore seriously...
+
+    @property
+    def guilds(self) -> Sequence[Guild]:
+        """Get a list of all guilds the bot is in."""
+        return self._client.guilds

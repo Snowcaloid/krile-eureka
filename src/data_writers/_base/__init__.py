@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from models.context import ExecutionContext
 
 
-class BaseService[T](ABC):
+class BaseWriter[T](ABC):
     """Writes data to datbase."""
 
     @abstractmethod

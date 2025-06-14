@@ -5,8 +5,8 @@ from discord.ui import Modal, TextInput, Button
 
 from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
-from providers.channel_assignments import ChannelAssignmentProvider
-from providers.roles import RolesProvider
+from data_providers.channel_assignments import ChannelAssignmentProvider
+from data_providers.roles import RolesProvider
 from utils.basic_types import EurekaInstance, RoleFunction
 from utils.basic_types import GuildChannelFunction
 from ui.views import TemporaryView
@@ -59,7 +59,7 @@ class EurekaTrackerModal(Modal):
             mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                 guild_id=interaction.guild_id,
                 event_type=str(self.zone.value),
-                function=RoleFunction.EUREKA_TRACKER_NOTIFICATION_PING
+                function=RoleFunction.EUREKA_TRACKER_NOTIFICATION
             ))
             await channel.send(f'{mention_string} Tracker {url} has been added for {self.zone.name} by {interaction.user.mention}.')
 

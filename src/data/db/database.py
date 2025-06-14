@@ -15,16 +15,6 @@ def pg_timestamp(timestamp: datetime):
 PgColumnValue = Union[Any, str, int, bool, datetime, UNASSIGNED_TYPE]
 
 
-class DatabaseOperation(Enum):
-    """Used to inform the type of database operation performed."""
-    NONE = 0
-    """No operation was performed (the record did not need updating)"""
-    ADDED = 1
-    """A new record was created."""
-    EDITED = 2
-    """An existing record was updated."""
-
-
 class Database(Bindable):
     """Runtime database access dict
 

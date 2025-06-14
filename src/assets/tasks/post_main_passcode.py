@@ -23,8 +23,8 @@ class Task_PostMainPasscode(TaskTemplate):
         """Sends the main party passcode embed to the allocated passcode channel."""
         if obj and obj["guild"] and obj["entry_id"]:
             from data.events.schedule import Schedule
-            from providers.channel_assignments import ChannelAssignmentProvider
-            from services.roles import RolesProvider
+            from data_providers.channel_assignments import ChannelAssignmentProvider
+            from data_writers.roles import RolesProvider
             from models.roles import RoleStruct
 
             event = Schedule(obj["guild"]).get(obj["entry_id"])

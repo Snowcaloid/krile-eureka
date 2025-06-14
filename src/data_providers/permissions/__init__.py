@@ -3,7 +3,7 @@ from typing import Generator
 from discord import Member
 from centralized_data import Bindable
 from data.events.event_category import EventCategory
-from providers.roles import RolesProvider
+from data_providers.roles import RolesProvider
 from models.roles import RoleStruct
 from models.permissions import (NO_ACCESS, PermissionLevel, ModulePermissions, EventAdministrationPermissions, Permissions, FULL_ACCESS, ADMIN_ACCESS, DEV_ACCESS)
 from utils.basic_types import GuildID, GuildChannelFunction

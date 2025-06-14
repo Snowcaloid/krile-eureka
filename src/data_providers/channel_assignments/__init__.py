@@ -1,6 +1,6 @@
 from typing import override
 from models.channel_assignment import ChannelAssignmentStruct
-from providers._base import BaseProvider
+from data_providers._base import BaseProvider
 
 
 class ChannelAssignmentProvider(BaseProvider[ChannelAssignmentStruct]):

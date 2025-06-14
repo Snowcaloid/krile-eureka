@@ -2,10 +2,10 @@ from typing import override
 from data.db.sql import SQL
 from models.button import ButtonStruct
 from models.context import ExecutionContext
-from providers.buttons import ButtonsProvider
-from services._base import BaseService
+from data_providers.buttons import ButtonsProvider
+from data_writers._base import BaseWriter
 
-class ButtonsService(BaseService[ButtonStruct]):
+class ButtonsWriter(BaseWriter[ButtonStruct]):
     @override
     def sync(self, struct: ButtonStruct, context: ExecutionContext) -> None:
         """Override to sync a struct with the database."""

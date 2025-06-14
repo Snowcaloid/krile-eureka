@@ -15,7 +15,7 @@ class PickButton(ButtonTemplate):
     """Pick the placement for a button in the Button Matrix."""
 
     @override
-    def button_type(self) -> ButtonType: return ButtonType.PICK_BUTTON
+    def button_type(self) -> ButtonType: return ButtonType.POSITION_PICK_BUTTON
 
     @override
     async def callback(self, interaction: Interaction, button: DiscordButton):

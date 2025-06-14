@@ -1,15 +1,13 @@
 from __future__ import annotations
 from typing import override
 from data.db.sql import SQL
-from data.events.event_category import EventCategory
-from data.events.event_templates import EventTemplates
-from providers.roles import RolesProvider
+from data_providers.roles import RolesProvider
 from models.roles import RoleStruct
 from models.context import ExecutionContext
 from models.permissions import ModulePermissions, PermissionLevel, Permissions
-from services._base import BaseService
+from data_writers._base import BaseWriter
 
-class RolesService(BaseService[RoleStruct]):
+class RolesWriter(BaseWriter[RoleStruct]):
 
     def _can_insert(self, struct: RoleStruct) -> bool:
         assert struct.role_id is not None, "Role sync insert failure: RoleStruct is missing Role ID"

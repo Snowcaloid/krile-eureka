@@ -4,7 +4,7 @@ from typing import List
 from centralized_data import Bindable
 from discord import Member
 from models.roles import RoleStruct
-from providers.roles import RolesProvider
+from data_providers.roles import RolesProvider
 from utils.discord_types import InteractionLike
 from data.events.event_category import EventCategory
 from utils.basic_types import RoleFunction

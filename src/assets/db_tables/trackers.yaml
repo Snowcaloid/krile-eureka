@@ -1,8 +1,8 @@
 name: trackers
 columns:
-  - name: url
-    type: VARCHAR(35)
-  - name: timestamp
-    type: TIMESTAMP
-  - name: zone
-    type: INTEGER
+- name: url
+  type: VARCHAR(35)
+- name: timestamp
+  type: TIMESTAMP
+- name: zone
+  type: VARCHAR(30)

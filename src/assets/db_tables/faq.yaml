@@ -6,6 +6,6 @@ columns:
 - name: guild_id
   type: BIGINT
 - name: pattern
-  type: TEXT
+  type: VARCHAR(100)
 - name: data
   type: JSON

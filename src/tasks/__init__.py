@@ -1,7 +1,7 @@
 from __future__ import annotations
 from asyncio import sleep
 from json import dumps
-from typing import Any, List, override
+from typing import Any, Callable, List, override
 from datetime import datetime
 from uuid import uuid4
 
@@ -120,7 +120,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
             self.load()
 
     @classmethod
-    def run_async_method(cls, method: callable, *args, **kwargs) -> None:
+    def run_async_method(cls, method: Callable[...], *args, **kwargs) -> None:
         cls().add_task(datetime.utcnow(), TaskExecutionType.RUN_ASYNC_METHOD, {
             "method": method,
             "args": args,

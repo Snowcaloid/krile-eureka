@@ -893,7 +893,7 @@ class ButtonMatrixView(TemporaryView):
         super().__init__()
         for i, button in enumerate([button for button in buttons]):
             if button is None:
-                button = DiscordButton(button_struct=ButtonType.PICK_BUTTON,
+                button = DiscordButton(button_struct=ButtonType.POSITION_PICK_BUTTON,
                                     row=i // 5,
                                     index=i % 5,
                                     label=f"R {i // 5 + 1} C {i % 5 + 1}",

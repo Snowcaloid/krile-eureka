@@ -310,7 +310,7 @@ class Event:
     def create_tasks(self) -> None:
         self._tasks.add_task(self.time, TaskExecutionType.MARK_RUN_AS_FINISHED, {"id": self.id, "guild": self.guild_id})
         if self.use_recruitment_posts and self.delete_recruitment_posts:
-            channel_data = GuildChannels(self.guild_id).get(GuildChannelFunction.PL_CHANNEL, self.type)
+            channel_data = GuildChannels(self.guild_id).get(GuildChannelFunction.RECRUITMENT, self.type)
             if channel_data:
                 self._tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_RECRUITMENT_POST, {"guild": self.guild_id, "message_id": self.recruitment_post})
         if not self.auto_passcode: return

@@ -1,7 +1,7 @@
 
 from typing import override
 
-from providers._base import BaseProvider
+from data_providers._base import BaseProvider
 from models.roles import RoleStruct
 from utils.functions import is_null_or_unassigned
 

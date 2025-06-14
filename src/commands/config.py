@@ -6,10 +6,10 @@ from discord.channel import TextChannel
 from data.events.event_category import EventCategory
 from data.events.event_templates import EventTemplates
 from models.roles import RoleStruct
-from providers.context import discord_context
-from services.channel_assignments import ChannelAssignmentsService
+from data_providers.context import discord_context
+from data_writers.channel_assignments import ChannelAssignmentsWriter
 from models.channel_assignment import ChannelAssignmentStruct
-from services.roles import RolesService
+from data_writers.roles import RolesWriter
 from utils.basic_types import EurekaInstance, RoleFunction, NotoriousMonster
 from utils.autocomplete import AutoComplete
 from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildChannelFunction
@@ -35,7 +35,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @UserInput.bind
     def user_input(self) -> UserInput: ...
 
-    from providers.permissions import PermissionProvider
+    from data_providers.permissions import PermissionProvider
     @PermissionProvider.bind
     def _permissions_provider(self) -> PermissionProvider: ...
 
@@ -44,7 +44,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def create_schedule_post(self, interaction: Interaction, channel: TextChannel):
         await default_defer(interaction)
         messages = GuildMessages(interaction.guild_id)
-        message_data = messages.get(GuildMessageFunction.SCHEDULE_POST)
+        message_data = messages.get(GuildMessageFunction.SCHEDULE)
         if message_data:
             old_channel = self.bot._client.get_channel(message_data.channel_id)
             if old_channel:
@@ -53,7 +53,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                     await old_message.delete()
             messages.remove(message_data.message_id) # TODO: This routine is used multiple times. It could be moved somewhere else
         message = await channel.send(embed=Embed(description='...'))
-        messages.add(message.id, channel.id, GuildMessageFunction.SCHEDULE_POST)
+        messages.add(message.id, channel.id, GuildMessageFunction.SCHEDULE)
         await self.ui_schedule.rebuild(interaction.guild_id)
         await feedback_and_log(interaction, f'created **schedule post** in {channel.jump_url}')
 
@@ -62,12 +62,12 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def create_eureka_info_post(self, interaction: Interaction, channel: TextChannel):
         await default_defer(interaction)
         messages = GuildMessages(interaction.guild_id)
-        message_data = messages.get(GuildMessageFunction.EUREKA_INFO)
+        message_data = messages.get(GuildMessageFunction.EUREKA_INSTANCE_INFO)
         if message_data:
             await self.ui_eureka_info.remove(interaction.guild_id)
             messages.remove(message_data.message_id)
         message = await channel.send(embed=Embed(description='_ _'))
-        messages.add(message.id, channel.id, GuildMessageFunction.EUREKA_INFO)
+        messages.add(message.id, channel.id, GuildMessageFunction.EUREKA_INSTANCE_INFO)
         await self.ui_eureka_info.create(interaction.guild_id)
         await feedback_and_log(interaction, f'created a **Persistent Eureka Info Post** in {channel.jump_url}') #TODO: undefined method?
 
@@ -78,7 +78,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                                     channel: TextChannel,
                                     function: int):
         await default_defer(interaction)
-        ChannelAssignmentsService(interaction.guild_id).sync_category( #TODO: undefined method?
+        ChannelAssignmentsWriter(interaction.guild_id).sync_category( #TODO: undefined method?
             ChannelAssignmentStruct(
                 guild_id=interaction.guild_id,
                 channel_id=channel.id,
@@ -95,7 +95,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                                     event_type: str,
                                     channel: TextChannel):
         await default_defer(interaction)
-        ChannelAssignmentsService(interaction.guild_id).sync(
+        ChannelAssignmentsWriter(interaction.guild_id).sync(
             ChannelAssignmentStruct(
                 guild_id=interaction.guild_id,
                 channel_id=channel.id,
@@ -109,7 +109,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def set_admin(self, interaction: Interaction, role: Role):
         await default_defer(interaction)
-        RolesService(interaction.guild_id).sync(RoleStruct(
+        RolesWriter(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.ADMIN
@@ -121,7 +121,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def set_developer(self, interaction: Interaction, role: Role):
         await default_defer(interaction)
-        RolesService(interaction.guild_id).sync(RoleStruct(
+        RolesWriter(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.DEVELOPER
@@ -134,7 +134,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def add_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
-        RolesService(interaction.guild_id).sync(RoleStruct(
+        RolesWriter(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.RAID_LEADER,
@@ -147,7 +147,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def remove_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
-        RolesService(interaction.guild_id).remove(RoleStruct(
+        RolesWriter(interaction.guild_id).remove(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.RAID_LEADER,
@@ -160,7 +160,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_add_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
         await default_defer(interaction)
-        RolesService(interaction.guild_id).sync(RoleStruct(
+        RolesWriter(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction(ping_type),
@@ -173,7 +173,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_remove_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
         await default_defer(interaction)
-        RolesService(interaction.guild_id).remove(RoleStruct(
+        RolesWriter(interaction.guild_id).remove(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction(ping_type),
@@ -186,10 +186,10 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_add_eureka_role(self, interaction: Interaction, instance: str, role: Role):
         await default_defer(interaction)
-        RolesService(interaction.guild_id).sync(RoleStruct(
+        RolesWriter(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=RoleFunction.EUREKA_TRACKER_NOTIFICATION_PING,
+            function=RoleFunction.EUREKA_TRACKER_NOTIFICATION,
             event_category=instance
         ),
             discord_context(interaction)
@@ -199,10 +199,10 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_remove_eureka_role(self, interaction: Interaction, instance: str, role: Role):
         await default_defer(interaction)
-        RolesService(interaction.guild_id).remove(RoleStruct(
+        RolesWriter(interaction.guild_id).remove(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=RoleFunction.EUREKA_TRACKER_NOTIFICATION_PING,
+            function=RoleFunction.EUREKA_TRACKER_NOTIFICATION,
             event_category=instance
         ),
             discord_context(interaction)
@@ -212,10 +212,10 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_add_nm_role(self, interaction: Interaction, notorious_monster: str, role: Role):
         await default_defer(interaction)
-        RolesService(interaction.guild_id).sync(RoleStruct(
+        RolesWriter(interaction.guild_id).sync(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=RoleFunction.NM_PING,
+            function=RoleFunction.NOTORIOUS_MONSTER_NOTIFICATION,
             event_category=notorious_monster
         ),
             discord_context(interaction)
@@ -225,10 +225,10 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_remove_nm_role(self, interaction: Interaction, notorious_monster: str, role: Role):
         await default_defer(interaction)
-        RolesService(interaction.guild_id).remove(RoleStruct(
+        RolesWriter(interaction.guild_id).remove(RoleStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
-            function=RoleFunction.NM_PING,
+            function=RoleFunction.NOTORIOUS_MONSTER_NOTIFICATION,
             event_category=notorious_monster
         ),
             discord_context(interaction)

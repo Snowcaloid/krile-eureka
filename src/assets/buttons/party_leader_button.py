@@ -17,7 +17,7 @@ class PartyLeaderButton(ButtonTemplate):
     @UIRecruitmentPost.bind
     def ui_recruitment_post(self) -> UIRecruitmentPost: ...
 
-    def button_type(self) -> ButtonType: return ButtonType.PL_POST
+    def button_type(self) -> ButtonType: return ButtonType.RECRUITMENT
 
     @override
     async def callback(self, interaction: Interaction, button: DiscordButton):

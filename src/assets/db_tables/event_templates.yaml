@@ -1,8 +1,8 @@
 name: event_templates
 columns:
-  - name: guild_id
-    type: BIGINT
-  - name: event_type
-    type: VARCHAR(15)
-  - name: data
-    type: JSON
+- name: guild_id
+  type: BIGINT
+- name: event_type
+  type: VARCHAR(30)
+- name: data
+  type: JSON

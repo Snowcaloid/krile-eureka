@@ -48,7 +48,7 @@ class FileLogger(BaseLogger):
 async def _guild_respond(interaction: Interaction, message: str, guild: Guild):
     if hasattr(interaction, 'response'):
         await default_response(interaction, f'{message}')
-    from providers.channel_assignments import ChannelAssignmentProvider
+    from data_providers.channel_assignments import ChannelAssignmentProvider
 
     assert interaction.guild_id is not None, "Guild Interaction must have a guild ID"
 

@@ -6,11 +6,12 @@ from utils.functions import filter_choices_by_current
 
 
 class EventCategory(Enum):
-    CUSTOM = 'CUSTOM'
-    BA = 'BA'
-    DRS = 'DRS'
-    BOZJA = 'BOZJA'
-    CHAOTIC = 'CHAOTIC'
+    CUSTOM = 'custom'
+    BA = 'ba'
+    FT = 'ft'
+    DRS = 'drs'
+    BOZJA = 'bozja'
+    CHAOTIC = 'chaotic'
 
     @classmethod
     def all_category_choices(cls) -> List[Choice]:

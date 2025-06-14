@@ -1,12 +1,12 @@
 name: tasks
 columns:
-  - name: id
-    type: SERIAL
-  - name: execution_time
-    type: TIMESTAMP
-  - name: task_type
-    type: INTEGER
-  - name: description
-    type: VARCHAR(100)
-  - name: data
-    type: JSON
+- name: id
+  type: SERIAL
+- name: execution_time
+  type: TIMESTAMP
+- name: task_type
+  type: VARCHAR(30)
+- name: description
+  type: VARCHAR(100)
+- name: data
+  type: JSON

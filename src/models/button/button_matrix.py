@@ -1,7 +1,7 @@
 from data.db.sql import SQL, Batch, Record
 from models.button import ButtonStruct
 from models.button.discord_button import DiscordButton
-from providers.buttons import ButtonsProvider
+from data_providers.buttons import ButtonsProvider
 from ui.views import PersistentView, TemporaryView
 
 

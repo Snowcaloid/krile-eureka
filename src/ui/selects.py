@@ -5,8 +5,8 @@ from discord.ui import Button, Select
 
 from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
-from providers.roles import RolesProvider
-from services.channel_assignments import ChannelAssignmentsService
+from data_providers.roles import RolesProvider
+from data_writers.channel_assignments import ChannelAssignmentsWriter
 from utils.basic_types import EurekaInstance, RoleFunction
 from utils.basic_types import GuildChannelFunction
 from ui.modals import EurekaTrackerModal
@@ -75,7 +75,7 @@ class EurekaTrackerZoneSelect(Select):
             await interaction.followup.send(content=f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view, ephemeral=True)
             await interaction.user.send(f'Successfully generated {zone.name} tracker. Passcode: {passcode}', view=view)
             await guild_log_message(interaction.guild_id, f'{interaction.user.display_name} has added a tracker for {zone.name} - `{url}`.')
-            channel_struct = ChannelAssignmentsService(interaction.guild_id).find(ChannelAssignmentStruct(
+            channel_struct = ChannelAssignmentsWriter(interaction.guild_id).find(ChannelAssignmentStruct(
                 guild_id=interaction.guild_id,
                 function=GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION,
                 event_type=str(zone.value)
@@ -85,7 +85,7 @@ class EurekaTrackerZoneSelect(Select):
                 mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
                     guild_id=interaction.guild_id,
                     event_type=str(zone.value),
-                    function=RoleFunction.EUREKA_TRACKER_NOTIFICATION_PING
+                    function=RoleFunction.EUREKA_TRACKER_NOTIFICATION
                 ))
                 await channel.send(f'{mention_string} Tracker {url} has been added for {zone.name} by {interaction.user.mention}.')
         else:

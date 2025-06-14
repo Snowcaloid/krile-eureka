@@ -3,7 +3,7 @@ from centralized_data import Bindable
 from data.db.sql import SQL
 from models.button import ButtonStruct
 from models.button.discord_button import DiscordButton
-from providers.buttons import ButtonsProvider
+from data_providers.buttons import ButtonsProvider
 from ui.base_button import delete_buttons
 from ui.views import PersistentView
 

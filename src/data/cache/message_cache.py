@@ -4,12 +4,10 @@ from discord import Message, NotFound, TextChannel
 
 
 class MessageCache(Bindable):
-    _cache: Dict[int, Message]
-
     @override
     def constructor(self) -> None:
         super().constructor()
-        self._cache = {}
+        self._cache: Dict[int, Message] = {}
 
     async def get(self, id: int, channel: TextChannel) -> Message:
         message = self._cache.get(id, None)
@@ -19,7 +17,8 @@ class MessageCache(Bindable):
         except NotFound:
             message = None
 
-        self._cache.update({id: message})
+        if message is None: return None # type: ignore
+        self._cache[id] = message
         return message
 
     def remove(self, id: int) -> None:

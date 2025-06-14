@@ -5,9 +5,11 @@ columns:
   unique: true
   primary_key: true
 - name: button_type
-  type: INTEGER
+  type: VARCHAR(30)
 - name: channel_id
   type: BIGINT
+- name: channel_name
+  type: VARCHAR(100)
 - name: message_id
   type: BIGINT
 - name: emoji
@@ -15,7 +17,7 @@ columns:
 - name: label
   type: VARCHAR(50)
 - name: style
-  type: INTEGER
+  type: VARCHAR(30)
 - name: row
   type: INTEGER
 - name: index

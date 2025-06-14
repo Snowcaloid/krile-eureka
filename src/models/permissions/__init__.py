@@ -8,9 +8,9 @@ from data.events.event_category import EventCategory
 
 @unique
 class PermissionLevel(Enum):
-    NONE = 0
-    VIEW = 1
-    FULL = 2
+    NONE = ''
+    VIEW = 'view'
+    FULL = 'full'
 
 
 @dataclass

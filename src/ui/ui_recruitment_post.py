@@ -6,8 +6,8 @@ from data.events.schedule import Schedule
 from models.button.discord_button import DiscordButton
 from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
-from providers.channel_assignments import ChannelAssignmentProvider
-from providers.roles import RolesProvider
+from data_providers.channel_assignments import ChannelAssignmentProvider
+from data_providers.roles import RolesProvider
 from utils.basic_types import GuildMessageFunction, RoleFunction
 from data.events.event_category import EventCategory
 from utils.basic_types import GuildChannelFunction
@@ -31,7 +31,7 @@ class UIRecruitmentPost(Bindable):
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=guild_id,
-            function=GuildChannelFunction.PL_CHANNEL,
+            function=GuildChannelFunction.RECRUITMENT,
             event_type=event.type
         ))
         if channel_struct is None: return
@@ -40,12 +40,12 @@ class UIRecruitmentPost(Bindable):
         mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
             guild_id=guild_id,
             event_type=event.type,
-            function=RoleFunction.PL_POST_PING
+            function=RoleFunction.RECRUITMENT_POST_PING
         ))
         message = await channel.send(mention_string, embed=Embed(description='...'))
         event.recruitment_post = message.id
         message = await self.rebuild(guild_id, id, True)
-        GuildMessages(guild_id).add(message.id, channel.id, GuildMessageFunction.PL_POST)
+        GuildMessages(guild_id).add(message.id, channel.id, GuildMessageFunction.RECRUITMENT_POST)
         if event.use_recruitment_post_threads:
             await message.create_thread(name=event.recruitment_post_thread_title)
 
@@ -54,7 +54,7 @@ class UIRecruitmentPost(Bindable):
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=guild_id,
-            function=GuildChannelFunction.PL_CHANNEL,
+            function=GuildChannelFunction.RECRUITMENT,
             event_type=event.type
         ))
         if channel_struct is None: return
@@ -69,7 +69,7 @@ class UIRecruitmentPost(Bindable):
                 label = event.pl_button_texts[i-1]
                 if label:
                     button = DiscordButton(
-                        ButtonType.PL_POST,
+                        ButtonType.RECRUITMENT,
                         label=label,
                         custom_id=str(uuid4()),
                         row=1 if i < 4 else 2,
@@ -95,7 +95,7 @@ class UIRecruitmentPost(Bindable):
     async def remove(self, guild_id: int, event: Event) -> None:
         channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=guild_id,
-            function=GuildChannelFunction.PL_CHANNEL,
+            function=GuildChannelFunction.RECRUITMENT,
             event_type=event.type
         ))
         if channel_struct is None: return

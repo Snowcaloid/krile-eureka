@@ -1,29 +1,33 @@
 name: events
 columns:
-  - name: id
-    type: SERIAL
-    primary_key: true
-  - name: guild_id
-    type: BIGINT
-  - name: event_type
-    type: VARCHAR(15)
-  - name: timestamp
-    type: TIMESTAMP
-  - name: description
-    type: TEXT
-  - name: raid_leader
-    type: BIGINT
-  - name: use_support
-    type: BOOLEAN
-  - name: pass_main
-    type: INTEGER
-  - name: pass_supp
-    type: INTEGER
-  - name: pl_post_id
-    type: BIGINT
-  - name: finished
-    type: BOOLEAN
-  - name: canceled
-    type: BOOLEAN
-  - name: is_signup
-    type: BOOLEAN
+- name: id
+  type: SERIAL
+  primary_key: true
+- name: guild_id
+  type: BIGINT
+- name: guild_name
+  type: VARCHAR(100)
+- name: event_type
+  type: VARCHAR(30)
+- name: timestamp
+  type: TIMESTAMP
+- name: description
+  type: VARCHAR(100)
+- name: raid_leader
+  type: BIGINT
+- name: raid_leader_name
+  type: VARCHAR(100)
+- name: use_support
+  type: BOOLEAN
+- name: pass_main
+  type: INTEGER
+- name: pass_supp
+  type: INTEGER
+- name: pl_post_id
+  type: BIGINT
+- name: finished
+  type: BOOLEAN
+- name: canceled
+  type: BOOLEAN
+- name: is_signup
+  type: BOOLEAN
