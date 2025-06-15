@@ -2,9 +2,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import override
 from bot import Bot
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 from models._base import BaseStruct
-from utils.basic_types import EurekaInstance, NotoriousMonster, Unassigned, ChannelFunction, fix_enum, ChannelDenominator
+from utils.basic_types import EurekaInstance, NotoriousMonster, Unassigned, ChannelFunction, ChannelDenominator
+from utils.functions import fix_enum
 
 
 @dataclass

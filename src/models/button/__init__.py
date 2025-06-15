@@ -4,7 +4,8 @@ from typing import override
 
 from discord import ButtonStyle
 from models._base import BaseStruct
-from utils.basic_types import ButtonType, Unassigned, fix_enum
+from utils.basic_types import ButtonType, Unassigned
+from utils.functions import fix_enum
 
 @dataclass
 class ButtonStruct(BaseStruct):

@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 from random import randint, seed
 import time
-from typing import Any, List
+from typing import Any, List, Type
 from discord.app_commands import Choice
 from discord import Guild, Interaction, Role
 from dateutil.tz import tzlocal, tzutc
 from enum import Enum
+
+from utils.basic_types import Unassigned
 
 class DiscordTimestampType(Enum):
     """Enum for the discord timestamp display format."""
@@ -84,3 +86,10 @@ def generate_passcode(change_seed: bool = True) -> int:
     if change_seed:
         seed(datetime.utcnow().toordinal())
     return int(''.join(str(randint(0, 9)) for _ in range(4)))
+
+
+def fix_enum(enum_type: Type[Enum], value: Any):
+    if isinstance(value, enum_type):
+        return value
+    else:
+        return enum_type(value) if value is not None and value is not Unassigned else None

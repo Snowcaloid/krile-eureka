@@ -3,7 +3,7 @@ from discord.ext.commands import GroupCog
 from discord.app_commands import check, command
 from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 from data.events.event_templates import EventTemplates
 from models.roles import RoleStruct
 from data_providers.context import discord_context

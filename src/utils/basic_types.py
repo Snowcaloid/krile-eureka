@@ -2,10 +2,11 @@
 from enum import Enum
 from discord import ButtonStyle
 from discord.app_commands import Choice
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Optional, Self
 
 from utils.functions import filter_choices_by_current
 
+# _________ Types ______________________________________________________________________
 
 type GuildID = int
 
@@ -19,15 +20,7 @@ class UNASSIGNED_TYPE:
         return False
 
 
-Unassigned = UNASSIGNED_TYPE()
-
-
-def fix_enum(enum_type: Type[Enum], value: Any):
-    if isinstance(value, enum_type):
-        return value
-    else:
-        return enum_type(value) if value is not None and value is not Unassigned else None
-
+# _________ Enums ______________________________________________________________________
 
 class ChannelFunction(Enum):
     NONE = ''
@@ -135,6 +128,7 @@ class TaskExecutionType(Enum):
     UPDATE_EUREKA_INFO_POSTS = 'update_eureka_info_posts'
     RUN_ASYNC_METHOD = 'run_async_method'
 
+
 class EurekaInstance(Enum):
     ANEMOS = 'Anemos'
     PAGOS = 'Pagos'
@@ -176,6 +170,7 @@ class EurekaInstance(Enum):
         if isinstance(eureka_instance, int):
             return str(eureka_instance)
         return eureka_instance
+
 
 class NotoriousMonster(Enum):
     PAZUZU = 'Pazuzu'
@@ -264,7 +259,58 @@ class NotoriousMonsters(Dict[NotoriousMonster, str]):
         return [Choice(name=alias, value=nm_enum.value) for nm_enum, aliases in NOTORIOUS_MONSTERS.aliases.items() for alias in aliases]
 
 
-NOTORIOUS_MONSTERS = NotoriousMonsters()
+class EventCategory(Enum):
+    CUSTOM = 'custom'
+    BA = 'ba'
+    FT = 'ft'
+    DRS = 'drs'
+    BOZJA = 'bozja'
+    CHAOTIC = 'chaotic'
+
+    @classmethod
+    def all_category_choices(cls) -> List[Choice]:
+        return [
+            Choice(name='Custom runs', value=cls.CUSTOM.value + '_CATEGORY'),
+            Choice(name='All BA runs', value=cls.BA.value + '_CATEGORY'),
+            Choice(name='All DRS runs', value=cls.DRS.value + '_CATEGORY'),
+            Choice(name='All Bozja-related runs', value=cls.BOZJA.value + '_CATEGORY'),
+            Choice(name='All Chaotic Alliance runs', value=cls.CHAOTIC.value + '_CATEGORY')
+        ]
+
+    @classmethod
+    def _missing_(cls, value: str) -> Optional[Self]:
+        normalized_name = value.replace("_CATEGORY", "")
+        return cls.__members__.get(normalized_name, None)
+
+    @classmethod
+    def all_category_choices_short(cls) -> List[Choice]:
+        return [
+            Choice(name='Custom run', value=cls.CUSTOM.value),
+            Choice(name='BA', value=cls.BA.value),
+            Choice(name='DRS', value=cls.DRS.value),
+            Choice(name='Bozja', value=cls.BOZJA.value),
+            Choice(name='Chaotic', value=cls.CHAOTIC.value)
+        ]
+
+    @classmethod
+    def autocomplete(cls, current: str) -> List[Choice]:
+        return filter_choices_by_current(cls.all_category_choices(), current)
+
+    @classmethod
+    def autocomplete_short(cls, current: str) -> List[Choice]:
+        return filter_choices_by_current(cls.all_category_choices_short(), current)
+
+    @classmethod
+    def is_event_category(cls, event_type: str) -> bool:
+        """Check if the given event type is a valid event category."""
+        return event_type.replace('_CATEGORY', '') in cls._value2member_map_
+
+    @classmethod
+    def event_category_name_to_category(cls, event_category_name: str) -> Self:
+        for choice in cls.all_category_choices():
+            if choice.name == event_category_name:
+                return choice.value
+        return cls(event_category_name)
 
 
 class ButtonType(Enum):
@@ -276,6 +322,11 @@ class ButtonType(Enum):
     GENERATE_TRACKER = 'generate_tracker'
     SEND_PL_GUIDE = 'send_pl_guide'
 
+# _________ Constants __________________________________________________________________
+
+Unassigned = UNASSIGNED_TYPE()
+
+NOTORIOUS_MONSTERS = NotoriousMonsters()
 
 BUTTON_STYLE_DESCRIPTIONS: Dict[ButtonStyle, str] = {
     ButtonStyle.primary: 'Blue',

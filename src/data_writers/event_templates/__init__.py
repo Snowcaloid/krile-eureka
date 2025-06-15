@@ -2,7 +2,7 @@
 from typing import override
 
 from data.db.sql import SQL
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 from data_providers.event_templates import EventTemplateProvider
 from data_writers._base import BaseWriter
 from models.context import ExecutionContext

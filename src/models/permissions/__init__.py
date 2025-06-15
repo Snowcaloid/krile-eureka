@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from enum import Enum, unique
 from typing import List
 
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 
 
 @unique

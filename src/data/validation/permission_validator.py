@@ -6,7 +6,7 @@ from discord import Member
 from models.roles import RoleStruct
 from data_providers.roles import RolesProvider
 from utils.discord_types import InteractionLike
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 from utils.basic_types import RoleFunction
 from utils.functions import is_null_or_unassigned
 

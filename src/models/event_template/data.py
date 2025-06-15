@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from json import dumps
 from typing import List, Tuple
 from centralized_data import YamlAsset
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 from discord.app_commands import Choice
 
 from utils.functions import get_discord_timestamp

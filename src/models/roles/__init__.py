@@ -2,9 +2,11 @@ from __future__ import annotations
 from typing import override
 from bot import Bot
 from models._base import BaseStruct
-from utils.basic_types import EurekaTrackerZone, RoleDenominator, RoleFunction, NotoriousMonster, Unassigned, fix_enum
+from utils.basic_types import EurekaTrackerZone, RoleDenominator, RoleFunction, NotoriousMonster, Unassigned
 
 from dataclasses import dataclass
+
+from utils.functions import fix_enum
 
 
 @dataclass

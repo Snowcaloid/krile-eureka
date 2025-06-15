@@ -4,12 +4,12 @@ from centralized_data import GlobalCollection
 from utils.basic_types import GuildID, TaskExecutionType
 from data.db.sql import SQL, Record
 from data.events.event import Event
-from data.generators.event_passcode_generator import EventPasscodeGenerator
 
 from datetime import datetime
 from typing import List
 
 from utils.discord_types import InteractionLike
+from utils.functions import generate_passcode
 
 @dataclass
 class EventLike(dict):
@@ -52,8 +52,8 @@ class Schedule(GlobalCollection[GuildID]):
 
     def add(self, event: EventLike, interaction: InteractionLike) -> Event:
         auto_passcode = event.pop("auto_passcode", None)
-        pass_main = EventPasscodeGenerator.generate() if auto_passcode else 0
-        pass_supp = EventPasscodeGenerator.generate() if auto_passcode else 0
+        pass_main = generate_passcode() if auto_passcode else 0
+        pass_supp = generate_passcode(False) if auto_passcode else 0
         id = SQL('events').insert(Record(
                 guild_id=self.key,
                 raid_leader=event.pop("raid_leader")["id"],

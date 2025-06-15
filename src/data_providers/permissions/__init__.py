@@ -2,7 +2,7 @@ from os import getenv
 from typing import Generator
 from discord import Member
 from centralized_data import Bindable
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 from data_providers.roles import RolesProvider
 from models.roles import RoleStruct
 from models.permissions import (NO_ACCESS, PermissionLevel, ModulePermissions, EventAdministrationPermissions, Permissions, FULL_ACCESS, ADMIN_ACCESS, DEV_ACCESS)

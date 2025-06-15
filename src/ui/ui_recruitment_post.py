@@ -9,7 +9,7 @@ from models.roles import RoleStruct
 from data_providers.channel_assignments import ChannelAssignmentProvider
 from data_providers.roles import RolesProvider
 from utils.basic_types import MessageFunction, RoleFunction
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 from utils.basic_types import ChannelFunction
 from data.guilds.guild_messages import GuildMessages
 from ui.base_button import delete_buttons, save_buttons

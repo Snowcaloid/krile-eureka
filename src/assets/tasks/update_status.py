@@ -5,7 +5,7 @@ from discord import Activity, ActivityType, Status
 from utils.basic_types import TaskExecutionType
 from data.db.sql import SQL
 from data.events.event import Event
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 from tasks.task import TaskTemplate
 
 

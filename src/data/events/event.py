@@ -1,5 +1,5 @@
 
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 from discord import Interaction, Member
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta

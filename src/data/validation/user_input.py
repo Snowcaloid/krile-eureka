@@ -6,7 +6,7 @@ from centralized_data import Bindable
 from discord import Member, TextChannel
 
 from utils.basic_types import EurekaInstance, NotoriousMonster, TaskExecutionType
-from data.events.event_category import EventCategory
+from utils.basic_types import EventCategory
 from utils.basic_types import NOTORIOUS_MONSTERS
 from data.events.event_templates import EventTemplates
 from data.events.schedule import Schedule
