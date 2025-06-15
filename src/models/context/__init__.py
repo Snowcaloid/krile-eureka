@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable
-
+from data.db.sql import Transaction
 from models.permissions import Permissions
 from utils.logger import BaseLogger
 
@@ -33,14 +33,19 @@ class ExecutionContext:
     """Current permissions of the context."""
     _message: str = ''
     _level: int = 0
+    _transaction: Transaction = None #type: ignore
 
     def __enter__(self):
+        if self._level > 0:
+            self._transaction_.__enter__()
+
         self._level += 1
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         self._level -= 1
         if self._level <= 0:
+            self._transaction_.__exit__(exc_type, exc_value, traceback)
             self._level = 0
             if exc_type is not None:
                 self.log(f"FATAL - an error occured: {exc_value}")
@@ -54,3 +59,9 @@ class ExecutionContext:
     def assert_permissions(self, permissions: Permissions) -> None:
         assert self.permissions is not None, "context dict must have permissions set for this action."
         self.permissions.full_check(permissions)
+
+    @property
+    def _transaction_(self) -> Transaction:
+        if self._transaction is None:
+            self._transaction = Transaction()
+        return self._transaction

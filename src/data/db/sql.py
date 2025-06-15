@@ -22,7 +22,7 @@ class Record(Dict[str, PgColumnValue]):
     def __del__(self):
         self._database.disconnect()
 
-    def __getitem__(self, key: str) -> PgColumnValue:
+    def __getitem__(self, key: str) -> Any:
         if super().__getitem__(key) is None: return Unassigned
         return super().__getitem__(key)
 

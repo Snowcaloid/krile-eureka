@@ -17,14 +17,14 @@ class BaseProvider[T: BaseStruct](ABC):
     _list: List[T]
 
     @override
-    def init(self):
-        super().init()
+    def __init__(self):
+        super().__init__()
         self._list = []
         for record in SQL(self.db_table_name()).select(all=True):
-            self._list.append(T.from_record(record))
+            self._list.append(T.from_record(record)) #type: ignore TODO: does this work?
 
     def _is_equal(self, left: T, right: T) -> bool:
-        for field in right.__dataclass_fields__.keys():
+        for field in right.__dataclass_fields__.keys(): #type: ignore
             right_value = getattr(right, field)
             if right_value is Unassigned: continue
             if getattr(left, field) != right_value:
@@ -35,13 +35,13 @@ class BaseProvider[T: BaseStruct](ABC):
         """
         Find a struct in the list by comparing it with the provided struct.
         """
-        return next((c for c in self._list if self.is_equal(c, struct)), None)
+        return next((c for c in self._list if self._is_equal(c, struct)), None) #type: ignore
 
     def find_all(self, struct: T) -> List[T]:
         """
         Find all structs in the list that match the provided struct.
         """
-        return [c for c in self._list if self.is_equal(c, struct)]
+        return [c for c in self._list if self._is_equal(c, struct)]
 
     @abstractmethod
     def db_table_name(self) -> str: ...

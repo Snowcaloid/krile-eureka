@@ -5,7 +5,7 @@ from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
 from typing import List, Tuple, Type
 from data.db.sql import SQL, Record, Transaction
-from data.events.event_template import EventTemplate
+from models.event_template.data import EventTemplateData
 from data.events.event_templates import EventTemplates
 from utils.basic_types import ChannelFunction
 from utils.basic_types import TaskExecutionType
@@ -52,7 +52,7 @@ class EventUserData:
 PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
 
 class Event:
-    template: EventTemplate
+    template: EventTemplateData
     id: int
     _recruitment_post: int
     _time: datetime

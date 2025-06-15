@@ -21,9 +21,6 @@ class ChannelAssignmentsWriter(BaseWriter[ChannelAssignmentStruct]):
             'missing Guild ID'
         assert self._bot.get_guild(struct.guild_id), \
             f'Invalid guild ID: {struct.guild_id}'
-        if not is_null_or_unassigned(struct.channel_id):
-            assert self._bot.get_text_channel(struct.channel_id), \
-                f'Invalid channel ID: {struct.channel_id}'
 
     def _is_value_set_for_denominator(self, struct: ChannelAssignmentStruct) -> bool:
             match struct.denominator:

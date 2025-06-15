@@ -1,4 +1,4 @@
-from data.db.sql import SQL, Batch, Record
+from data.db.sql import SQL, Batch
 from models.button import ButtonStruct
 from models.button.discord_button import DiscordButton
 from data_providers.buttons import ButtonsProvider
@@ -9,7 +9,7 @@ from discord import Message
 from discord.ui import View
 
 
-from typing import List, Optional, Self, override
+from typing import List, Self, override
 from uuid import uuid4
 
 

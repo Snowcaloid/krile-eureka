@@ -11,6 +11,7 @@ class ButtonStruct(BaseStruct):
     button_id: str = Unassigned #type: ignore
     button_type: ButtonType = Unassigned #type: ignore
     channel_id: int = Unassigned #type: ignore
+    channel_name: str = Unassigned #type: ignore
     message_id: int = Unassigned #type: ignore
     emoji: str = Unassigned #type: ignore
     label: str = Unassigned #type: ignore
@@ -39,6 +40,8 @@ class ButtonStruct(BaseStruct):
             result.append(f'Type: {self.button_type.name}')
         if isinstance(self.channel_id, int):
             result.append(f'Channel: {self.channel_id}')
+        if isinstance(self.channel_name, str):
+            result.append(f'Channel Name: {self.channel_name}')
         if isinstance(self.message_id, int):
             result.append(f'Message: {self.message_id}')
         if isinstance(self.emoji, str):
@@ -68,6 +71,8 @@ class ButtonStruct(BaseStruct):
             changes.append(f'Type: {other.button_type.name} -> {self.button_type.name}')
         if isinstance(self.channel_id, int) and self.channel_id != other.channel_id:
             changes.append(f'Channel: {other.channel_id} -> {self.channel_id}')
+        if isinstance(self.channel_name, str) and self.channel_name != other.channel_name:
+            changes.append(f'Channel Name: {other.channel_name} -> {self.channel_name}')
         if isinstance(self.message_id, int) and self.message_id != other.message_id:
             changes.append(f'Message: {other.message_id} -> {self.message_id}')
         if isinstance(self.emoji, str) and self.emoji != other.emoji:
@@ -89,3 +94,23 @@ class ButtonStruct(BaseStruct):
         if not changes:
             return 'No changes'
         return '\n'.join(changes)
+
+    @override
+    def marshal(self) -> dict:
+        return {
+            'button_id': self.marshal_value(self.button_id),
+            'button_type': self.marshal_value(self.button_type),
+            'channel': {
+                'id': self.marshal_value(self.channel_id),
+                'name': self.marshal_value(self.channel_name)
+            },
+            'message_id': self.marshal_value(self.message_id),
+            'emoji': self.marshal_value(self.emoji),
+            'label': self.marshal_value(self.label),
+            'style': self.marshal_value(self.style),
+            'row': self.marshal_value(self.row),
+            'index': self.marshal_value(self.index),
+            'role_id': self.marshal_value(self.role_id),
+            'party': self.marshal_value(self.party),
+            'event_id': self.marshal_value(self.event_id)
+        }

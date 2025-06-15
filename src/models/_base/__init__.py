@@ -23,7 +23,6 @@ class BaseStruct(ABC):
 
     def __init__(self):
         super().__init__()
-        self.fixup_types()
 
     def _to_constructor_dict(self):
         return {
@@ -34,7 +33,9 @@ class BaseStruct(ABC):
 
     @classmethod
     def from_record(cls, record: Record) -> Self:
-        return cls(**record)
+        self = cls(**record)
+        self.fixup_types()
+        return self
 
     @abstractmethod
     def fixup_types(self) -> None: ...

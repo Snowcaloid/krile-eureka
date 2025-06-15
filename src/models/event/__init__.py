@@ -53,7 +53,7 @@ class EventStruct(BaseStruct):
             result.append(f"Canceled: {self.canceled}")
         if not is_null_or_unassigned(self.is_signup):
             result.append(f"Is Signup: {self.is_signup}")
-        return
+        return ", ".join(result) if result else "No event data available."
 
     @override
     def changes_since(self, other: EventStruct) -> str:

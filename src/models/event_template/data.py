@@ -1,4 +1,4 @@
-
+from __future__ import annotations
 from datetime import datetime, timedelta
 from json import dumps
 from typing import Tuple
@@ -9,14 +9,21 @@ from discord.app_commands import Choice
 from utils.functions import get_discord_timestamp
 
 
-class EventTemplate(YamlAsset):
+class EventTemplateData(YamlAsset):
+    @classmethod
+    def from_json(cls, json: dict) -> EventTemplateData:
+        self = cls('')
+        self.source = json
+        return self
+
     def autocomplete_weight(self) -> int:
         category_weight = {
-            EventCategory.CUSTOM: 0,
-            EventCategory.BA: 1,
-            EventCategory.CHAOTIC: 2,
-            EventCategory.DRS: 3,
-            EventCategory.BOZJA: 4
+            EventCategory.BA: 0,
+            EventCategory.FT: 1,
+            EventCategory.CUSTOM: 2,
+            EventCategory.CHAOTIC: 3,
+            EventCategory.DRS: 4,
+            EventCategory.BOZJA: 5
         }
         return category_weight[self.category] * 100 + 10 - len(self.type) # the longer the type, the less specific it is
 
@@ -95,27 +102,50 @@ class EventTemplate(YamlAsset):
         return value.replace('%rl', rl).replace('%pl1', pl1).replace('%pl2', pl2).replace('%pl3', pl3).replace(
             '%pl4', pl4).replace('%pl5', pl5).replace('%pl6', pl6).replace('%pls', pls)
 
+    def set_recruitment_post_text(self, text: str) -> None:
+        self.source['recruitment_post_text'] = text
+
     @property
     def pl_button_texts(self) -> Tuple[str, str, str, str, str, str, str]:
         list = self.source.get('pl_button_texts', ['1', '2', '3', '4', '5', '6', 'Support'])
         if len(list) < 7: list = list + [''] * (7 - len(list)) # Fill up with empty strings
         return tuple(list)
 
+    @pl_button_texts.setter
+    def pl_button_texts(self, texts: Tuple[str, str, str, str, str, str, str]) -> None:
+        assert len(texts) == 7, "pl_button_texts must be a tuple of 7 strings"
+        self.source['pl_button_texts'] = list(texts)
+
     @property
     def use_recruitment_post_threads(self) -> bool:
         return self.source.get('use_recruitment_post_threads', False)
+
+    @use_recruitment_post_threads.setter
+    def use_recruitment_post_threads(self, value: bool) -> None:
+        self.source['use_recruitment_post_threads'] = value
 
     @property
     def delete_recruitment_posts(self) -> bool:
         return self.source.get('delete_recruitment_posts', True)
 
+    @delete_recruitment_posts.setter
+    def delete_recruitment_posts(self, value: bool) -> None:
+        self.source['delete_recruitment_posts'] = value
+
     def recruitment_post_thread_title(self, time: datetime) -> str:
         value = self.source.get('recruitment_post_thread_title', f'%time {self.description}')
         return value.replace('%time', time.strftime('%A, %d %B %Y'))
 
+    def set_recruitment_post_thread_title(self, text: str) -> None:
+        self.source['recruitment_post_thread_title'] = text
+
     @property
     def use_support(self) -> bool:
         return self.source.get('use_support', False)
+
+    @use_support.setter
+    def use_support(self, value: bool) -> None:
+        self.source['use_support'] = value
 
     def main_passcode_text(self, rl: str, passcode: int) -> str:
         value = self.source.get('main_passcode_text',(
