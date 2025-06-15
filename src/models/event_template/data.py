@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime, timedelta
 from json import dumps
-from typing import Tuple
+from typing import List, Tuple
 from centralized_data import YamlAsset
 from data.events.event_category import EventCategory
 from discord.app_commands import Choice
@@ -106,15 +106,15 @@ class EventTemplateData(YamlAsset):
         self.source['recruitment_post_text'] = text
 
     @property
-    def pl_button_texts(self) -> Tuple[str, str, str, str, str, str, str]:
-        list = self.source.get('pl_button_texts', ['1', '2', '3', '4', '5', '6', 'Support'])
+    def party_descriptions(self) -> List[str]:
+        list = self.source.get('party_descriptions', ['1', '2', '3', '4', '5', '6', 'Support'])
         if len(list) < 7: list = list + [''] * (7 - len(list)) # Fill up with empty strings
-        return tuple(list)
+        return list
 
-    @pl_button_texts.setter
-    def pl_button_texts(self, texts: Tuple[str, str, str, str, str, str, str]) -> None:
-        assert len(texts) == 7, "pl_button_texts must be a tuple of 7 strings"
-        self.source['pl_button_texts'] = list(texts)
+    @party_descriptions.setter
+    def party_descriptions(self, texts: List[str]) -> None:
+        assert len(texts) == 7, "party_descriptions must be a tuple of 7 strings"
+        self.source['party_descriptions'] = list(texts)
 
     @property
     def use_recruitment_post_threads(self) -> bool:

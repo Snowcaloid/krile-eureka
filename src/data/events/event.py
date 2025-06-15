@@ -253,7 +253,7 @@ class Event:
 
     @property
     def pl_button_texts(self) -> Tuple[str, str, str, str, str, str, str]:
-        result = self.template.pl_button_texts()
+        result = self.template.party_descriptions()
         if not self.use_support:
             result_list = list(result)
             result_list[6] = ''
@@ -283,12 +283,12 @@ class Event:
     def recruitment_post_text(self) -> str:
         guild = self.bot._client.get_guild(self.guild_id)
         rl = guild.get_member(self.users.raid_leader)
-        pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.template.pl_button_texts()[0] else ''
-        pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1])) if self.template.pl_button_texts()[1] else ''
-        pl3 = self._pl_placeholder(guild.get_member(self.users.party_leaders[2])) if self.template.pl_button_texts()[2] else ''
-        pl4 = self._pl_placeholder(guild.get_member(self.users.party_leaders[3])) if self.template.pl_button_texts()[3] else ''
-        pl5 = self._pl_placeholder(guild.get_member(self.users.party_leaders[4])) if self.template.pl_button_texts()[4] else ''
-        pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5])) if self.template.pl_button_texts()[5] else ''
+        pl1 = self._pl_placeholder(guild.get_member(self.users.party_leaders[0])) if self.template.party_descriptions()[0] else ''
+        pl2 = self._pl_placeholder(guild.get_member(self.users.party_leaders[1])) if self.template.party_descriptions()[1] else ''
+        pl3 = self._pl_placeholder(guild.get_member(self.users.party_leaders[2])) if self.template.party_descriptions()[2] else ''
+        pl4 = self._pl_placeholder(guild.get_member(self.users.party_leaders[3])) if self.template.party_descriptions()[3] else ''
+        pl5 = self._pl_placeholder(guild.get_member(self.users.party_leaders[4])) if self.template.party_descriptions()[4] else ''
+        pl6 = self._pl_placeholder(guild.get_member(self.users.party_leaders[5])) if self.template.party_descriptions()[5] else ''
         pls = self._pl_placeholder(guild.get_member(self.users.party_leaders[6])) if self.use_support else ''
 
         return self.template.recruitment_post_text(rl.mention, pl1, pl2, pl3, pl4, pl5, pl6, pls, self._use_support)
