@@ -19,6 +19,10 @@ class EventUserStruct(BaseStruct):
     slot: int = Unassigned
     slot_name: str = Unassigned
 
+    @classmethod
+    def db_table_name(cls) -> str:
+        return 'event_users'
+
     @override
     def __repr__(self) -> str:
         result = []

@@ -1,6 +1,6 @@
 
 from abc import ABC, abstractmethod
-from typing import List, override
+from typing import List, Type, override
 
 from data.db.sql import SQL
 from models._base import BaseStruct
@@ -10,18 +10,18 @@ from utils.basic_types import Unassigned
 class BaseProvider[T: BaseStruct](ABC):
     """
     Provides data from the database.
-    When creating new providers, inherit from this class,
-    setting the T-Type and overriding:
-    * `db_table_name`
     """
-    _list: List[T]
+
+    @abstractmethod
+    def struct_type(self) -> Type[T]: ...
+    """Override to provide the type of the struct this provider works with."""
 
     @override
     def __init__(self):
         super().__init__()
-        self._list = []
-        for record in SQL(self.db_table_name()).select(all=True):
-            self._list.append(T.from_record(record)) #type: ignore TODO: does this work?
+        self._list: List[T] = []
+        for record in SQL(self.struct_type.db_table_name()).select(all=True):
+            self._list.append(self.struct_type.from_record(record))
 
     def _is_equal(self, left: T, right: T) -> bool:
         for field in right.__dataclass_fields__.keys(): #type: ignore
@@ -42,7 +42,3 @@ class BaseProvider[T: BaseStruct](ABC):
         Find all structs in the list that match the provided struct.
         """
         return [c for c in self._list if self._is_equal(c, struct)]
-
-    @abstractmethod
-    def db_table_name(self) -> str: ...
-    """Override to return the name of the database table for this provider."""

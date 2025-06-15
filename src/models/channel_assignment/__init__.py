@@ -24,6 +24,10 @@ class ChannelAssignmentStruct(BaseStruct):
     @Bot.bind
     def _bot(self) -> Bot: ...
 
+    @classmethod
+    def db_table_name(cls) -> str:
+        return 'channel_assignments'
+
     @override
     def fixup_types(self) -> None:
         fixed_enum = fix_enum(ChannelFunction, self.function)

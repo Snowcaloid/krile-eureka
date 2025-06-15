@@ -7,13 +7,13 @@ from utils.functions import is_null_or_unassigned
 
 
 class RolesProvider(BaseProvider[RoleStruct]):
-    @override
-    def db_table_name(self) -> str:
-        return 'roles'
-
     from bot import Bot
     @Bot.bind
     def _bot(self) -> Bot: ...
+
+    @override
+    def struct_type(self) -> type[RoleStruct]:
+        return RoleStruct
 
     def as_discord_mention_string(self, role: RoleStruct) -> str:
         role_structs = self.find_all(role)

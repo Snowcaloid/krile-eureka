@@ -12,6 +12,10 @@ class EventTemplateStruct(BaseStruct):
     event_type: str = Unassigned #type: ignore
     data: EventTemplateData = Unassigned #type: ignore
 
+    @classmethod
+    def db_table_name(cls) -> str:
+        return 'event_templates'
+
     @override
     def fixup_types(self) -> None:
         if isinstance(self.data, dict):

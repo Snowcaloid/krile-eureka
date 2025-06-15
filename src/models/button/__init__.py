@@ -23,6 +23,10 @@ class ButtonStruct(BaseStruct):
     party: int = Unassigned #type: ignore
     event_id: int = Unassigned #type: ignore
 
+    @classmethod
+    def db_table_name(cls) -> str:
+        return 'buttons'
+
     @override
     def fixup_types(self) -> None:
         fixed_enum = fix_enum(ButtonType, self.button_type)

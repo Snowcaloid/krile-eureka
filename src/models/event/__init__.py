@@ -24,6 +24,10 @@ class EventStruct(BaseStruct):
     canceled: bool = Unassigned
     is_signup: bool = Unassigned
 
+    @classmethod
+    def db_table_name(cls) -> str:
+        return 'events'
+
     @override
     def __repr__(self) -> str:
         result = []

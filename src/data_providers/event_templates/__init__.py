@@ -11,8 +11,8 @@ class EventTemplateProvider(BaseProvider[EventTemplateStruct]):
     def _default_templates(self) -> DefaultEventTemplates: ...
 
     @override
-    def db_table_name(self) -> str:
-        return 'event_templates'
+    def struct_type(self) -> type[EventTemplateStruct]:
+        return EventTemplateStruct
 
     @override
     def find(self, struct: EventTemplateStruct) -> EventTemplateStruct:

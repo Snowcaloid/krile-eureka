@@ -32,6 +32,11 @@ class BaseStruct(ABC):
         }
 
     @classmethod
+    def db_table_name(cls) -> str: raise NotImplementedError(
+        "Override this method to provide the database table name for the struct."
+    )
+
+    @classmethod
     def from_record(cls, record: Record) -> Self:
         self = cls(**record)
         self.fixup_types()

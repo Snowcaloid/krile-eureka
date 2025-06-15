@@ -25,6 +25,10 @@ class RoleStruct(BaseStruct):
     @Bot.bind
     def _bot(self) -> Bot: ...
 
+    @classmethod
+    def db_table_name(cls) -> str:
+        return 'roles'
+
     @override
     def fixup_types(self) -> None:
         self.function = fix_enum(RoleFunction, self.function)
