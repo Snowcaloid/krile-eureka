@@ -1,4 +1,4 @@
-from typing import override
+from typing import Callable, override
 
 from utils.basic_types import TaskExecutionType
 from tasks.task import TaskTemplate
@@ -14,7 +14,7 @@ class Task_RunAsyncMethod(TaskTemplate):
     @override
     async def execute(self, obj: dict) -> None:
         if obj.get("method"):
-            method: callable = obj["method"]
+            method: Callable[...] = obj["method"]
             args = obj.get("args", [])
             kwargs = obj.get("kwargs", {})
             await method(*args, **kwargs)

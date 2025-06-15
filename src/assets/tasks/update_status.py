@@ -33,12 +33,13 @@ class Task_UpdateStatus(TaskTemplate):
     async def execute(self, obj: dict) -> None:
         next_exec = datetime.utcnow() + timedelta(minutes=1)
         try: # TODO: Isn't it more efficient to use the runtime data dict?
-            record = SQL('events').select(fields=['id'],
+            records = SQL('events').select(fields=['id'],
                                           where=('timestamp > (current_timestamp at time zone \'UTC\') '
                                                  'and (not canceled or canceled is null) and '
                                                  '(not finished or finished is null)'),
                                           sort_fields=[('timestamp')])
-            if record:
+            if records:
+                record = records[0]
                 event = Event()
                 event.load(record['id'])
                 if event.time > datetime.utcnow():
@@ -54,7 +55,7 @@ class Task_UpdateStatus(TaskTemplate):
                         desc = f'{str((delta.seconds % 3600) // 60)}m'
 
                     event_description = event.description if event.category == EventCategory.CUSTOM else event.short_description
-                    desc = f'{event_description} in {desc} ({self.bot._client.get_guild(event.guild_id).name})'
+                    desc = f'{event_description} in {desc} ({self.bot.get_guild(event.guild_id).name})'
                     await self.bot._client.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
             else:
                 await self.bot._client.change_presence(activity=None, status=None)
