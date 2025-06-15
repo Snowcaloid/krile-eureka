@@ -8,7 +8,7 @@ from models.context import ExecutionContext
 from data_writers._base import BaseWriter
 
 from models.permissions import ModulePermissions, PermissionLevel, Permissions
-from utils.basic_types import ChannelDenominator, GuildChannelFunction
+from utils.basic_types import ChannelDenominator, ChannelFunction
 from utils.functions import is_null_or_unassigned
 
 class ChannelAssignmentsWriter(BaseWriter[ChannelAssignmentStruct]):
@@ -63,7 +63,7 @@ class ChannelAssignmentsWriter(BaseWriter[ChannelAssignmentStruct]):
                  self._is_value_set_for_denominator(struct)), \
                 'missing ID, channel ID, function, denominator or value for denominator'
         if not is_null_or_unassigned(struct.function):
-            assert struct.function in GuildChannelFunction, \
+            assert struct.function in ChannelFunction, \
                 f'invalid function: {struct.function}'
             assert struct.denominator.is_allowed_function(struct.function), \
                 f'invalid denominator: {struct.denominator.name}'

@@ -8,7 +8,7 @@ from data_providers.channel_assignments import ChannelAssignmentProvider
 from data_providers.roles import RolesProvider
 from tasks import Tasks
 from utils.basic_types import (
-    NOTORIOUS_MONSTERS, ChannelDenominator, GuildChannelFunction,
+    NOTORIOUS_MONSTERS, ChannelDenominator, ChannelFunction,
     NotoriousMonster, RoleDenominator, RoleFunction
 )
 
@@ -30,7 +30,7 @@ class EurekaPingWorkflow(Bindable):
                     guild_id=guild.id,
                     denominator=ChannelDenominator.NOTORIOUS_MONSTER,
                     notorious_monster=notorious_monster,
-                    function=GuildChannelFunction.NM_PINGS,
+                    function=ChannelFunction.NM_PINGS,
                 ))
                 if channel_struct is None: continue
                 role_mention_string = RolesProvider().as_discord_mention_string(RoleStruct(

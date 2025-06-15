@@ -8,9 +8,9 @@ from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
 from data_providers.channel_assignments import ChannelAssignmentProvider
 from data_providers.roles import RolesProvider
-from utils.basic_types import GuildMessageFunction, RoleFunction
+from utils.basic_types import MessageFunction, RoleFunction
 from data.events.event_category import EventCategory
-from utils.basic_types import GuildChannelFunction
+from utils.basic_types import ChannelFunction
 from data.guilds.guild_messages import GuildMessages
 from ui.base_button import delete_buttons, save_buttons
 from utils.basic_types import ButtonType
@@ -31,7 +31,7 @@ class UIRecruitmentPost(Bindable):
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=guild_id,
-            function=GuildChannelFunction.RECRUITMENT,
+            function=ChannelFunction.RECRUITMENT,
             event_type=event.type
         ))
         if channel_struct is None: return
@@ -45,7 +45,7 @@ class UIRecruitmentPost(Bindable):
         message = await channel.send(mention_string, embed=Embed(description='...'))
         event.recruitment_post = message.id
         message = await self.rebuild(guild_id, id, True)
-        GuildMessages(guild_id).add(message.id, channel.id, GuildMessageFunction.RECRUITMENT_POST)
+        GuildMessages(guild_id).add(message.id, channel.id, MessageFunction.RECRUITMENT_POST)
         if event.use_recruitment_post_threads:
             await message.create_thread(name=event.recruitment_post_thread_title)
 
@@ -54,7 +54,7 @@ class UIRecruitmentPost(Bindable):
         if event is None or event.category == EventCategory.CUSTOM or not event.use_recruitment_posts: return
         channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=guild_id,
-            function=GuildChannelFunction.RECRUITMENT,
+            function=ChannelFunction.RECRUITMENT,
             event_type=event.type
         ))
         if channel_struct is None: return
@@ -95,7 +95,7 @@ class UIRecruitmentPost(Bindable):
     async def remove(self, guild_id: int, event: Event) -> None:
         channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=guild_id,
-            function=GuildChannelFunction.RECRUITMENT,
+            function=ChannelFunction.RECRUITMENT,
             event_type=event.type
         ))
         if channel_struct is None: return

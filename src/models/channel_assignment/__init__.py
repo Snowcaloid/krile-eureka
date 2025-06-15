@@ -4,8 +4,7 @@ from typing import override
 from bot import Bot
 from data.events.event_category import EventCategory
 from models._base import BaseStruct
-from utils.basic_types import EurekaInstance, NotoriousMonster, Unassigned, GuildChannelFunction, fix_enum, ChannelDenominator
-from utils.functions import is_null_or_unassigned
+from utils.basic_types import EurekaInstance, NotoriousMonster, Unassigned, ChannelFunction, fix_enum, ChannelDenominator
 
 
 @dataclass
@@ -14,7 +13,7 @@ class ChannelAssignmentStruct(BaseStruct):
     id: int = Unassigned #type: ignore
     channel_id: int = Unassigned #type: ignore
     event_type: str = Unassigned #type: ignore
-    function: GuildChannelFunction = Unassigned #type: ignore
+    function: ChannelFunction = Unassigned #type: ignore
     denominator: ChannelDenominator = Unassigned #type: ignore
     event_category: EventCategory = Unassigned #type: ignore
     notorious_monster: NotoriousMonster = Unassigned #type: ignore
@@ -26,8 +25,8 @@ class ChannelAssignmentStruct(BaseStruct):
 
     @override
     def fixup_types(self) -> None:
-        fixed_enum = fix_enum(GuildChannelFunction, self.function)
-        assert isinstance(fixed_enum, GuildChannelFunction), f"Invalid GuildChannelFunction: {self.function}"
+        fixed_enum = fix_enum(ChannelFunction, self.function)
+        assert isinstance(fixed_enum, ChannelFunction), f"Invalid GuildChannelFunction: {self.function}"
         self.function = fixed_enum
         fixed_enum = fix_enum(ChannelDenominator, self.denominator)
         assert isinstance(fixed_enum, ChannelDenominator), f"Invalid GuildChannelDenominator: {self.denominator}"
@@ -54,7 +53,7 @@ class ChannelAssignmentStruct(BaseStruct):
             result.append(f"Channel: #{channel_name} ({str(self.channel_id)})")
         if isinstance(self.event_type, str):
             result.append(f"Event Type: {self.event_type}")
-        if isinstance(self.function, GuildChannelFunction):
+        if isinstance(self.function, ChannelFunction):
             result.append(f"Function: {self.function.name}")
         if isinstance(self.denominator, ChannelDenominator):
             result.append(f"Denominator: {self.denominator.name}")
@@ -77,7 +76,7 @@ class ChannelAssignmentStruct(BaseStruct):
             result.append(f"Channel: #{other_channel_name} ({str(other.channel_id)}) -> #{channel_name} ({str(self.channel_id)})")
         if isinstance(self.event_type, str) and other.event_type != self.event_type:
             result.append(f"Event Type: {other.event_type} -> {self.event_type}")
-        if isinstance(self.function, GuildChannelFunction) and other.function != self.function:
+        if isinstance(self.function, ChannelFunction) and other.function != self.function:
             result.append(f"Function: {other.function.name} -> {self.function.name}")
         if isinstance(self.denominator, ChannelDenominator) and other.denominator != self.denominator:
             result.append(f"Denominator: {other.denominator.name} -> {self.denominator.name}")

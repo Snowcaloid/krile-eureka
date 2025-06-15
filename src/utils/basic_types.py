@@ -2,7 +2,7 @@
 from enum import Enum
 from discord import ButtonStyle
 from discord.app_commands import Choice
-from typing import Any, Dict, List, Set, Type
+from typing import Any, Dict, List, Type
 
 from utils.functions import filter_choices_by_current
 
@@ -29,7 +29,7 @@ def fix_enum(enum_type: Type[Enum], value: Any):
         return enum_type(value) if value is not None and value is not Unassigned else None
 
 
-class GuildChannelFunction(Enum):
+class ChannelFunction(Enum):
     NONE = ''
     PASSCODES = 'passcodes'
     SUPPORT_PASSCODES = 'support_passcodes'
@@ -47,35 +47,35 @@ class ChannelDenominator(Enum):
     EUREKA_INSTANCE = 'eureka_instance'
     NOTORIOUS_MONSTER = 'notorious_monster'
 
-    def functions(self) -> List[GuildChannelFunction]:
+    def functions(self) -> List[ChannelFunction]:
         """Return a list of GuildChannelFunction that this ChannelDenominator is used for."""
         match self:
-            case ChannelDenominator.NONE: return [GuildChannelFunction.NONE]
+            case ChannelDenominator.NONE: return [ChannelFunction.NONE]
             case ChannelDenominator.EVENT_TYPE: return [
-                GuildChannelFunction.PASSCODES,
-                GuildChannelFunction.SUPPORT_PASSCODES,
-                GuildChannelFunction.RECRUITMENT,
-                GuildChannelFunction.EVENT_NOTIFICATION
+                ChannelFunction.PASSCODES,
+                ChannelFunction.SUPPORT_PASSCODES,
+                ChannelFunction.RECRUITMENT,
+                ChannelFunction.EVENT_NOTIFICATION
             ]
             case ChannelDenominator.EVENT_CATEGORY: return [
-                GuildChannelFunction.PASSCODES,
-                GuildChannelFunction.SUPPORT_PASSCODES,
-                GuildChannelFunction.RECRUITMENT,
-                GuildChannelFunction.EVENT_NOTIFICATION
+                ChannelFunction.PASSCODES,
+                ChannelFunction.SUPPORT_PASSCODES,
+                ChannelFunction.RECRUITMENT,
+                ChannelFunction.EVENT_NOTIFICATION
             ]
             case ChannelDenominator.EUREKA_INSTANCE: return [
-                GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION
+                ChannelFunction.EUREKA_TRACKER_NOTIFICATION
             ]
             case ChannelDenominator.NOTORIOUS_MONSTER: return [
-                GuildChannelFunction.NM_PINGS
+                ChannelFunction.NM_PINGS
             ]
 
-    def is_allowed_function(self, function: GuildChannelFunction) -> bool:
+    def is_allowed_function(self, function: ChannelFunction) -> bool:
         """Check if the function is allowed for this ChannelDenominator."""
         return function in self.functions()
 
 
-class GuildMessageFunction(Enum):
+class MessageFunction(Enum):
     NONE = ''
     SCHEDULE = 'schedule'
     RECRUITMENT_POST = 'recruitment_post'
@@ -90,6 +90,7 @@ class GuildMessageFunction(Enum):
             Choice(name='Eureka weather posts', value=cls.WEATHER_POST.value),
             Choice(name='Eureka info', value=cls.EUREKA_INSTANCE_INFO.value)
         ]
+
 
 class RoleFunction(Enum):
     DEVELOPER = 'dev'
@@ -115,11 +116,13 @@ class RoleFunction(Enum):
         ]
         return filter_choices_by_current(choices, current)
 
+
 class RoleDenominator(Enum):
     EVENT_TYPE = 'event_type'
     EVENT_CATEGORY = 'event_category'
     NOTORIOUS_MONSTER = 'notorious_monster'
     EUREKA_INSTANCE = 'eureka_instance'
+
 
 class TaskExecutionType(Enum):
     NONE = ''

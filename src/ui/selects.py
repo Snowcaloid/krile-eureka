@@ -8,7 +8,7 @@ from models.roles import RoleStruct
 from data_providers.roles import RolesProvider
 from data_writers.channel_assignments import ChannelAssignmentsWriter
 from utils.basic_types import EurekaInstance, RoleFunction
-from utils.basic_types import GuildChannelFunction
+from utils.basic_types import ChannelFunction
 from ui.modals import EurekaTrackerModal
 from ui.views import TemporaryView
 from utils.logger import guild_log_message
@@ -77,7 +77,7 @@ class EurekaTrackerZoneSelect(Select):
             await guild_log_message(interaction.guild_id, f'{interaction.user.display_name} has added a tracker for {zone.name} - `{url}`.')
             channel_struct = ChannelAssignmentsWriter(interaction.guild_id).find(ChannelAssignmentStruct(
                 guild_id=interaction.guild_id,
-                function=GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION,
+                function=ChannelFunction.EUREKA_TRACKER_NOTIFICATION,
                 event_type=str(zone.value)
             ))
             if channel_struct:

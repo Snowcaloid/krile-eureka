@@ -9,15 +9,15 @@ from discord import Message
 from discord.ui import View
 
 
-from typing import List, Self, override
+from typing import List, Optional, Self, override
 from uuid import uuid4
 
 
-class ButtonMatrix(list[DiscordButton]):
+class ButtonMatrix(list[list[DiscordButton]]):
     def __init__(self, buttons: List[DiscordButton]):
-        super().__init__([[None] * 5 for _ in range(5)]) # 5x5 matrix
+        super().__init__([[None] * 5 for _ in range(5)]) # 5x5 matrix #type: ignore
         for button in buttons:
-            self[button.row][button.index] = button
+            self[button.struct.row][button.struct.index] = button
 
     def __len__(self):
         return sum(1 for elem in self if elem is not None)
@@ -30,7 +30,7 @@ class ButtonMatrix(list[DiscordButton]):
     def index(self, value: DiscordButton) -> int:
         for button in self:
             if button == value:
-                return button.row * 5 + button.index
+                return button.struct.row * 5 + button.struct.index
         return -1
 
     @classmethod

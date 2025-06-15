@@ -6,7 +6,7 @@ from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
 from data_providers.channel_assignments import ChannelAssignmentProvider
 from data_providers.roles import RolesProvider
-from utils.basic_types import GuildChannelFunction, RoleFunction, NotoriousMonster
+from utils.basic_types import ChannelFunction, RoleFunction, NotoriousMonster
 from utils.basic_types import NOTORIOUS_MONSTERS
 from utils.logger import guild_log_message
 from utils.functions import default_defer, default_response
@@ -31,7 +31,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
         channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=interaction.guild_id,
             event_type=notorious_monster.value,
-            function=GuildChannelFunction.NM_PINGS
+            function=ChannelFunction.NM_PINGS
         ))
         if channel_struct:
             channel = self._bot._client.get_channel(channel_struct.channel_id)

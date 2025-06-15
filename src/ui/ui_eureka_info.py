@@ -2,7 +2,7 @@ from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
 from models.button.discord_button import DiscordButton
 from utils.basic_types import EurekaInstance
-from utils.basic_types import GuildMessageFunction
+from utils.basic_types import MessageFunction
 from data.guilds.guild_messages import GuildMessages
 from ui.base_button import save_buttons
 from utils.basic_types import ButtonType
@@ -25,7 +25,7 @@ class UIEurekaInfoPost(Bindable):
     def eureka_info(self) -> EurekaInfo: ...
 
     async def create(self, guild_id: int) -> Message:
-        message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INSTANCE_INFO)
+        message_data = GuildMessages(guild_id).get(MessageFunction.EUREKA_INSTANCE_INFO)
         if message_data is None: return
         channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
         if channel is None: return
@@ -49,7 +49,7 @@ class UIEurekaInfoPost(Bindable):
         return result
 
     async def rebuild(self, guild_id: int) -> Message:
-        message_data = GuildMessages(guild_id).get(GuildMessageFunction.EUREKA_INSTANCE_INFO)
+        message_data = GuildMessages(guild_id).get(MessageFunction.EUREKA_INSTANCE_INFO)
         if message_data is None: return
         channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
         if channel is None: return
@@ -86,7 +86,7 @@ class UIEurekaInfoPost(Bindable):
 
     async def remove(self, guild_id: int) -> None:
         messages = GuildMessages(guild_id)
-        message_data = messages.get(GuildMessageFunction.EUREKA_INSTANCE_INFO)
+        message_data = messages.get(MessageFunction.EUREKA_INSTANCE_INFO)
         if message_data is None: return
         channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
         if channel is None: return

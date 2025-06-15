@@ -6,7 +6,7 @@ from data.events.event_category import EventCategory
 from data_providers.roles import RolesProvider
 from models.roles import RoleStruct
 from models.permissions import (NO_ACCESS, PermissionLevel, ModulePermissions, EventAdministrationPermissions, Permissions, FULL_ACCESS, ADMIN_ACCESS, DEV_ACCESS)
-from utils.basic_types import GuildID, GuildChannelFunction
+from utils.basic_types import GuildID, ChannelFunction
 
 class PermissionProvider(Bindable):
     from bot import Bot
@@ -30,14 +30,14 @@ class PermissionProvider(Bindable):
     def _is_developer(self, guild_id: GuildID, user: Member) -> bool:
         role = RolesProvider().find(RoleStruct(
             guild_id=guild_id,
-            function=GuildChannelFunction.DEVELOPER
+            function=ChannelFunction.DEVELOPER
         ))
         return not user.get_role(role.role_id) is None
 
     def _is_admin(self, guild_id: GuildID, user: Member) -> bool:
         role = RolesProvider().find(RoleStruct(
             guild_id=guild_id,
-            function=GuildChannelFunction.ADMIN
+            function=ChannelFunction.ADMIN
         ))
         return not user.get_role(role.role_id) is None
 
@@ -47,7 +47,7 @@ class PermissionProvider(Bindable):
     def _is_raid_leader(self, guild_id: GuildID, user: Member) -> bool:
         for role in RolesProvider().find_all(RoleStruct(
             guild_id=guild_id,
-            function=GuildChannelFunction.RAID_LEADER
+            function=ChannelFunction.RAID_LEADER
         )):
             if user.get_role(role.role_id) is not None:
                 return True

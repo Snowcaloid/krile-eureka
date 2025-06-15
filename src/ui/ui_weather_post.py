@@ -1,7 +1,7 @@
 from datetime import datetime
 from centralized_data import Bindable
 from discord import Embed, Message, TextChannel
-from utils.basic_types import GuildMessageFunction
+from utils.basic_types import MessageFunction
 from data.guilds.guild_messages import GuildMessages
 from data.weather.weather import EurekaWeathers, EurekaZones, current_weather, next_day, next_night, next_weather, to_eorzea_time, weather_emoji
 from utils.functions import DiscordTimestampType, get_discord_timestamp
@@ -18,7 +18,7 @@ class UIWeatherPost(Bindable):
 
     async def rebuild(self, guild_id: int, message: Message = None) -> Message:
         if message is None:
-            message_data = GuildMessages(guild_id).get(GuildMessageFunction.WEATHER_POST)
+            message_data = GuildMessages(guild_id).get(MessageFunction.WEATHER_POST)
             if message_data is None: return
             channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
             if channel is None: return
@@ -55,7 +55,7 @@ class UIWeatherPost(Bindable):
 
     async def remove(self, guild_id: int) -> None:
         messages = GuildMessages(guild_id)
-        message_data = messages.get(GuildMessageFunction.WEATHER_POST)
+        message_data = messages.get(MessageFunction.WEATHER_POST)
         if message_data is None: return
         channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
         if channel is None: return

@@ -12,7 +12,7 @@ from models.channel_assignment import ChannelAssignmentStruct
 from data_writers.roles import RolesWriter
 from utils.basic_types import EurekaInstance, RoleFunction, NotoriousMonster
 from utils.autocomplete import AutoComplete
-from utils.basic_types import GuildChannelFunction, GuildMessageFunction, GuildChannelFunction
+from utils.basic_types import ChannelFunction, MessageFunction, ChannelFunction
 from data.guilds.guild_messages import GuildMessages
 from utils.functions import default_defer
 from data.validation.permission_validator import PermissionValidator
@@ -44,7 +44,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def create_schedule_post(self, interaction: Interaction, channel: TextChannel):
         await default_defer(interaction)
         messages = GuildMessages(interaction.guild_id)
-        message_data = messages.get(GuildMessageFunction.SCHEDULE)
+        message_data = messages.get(MessageFunction.SCHEDULE)
         if message_data:
             old_channel = self.bot._client.get_channel(message_data.channel_id)
             if old_channel:
@@ -53,7 +53,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                     await old_message.delete()
             messages.remove(message_data.message_id) # TODO: This routine is used multiple times. It could be moved somewhere else
         message = await channel.send(embed=Embed(description='...'))
-        messages.add(message.id, channel.id, GuildMessageFunction.SCHEDULE)
+        messages.add(message.id, channel.id, MessageFunction.SCHEDULE)
         await self.ui_schedule.rebuild(interaction.guild_id)
         await feedback_and_log(interaction, f'created **schedule post** in {channel.jump_url}')
 
@@ -62,12 +62,12 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     async def create_eureka_info_post(self, interaction: Interaction, channel: TextChannel):
         await default_defer(interaction)
         messages = GuildMessages(interaction.guild_id)
-        message_data = messages.get(GuildMessageFunction.EUREKA_INSTANCE_INFO)
+        message_data = messages.get(MessageFunction.EUREKA_INSTANCE_INFO)
         if message_data:
             await self.ui_eureka_info.remove(interaction.guild_id)
             messages.remove(message_data.message_id)
         message = await channel.send(embed=Embed(description='_ _'))
-        messages.add(message.id, channel.id, GuildMessageFunction.EUREKA_INSTANCE_INFO)
+        messages.add(message.id, channel.id, MessageFunction.EUREKA_INSTANCE_INFO)
         await self.ui_eureka_info.create(interaction.guild_id)
         await feedback_and_log(interaction, f'created a **Persistent Eureka Info Post** in {channel.jump_url}') #TODO: undefined method?
 
@@ -82,7 +82,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
             ChannelAssignmentStruct(
                 guild_id=interaction.guild_id,
                 channel_id=channel.id,
-                function=GuildChannelFunction(function)
+                function=ChannelFunction(function)
             ),
             event_category,
             discord_context(interaction)
@@ -100,7 +100,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
                 guild_id=interaction.guild_id,
                 channel_id=channel.id,
                 event_type=event_type,
-                function=GuildChannelFunction(function)
+                function=ChannelFunction(function)
             ),
             discord_context(interaction)
         )

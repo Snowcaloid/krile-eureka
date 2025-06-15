@@ -5,7 +5,7 @@ from models.channel_assignment import ChannelAssignmentStruct
 from models.roles import RoleStruct
 from data_providers.channel_assignments import ChannelAssignmentProvider
 from data_providers.roles import RolesProvider
-from utils.basic_types import GuildChannelFunction, RoleFunction, TaskExecutionType
+from utils.basic_types import ChannelFunction, RoleFunction, TaskExecutionType
 from data.events.schedule import Schedule
 from tasks.task import TaskTemplate
 
@@ -31,7 +31,7 @@ class Task_PostSupportPasscode(TaskTemplate):
             channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
                 guild_id=obj["guild"],
                 event_type=event.type,
-                function=GuildChannelFunction.SUPPORT_PASSCODES
+                function=ChannelFunction.SUPPORT_PASSCODES
             ))
             if channel_struct is None: return
             guild = self._bot._client.get_guild(obj["guild"])

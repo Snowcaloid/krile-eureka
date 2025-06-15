@@ -3,13 +3,13 @@ from typing import List
 from centralized_data import GlobalCollection
 
 from data.db.sql import SQL, Record
-from utils.basic_types import GuildID, GuildMessageFunction
+from utils.basic_types import GuildID, MessageFunction
 
 class GuildMessage:
     id: int
     channel_id: int
     message_id: int
-    function: GuildMessageFunction
+    function: MessageFunction
     event_type: str
 
     def load(self, id: int) -> None:
@@ -20,7 +20,7 @@ class GuildMessage:
             self.channel_id = record['channel_id']
             self.message_id = record['message_id']
             self.event_type = record['event_type']
-            self.function = GuildMessageFunction(record['function'])
+            self.function = MessageFunction(record['function'])
 
 class GuildMessages(GlobalCollection[GuildID]):
     _list: List[GuildMessage]
@@ -40,7 +40,7 @@ class GuildMessages(GlobalCollection[GuildID]):
             channel.load(record['id'])
             self._list.append(channel)
 
-    def get(self, function: GuildMessageFunction = GuildMessageFunction.NONE, event_type: str = '') -> GuildMessage:
+    def get(self, function: MessageFunction = MessageFunction.NONE, event_type: str = '') -> GuildMessage:
         for message_data in self._list:
             if message_data.function == function and message_data.event_type == event_type:
                 return message_data
@@ -52,7 +52,7 @@ class GuildMessages(GlobalCollection[GuildID]):
                 return message_data
         return None
 
-    def add(self, message_id: int, channel_id: int, function: GuildMessageFunction, event_type: str = '') -> None:
+    def add(self, message_id: int, channel_id: int, function: MessageFunction, event_type: str = '') -> None:
         SQL('guild_messages').insert(Record(guild_id=self.key, channel_id=channel_id, function=function.value, event_type=event_type, message_id=message_id))
         self.load()
 

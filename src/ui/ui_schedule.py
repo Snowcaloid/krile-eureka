@@ -4,7 +4,7 @@ from centralized_data import Bindable
 from discord import TextChannel
 from data.events.event import Event
 from data.cache.message_cache import MessageCache
-from utils.basic_types import GuildMessageFunction
+from utils.basic_types import MessageFunction
 from data.events.schedule import Schedule
 from data.guilds.guild_messages import GuildMessages
 
@@ -37,7 +37,7 @@ class UISchedule(Bindable):
         return result
 
     async def rebuild(self, guild_id: int) -> None:
-        message_data = GuildMessages(guild_id).get(GuildMessageFunction.SCHEDULE)
+        message_data = GuildMessages(guild_id).get(MessageFunction.SCHEDULE)
         if message_data is None: return
         channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
         if channel is None: return

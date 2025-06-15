@@ -13,15 +13,15 @@ class RoleSelectionButton(ButtonTemplate):
     def _message_cache(self) -> MessageCache: return ...
 
     def button_type(self) -> ButtonType: return ButtonType.ROLE_SELECTION
-    
+
 
     async def callback(self, interaction: Interaction, button: DiscordButton):
         await default_defer(interaction)
         if isinstance(interaction.user, Member):
-            role = interaction.guild.get_role(button.button_struct.role_id) 
+            role = interaction.guild.get_role(button.struct.role_id)
             if role is None:
-                message = await self._message_cache.get(button.button_struct.message_id,
-                                                        interaction.guild.get_channel(button.button_struct.channel_id))
+                message = await self._message_cache.get(button.struct.message_id,
+                                                        interaction.guild.get_channel(button.struct.channel_id))
                 GuildLogger(interaction.guild_id).respond(interaction, f'tried using button <{button.label}> in message <{message}> but role is not loaded. Contact your administrators.')
             elif interaction.user.get_role(role.id):
                 await interaction.user.remove_roles(role)

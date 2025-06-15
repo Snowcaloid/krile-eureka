@@ -7,7 +7,7 @@ from typing import List, Tuple, Type
 from data.db.sql import SQL, Record, Transaction
 from data.events.event_template import EventTemplate
 from data.events.event_templates import EventTemplates
-from utils.basic_types import GuildChannelFunction
+from utils.basic_types import ChannelFunction
 from utils.basic_types import TaskExecutionType
 
 from utils.functions import DiscordTimestampType, generate_passcode, get_discord_timestamp, user_display_name
@@ -310,7 +310,7 @@ class Event:
     def create_tasks(self) -> None:
         self._tasks.add_task(self.time, TaskExecutionType.MARK_RUN_AS_FINISHED, {"id": self.id, "guild": self.guild_id})
         if self.use_recruitment_posts and self.delete_recruitment_posts:
-            channel_data = GuildChannels(self.guild_id).get(GuildChannelFunction.RECRUITMENT, self.type)
+            channel_data = GuildChannels(self.guild_id).get(ChannelFunction.RECRUITMENT, self.type)
             if channel_data:
                 self._tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_RECRUITMENT_POST, {"guild": self.guild_id, "message_id": self.recruitment_post})
         if not self.auto_passcode: return

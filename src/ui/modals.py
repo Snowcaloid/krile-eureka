@@ -8,7 +8,7 @@ from models.roles import RoleStruct
 from data_providers.channel_assignments import ChannelAssignmentProvider
 from data_providers.roles import RolesProvider
 from utils.basic_types import EurekaInstance, RoleFunction
-from utils.basic_types import GuildChannelFunction
+from utils.basic_types import ChannelFunction
 from ui.views import TemporaryView
 from utils.logger import guild_log_message
 
@@ -52,7 +52,7 @@ class EurekaTrackerModal(Modal):
         channel_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
             guild_id=interaction.guild_id,
             event_type=str(self.zone.value),
-            function=GuildChannelFunction.EUREKA_TRACKER_NOTIFICATION
+            function=ChannelFunction.EUREKA_TRACKER_NOTIFICATION
         ))
         if channel_struct:
             channel = interaction.guild.get_channel(channel_struct.channel_id)

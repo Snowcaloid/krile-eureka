@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import override
 from discord import Embed, TextChannel
 from models.channel_assignment import ChannelAssignmentStruct
-from utils.basic_types import GuildChannelFunction, RoleFunction, TaskExecutionType
+from utils.basic_types import ChannelFunction, RoleFunction, TaskExecutionType
 from tasks.task import TaskTemplate
 
 
@@ -32,7 +32,7 @@ class Task_PostMainPasscode(TaskTemplate):
             channel_struct = ChannelAssignmentProvider().find(
                 ChannelAssignmentStruct(
                     guild_id=obj["guild"],
-                    function=GuildChannelFunction.PASSCODES,
+                    function=ChannelFunction.PASSCODES,
                     event_type=event.type))
             if channel_struct is None: return
             channel = self._bot._client.get_channel(channel_struct.channel_id)

@@ -8,7 +8,7 @@ from discord.ui import Button
 
 
 class DiscordButton(Button):
-    button_struct: ButtonStruct
+    struct: ButtonStruct
     template: ButtonTemplate
 
     @ButtonTemplates.bind
@@ -19,13 +19,12 @@ class DiscordButton(Button):
                  *,
                  disabled: bool = False,
                  ):
-        self.button_struct = button_struct
+        self.struct = button_struct
         self.template: ButtonTemplate = self.button_templates.get(button_struct.button_type)
         super().__init__(style=button_struct.style,label=button_struct.label,disabled=disabled,custom_id=button_struct.button_type,
                          row=button_struct.row,emoji=button_struct.emoji)
 
     @override
     async def callback(self, interaction: Interaction):
-        if self.button_struct.message_id is None or interaction.message.id == self.button_struct.message_id:
+        if self.struct.message_id is None or interaction.message.id == self.struct.message_id:
             await self.template.callback(interaction, self)
-    

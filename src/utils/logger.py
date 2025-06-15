@@ -6,7 +6,7 @@ from typing import Optional
 from centralized_data import GlobalCollection
 from discord import Guild, Interaction, TextChannel
 from models.channel_assignment import ChannelAssignmentStruct
-from utils.basic_types import GuildID, GuildChannelFunction
+from utils.basic_types import GuildID, ChannelFunction
 from utils.functions import default_response, get_discord_timestamp
 
 class BaseLogger(ABC):
@@ -54,7 +54,7 @@ async def _guild_respond(interaction: Interaction, message: str, guild: Guild):
 
     channel = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
         guild_id=interaction.guild_id,
-        function=GuildChannelFunction.LOGGING
+        function=ChannelFunction.LOGGING
     ))
     if channel is None: return
     channel = guild.get_channel(channel.channel_id)
