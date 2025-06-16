@@ -6,7 +6,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from utils.basic_types import TaskExecutionType
-from data.db.sql import SQL, Record
+from data.db.sql import _SQL, Record
 from tasks.task import Task, TaskTemplate
 from centralized_data import PythonAssetLoader
 
@@ -27,7 +27,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
 
     def load(self):
         self._db_tasks.clear()
-        for record in SQL('tasks').select(fields=['id'],
+        for record in _SQL('tasks').select(fields=['id'],
                                           all=True,
                                           sort_fields=['execution_time']):
             task = Task(self.loaded_assets)
@@ -49,7 +49,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
             self.sort_runtime_tasks_by_time()
             return task.signature
         else:
-            SQL('tasks').insert(Record(
+            _SQL('tasks').insert(Record(
                 execution_time=time,
                 task_type=task_type.value,
                 data=dumps(data),
@@ -99,14 +99,14 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
             if task in self._runtime_tasks:
                 self._runtime_tasks.remove(task)
         else:
-            SQL('tasks').delete(f'id={task.id}')
+            _SQL('tasks').delete(f'id={task.id}')
             self.load()
 
     def remove_all(self, type: TaskExecutionType):
         if self.task_template(type).runtime_only():
             self._runtime_tasks = list(filter(lambda task: task.type != type, self._runtime_tasks))
         else:
-            SQL('tasks').delete(f'task_type={type.value}')
+            _SQL('tasks').delete(f'task_type={type.value}')
             self.load()
 
     def remove_task_by_data(self, type: TaskExecutionType, data: dict):
@@ -116,7 +116,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
         if self.task_template(type).runtime_only():
             self._runtime_tasks = list(filter(lambda task: task.type != type and task.data == data, self._runtime_tasks))
         else:
-            SQL('tasks').delete(f'task_type={type.value} and data=\'{dumps(data)}\'')
+            _SQL('tasks').delete(f'task_type={type.value} and data=\'{dumps(data)}\'')
             self.load()
 
     @classmethod

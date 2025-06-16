@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import fields
+from datetime import datetime
 from enum import Enum
 from typing import Any, Self
 
@@ -78,4 +79,6 @@ class BaseStruct(ABC):
             return value.name
         if isinstance(value, int) and value > 1000000000: # weak ass javascript
             return str(value)
+        if isinstance(value, datetime):
+            return value.isoformat()
         return value

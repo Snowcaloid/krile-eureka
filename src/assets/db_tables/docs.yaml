@@ -5,5 +5,9 @@ columns:
   unique: true
 - name: guild_id
   type: BIGINT
+- name: guild_name
+  type: VARCHAR(100)
+- name: name
+  type: VARCHAR(50)
 - name: data
   type: JSON

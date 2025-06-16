@@ -4,7 +4,7 @@ from discord import Interaction, Member
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
 from typing import List, Tuple, Type
-from data.db.sql import SQL, Record, Transaction
+from data.db.sql import _SQL, Record, Transaction
 from models.event_template.data import EventTemplateData
 from data.events.event_templates import EventTemplates
 from utils.basic_types import ChannelFunction
@@ -19,7 +19,7 @@ class EventUserData:
 
     def load(self, event_id: int) -> None:
         self.event_id = event_id
-        record = SQL('events').select(fields=['raid_leader', 'pl1', 'pl2', 'pl3',
+        record = _SQL('events').select(fields=['raid_leader', 'pl1', 'pl2', 'pl3',
                                               'pl4', 'pl5', 'pl6', 'pls'],
                                       where=f'id={event_id}')
         if record:
@@ -35,7 +35,7 @@ class EventUserData:
     @raid_leader.setter
     def raid_leader(self, value: int) -> None:
         if value == self.raid_leader: return
-        SQL('events').update(Record(raid_leader=value), f'id={self.event_id}')
+        _SQL('events').update(Record(raid_leader=value), f'id={self.event_id}')
         self.load(self.event_id)
 
     @indexedproperty
@@ -46,7 +46,7 @@ class EventUserData:
     def party_leaders(self, index: int, value: int) -> None:
         record = Record()
         record[PL_FIELDS[index]] = value
-        SQL('events').update(record, f'id={self.event_id}')
+        _SQL('events').update(record, f'id={self.event_id}')
         self.load(self.event_id)
 
 PL_FIELDS = ['pl1', 'pl2', 'pl3', 'pl4', 'pl5', 'pl6', 'pls']
@@ -75,7 +75,7 @@ class Event:
         self.users = EventUserData()
 
     def load(self, id: int) -> None:
-        record = SQL('events').select(fields=['event_type', 'pl_post_id', 'timestamp',
+        record = _SQL('events').select(fields=['event_type', 'pl_post_id', 'timestamp',
                                               'description', 'pass_main', 'pass_supp',
                                               'guild_id', 'use_support'],
                                       where=f'id={id}')
@@ -144,7 +144,7 @@ class Event:
     @description.setter
     def description(self, value: str) -> None:
         if value == self._description: return
-        SQL('events').update(Record(description=value), f'id={self.id}')
+        _SQL('events').update(Record(description=value), f'id={self.id}')
         self.load(self.id)
 
     @property
@@ -158,7 +158,7 @@ class Event:
     @time.setter
     def time(self, value: datetime) -> None:
         if value == self.auto_passcode: return
-        SQL('events').update(Record(timestamp=value), f'id={self.id}')
+        _SQL('events').update(Record(timestamp=value), f'id={self.id}')
         self.load(self.id)
 
     @property
@@ -169,11 +169,11 @@ class Event:
     def auto_passcode(self, value: bool) -> None:
         if value == self.auto_passcode: return
         if value:
-            SQL('events').update(Record(pass_main=generate_passcode(),
+            _SQL('events').update(Record(pass_main=generate_passcode(),
                                         pass_supp=generate_passcode(False)),
                                  f'id={self.id}')
         else:
-            SQL('events').update(Record(pass_main=0, pass_supp=0),
+            _SQL('events').update(Record(pass_main=0, pass_supp=0),
                                  f'id={self.id}')
         self.load(self.id)
 
@@ -195,7 +195,7 @@ class Event:
     @use_support.setter
     def use_support(self, value: bool) -> None:
         if (value == self._use_support) or not self.template.use_support(): return
-        SQL('events').update(Record(use_support=value), f'id={self.id}')
+        _SQL('events').update(Record(use_support=value), f'id={self.id}')
         self.load(self.id)
 
     @property
@@ -226,7 +226,7 @@ class Event:
     @type.setter
     def type(self, value: str):
         if value == self.type: return
-        SQL('events').update(Record(event_type=value), f'id={self.id}')
+        _SQL('events').update(Record(event_type=value), f'id={self.id}')
         self.load(self.id)
 
     @property
@@ -304,7 +304,7 @@ class Event:
 
     @recruitment_post.setter
     def recruitment_post(self, value: int) -> None:
-        SQL('events').update(Record(pl_post_id=value), f'id={self.id}')
+        _SQL('events').update(Record(pl_post_id=value), f'id={self.id}')
         self.load(self.id)
 
     def create_tasks(self) -> None:

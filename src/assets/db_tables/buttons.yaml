@@ -24,7 +24,7 @@ columns:
   type: INTEGER
 - name: role
   type: BIGINT
-- name: pl
+- name: party
   type: INTEGER
 - name: event_id
   type: INTEGER

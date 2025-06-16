@@ -1,4 +1,4 @@
-from data.db.sql import SQL, Batch
+from data.db.sql import _SQL, ReadOnlyConnection
 from models.button import ButtonStruct
 from models.button.discord_button import DiscordButton
 from data_providers.buttons import ButtonsProvider
@@ -36,10 +36,10 @@ class ButtonMatrix(list[list[DiscordButton]]):
     @classmethod
     def from_message(cls, message: Message) -> Self:
         result = []
-        with Batch():
-            for record in SQL('buttons').select(fields=['button_id'],
-                                                where=f'message_id={message.id}',
-                                                all=True):
+        with ReadOnlyConnection() as connection: #TODO: move this to the provider without double db access
+            for record in connection.sql('buttons').select(fields=['button_id'],
+                                                           where=f'message_id={message.id}',
+                                                           all=True):
                 discord_button = DiscordButton(
                     ButtonsProvider().find(ButtonStruct(button_id=record['button_id']))
                 )

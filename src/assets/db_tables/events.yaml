@@ -3,6 +3,7 @@ columns:
 - name: id
   type: SERIAL
   primary_key: true
+  unique: true
 - name: guild_id
   type: BIGINT
 - name: guild_name
@@ -11,19 +12,19 @@ columns:
   type: VARCHAR(30)
 - name: timestamp
   type: TIMESTAMP
-- name: description
+- name: custom_description
   type: VARCHAR(100)
 - name: raid_leader
   type: BIGINT
 - name: raid_leader_name
   type: VARCHAR(100)
-- name: use_support
+- name: disable_support
   type: BOOLEAN
-- name: pass_main
+- name: passcode_main
   type: INTEGER
-- name: pass_supp
+- name: passcode_support
   type: INTEGER
-- name: pl_post_id
+- name: recruitment_post_id
   type: BIGINT
 - name: finished
   type: BOOLEAN

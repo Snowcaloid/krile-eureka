@@ -1,6 +1,8 @@
+from __future__ import annotations
+from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Self, Tuple, TypeVar, Union, overload
+from typing import Any, Callable, Dict, List, Optional, Self, Tuple, TypeVar, Union, overload, override
 
 from data.db.database import Database, PgColumnValue, pg_timestamp
 from utils.basic_types import Unassigned
@@ -9,18 +11,8 @@ from utils.functions import is_null_or_unassigned
 SQL_ALL_FIELDS = ['*']
 
 class Record(Dict[str, PgColumnValue]):
-    @Database.bind
-    def _database(self) -> Database: ...
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._database.connect()
-
-    def __enter__(self) -> Self:
-        return self
-
-    def __del__(self):
-        self._database.disconnect()
 
     def __getitem__(self, key: str) -> Any:
         if super().__getitem__(key) is None: return Unassigned
@@ -34,43 +26,56 @@ class Record(Dict[str, PgColumnValue]):
         elif value is Unassigned: super().__setitem__(key, None)
         else: super().__setitem__(key, value)
 
-class Transaction(Record):
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._database.disconnect(exc_type is None)
+class _BasicConnection(ABC):
+    def __init__(self):
+        self._database = Database()
 
-class Batch(Record):
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._database.disconnect()
-
-
-T = TypeVar('T', bound=Callable[..., Any])
-
-
-class Records(List[Record]):
-    @Database.bind
-    def _database(self) -> Database: ...
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __enter__(self) -> Self:
         self._database.connect()
+        return self
 
-    def __del__(self):
-        self._database.disconnect()
+    @abstractmethod
+    def __exit__(self, exc_type, exc_value, traceback) -> None: ...
+
+    def sql(self, table_name: str) -> _SQL:
+        """Create a SQL object for the given table name."""
+        return _SQL(table_name, self)
+
+    def custom_sql(self, statement: str) -> List[PgColumnValue]:
+        """Execute a custom SQL statement."""
+        return self._database.query(statement)
+
+class Transaction(_BasicConnection):
+    @override
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self._database.disconnect(exc_type is None)
+        if exc_type is not None: raise
+
+class ReadOnlyConnection(_BasicConnection):
+    @override
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self._database.disconnect(False)
+        if exc_type is not None: raise
 
 
-class SQL:
-    def __init__(self, table_name: str):
+class Records(List[Record]): ...
+
+
+class _SQL:
+    def __init__(self, table_name: str, connection: _BasicConnection):
         self.table_name = table_name
+        self._connection = connection
 
     def _get_all_fields(self) -> List[str]:
-        records = self.__class__('information_schema.columns').select(
-            fields=['column_name'],
-            where=f'table_name = \'{self.table_name}\'',
-            all=True)
-        if not isinstance(records, Records):
-            raise Exception(f'Table {self.table_name} does not exist.')
+        with ReadOnlyConnection() as connection:
+            records = self.__class__('information_schema.columns', connection).select(
+                fields=['column_name'],
+                where=f'table_name = \'{self.table_name}\'',
+                all=True)
+            if not isinstance(records, Records):
+                raise Exception(f'Table {self.table_name} does not exist.')
 
-        return [str(record['column_name']) for record in records]
+            return [str(record['column_name']) for record in records]
 
     def _convert_to_sql(self, value: PgColumnValue) -> str:
         if isinstance(value, (int, bool)):
@@ -84,38 +89,46 @@ class SQL:
     def select(self, *,
                fields: List[str] = SQL_ALL_FIELDS,
                where: str = '',
+               filter: Optional[Record] = None,
                all: bool = True,
                sort_fields: List[str | Tuple[str, bool]] = [],
                group_by: List[str] = []) -> Records:
         if fields == SQL_ALL_FIELDS: fields = self._get_all_fields()
         if all is None: all = where == ''
         sql_statement = f'select {", ".join(fields)} from {self.table_name}'
-        if where: sql_statement += f' where {where}'
+        if filter is not None:
+            where = ' and '.join([
+                f'({field} is null or not {field})' # False filtering for booleans...
+                if isinstance(filter[field], bool) and filter[field] == False
+                else f'{field} = {self._convert_to_sql(filter[field])}'
+                for field in filter.keys()
+            ])
+        if where:
+            sql_statement += f' where {where}'
         if sort_fields:
             sort_fields = [(sort_field, True) if not isinstance(sort_field, tuple) else sort_field for sort_field in sort_fields]
             sql_statement += f' order by {", ".join([f"{sort[0]} {'asc' if sort[1] else 'desc'}" for sort in sort_fields])}'
         if group_by: sql_statement += ' group by ' + ', '.join(group_by)
         if not all: sql_statement += ' limit 1'
         records = Records()
-        with Batch() as batch:
-            for sql_record in batch._database.query(sql_statement):
-                if not isinstance(sql_record, list): continue
-                record = Record()
-                for i, field in enumerate(fields):
-                    record[field] = sql_record[i]
-                records.append(record)
-                if not all: break
+        for sql_record in self._connection.custom_sql(sql_statement):
+            if not isinstance(sql_record, list): continue
+            record = Record()
+            for i, field in enumerate(fields):
+                record[field] = sql_record[i]
+            records.append(record)
+            if not all: break
         return records
 
     def insert(self, record: Record, returning_field: str = '') -> PgColumnValue:
         fields = ', '.join(record.keys())
         values = ', '.join([self._convert_to_sql(value) for value in record.values()])
         returning = f' returning {returning_field}' if returning_field else ''
-        return record._database.query(f'insert into {self.table_name} ({fields}) values ({values}){returning}')
+        return self._connection.custom_sql(f'insert into {self.table_name} ({fields}) values ({values}){returning}')
 
     def update(self, record: Record, where: str) -> None:
         set_fields = ', '.join([f'{field} = {self._convert_to_sql(value)}' for field, value in record.items()])
-        record._database.query(f'update {self.table_name} set {set_fields} where {where}')
+        self._connection.custom_sql(f'update {self.table_name} set {set_fields} where {where}')
 
     @overload
     def delete(self, condition: str) -> None: ...
@@ -127,11 +140,11 @@ class SQL:
 
     def delete(self, condition: Union[str, Record]) -> None:
         if isinstance(condition, str):
-            Record()._database.query(f'delete from {self.table_name} where {condition}')
+            self._connection.custom_sql(f'delete from {self.table_name} where {condition}')
         elif isinstance(condition, Record):
             where = ' and '.join([f'{field} = {self._convert_to_sql(condition[field])}' for field in condition.keys()])
-            Record()._database.query(f'delete from {self.table_name} where {where}')
+            self._connection.custom_sql(f'delete from {self.table_name} where {where}')
         raise TypeError(f'Unsupported type for delete: {type(condition)}')
 
     def drop(self) -> None:
-        Record()._database.query(f'drop table if exists {self.table_name}')
+        self._connection.custom_sql(f'drop table if exists {self.table_name}')

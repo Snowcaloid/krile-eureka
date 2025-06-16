@@ -5,7 +5,7 @@ from typing import Literal, Optional
 from centralized_data import Singleton
 from discord.ext import tasks
 from discord import HTTPException, Member, Object, RawMessageDeleteEvent
-from discord.ext.commands import Bot, guild_only, Context, Greedy
+from discord.ext.commands import Bot as DiscordBot, guild_only, Context, Greedy
 
 # TODO: webserver - from api_server import ApiServer
 from ui.base_button import delete_buttons
@@ -13,7 +13,6 @@ from utils.basic_types import TaskExecutionType
 from bot import Bot
 from data.cache.message_cache import MessageCache
 from tasks import Tasks
-from utils.logger import guild_log_message
 
 from commands.admin import AdminCommands
 from commands.ba import BACommands
@@ -26,7 +25,7 @@ from commands.embed import EmbedCommands
 from commands.schedule import ScheduleCommands
 from commands.log import LogCommands
 
-async def setup_hook(client: Bot):
+async def setup_hook(client: DiscordBot):
     await client.add_cog(EmbedCommands())
     await client.add_cog(ScheduleCommands())
     await client.add_cog(LogCommands())
@@ -45,22 +44,14 @@ def _load_singleton(singleton: Singleton, initial: bool = False):
     if not initial: # Constructor of all my data classes calls load() anyway
         singleton.load()
 
-from data.events.schedule import Schedule
-from data_writers.channel_assignments import ChannelAssignmentsWriter
-from data.guilds.guild_messages import GuildMessages
 from ui.button_loader import ButtonLoader
-from data.eureka_info import EurekaInfo
 from ui.ui_schedule import UISchedule
 
-async def reload_hook(client: Bot, initial: bool):
+async def reload_hook(client: DiscordBot, initial: bool):
     ui_schedule = UISchedule()
     MessageCache().clear()
-    await ButtonLoader().load()
-    _load_singleton(EurekaInfo(), initial)
+    ButtonLoader().load()
     for guild in client.guilds:
-        _load_singleton(Schedule(guild.id), initial)
-        _load_singleton(ChannelAssignmentsWriter(guild.id), initial)
-        _load_singleton(GuildMessages(guild.id), initial)
         await ui_schedule.rebuild(guild.id)
 
     tasks = Tasks()

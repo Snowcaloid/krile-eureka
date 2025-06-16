@@ -2,7 +2,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from centralized_data import GlobalCollection
 from utils.basic_types import GuildID, TaskExecutionType
-from data.db.sql import SQL, Record
+from data.db.sql import _SQL, Record
 from data.events.event import Event
 
 from datetime import datetime
@@ -40,7 +40,7 @@ class Schedule(GlobalCollection[GuildID]):
     def load(self) -> None:
         self._list.clear()
         if self.key is None: return
-        for record in SQL('events').select(fields=['id'],
+        for record in _SQL('events').select(fields=['id'],
                                            where=f'guild_id = {self.key} and (not finished or finished is null) and (not canceled or canceled is null)',
                                            all=True):
             event = Event()
@@ -54,7 +54,7 @@ class Schedule(GlobalCollection[GuildID]):
         auto_passcode = event.pop("auto_passcode", None)
         pass_main = generate_passcode() if auto_passcode else 0
         pass_supp = generate_passcode(False) if auto_passcode else 0
-        id = SQL('events').insert(Record(
+        id = _SQL('events').insert(Record(
                 guild_id=self.key,
                 raid_leader=event.pop("raid_leader")["id"],
                 event_type=event.pop("type"),
@@ -80,12 +80,12 @@ class Schedule(GlobalCollection[GuildID]):
         return event
 
     def finish(self, event_id: int):
-        SQL('events').update(Record(finished=True), f'id={event_id}')
+        _SQL('events').update(Record(finished=True), f'id={event_id}')
         self.load()
 
     def cancel(self, event_id: int, interaction: InteractionLike) -> None:
         event = self.get(event_id)
-        SQL('events').update(Record(canceled=True), f'id={event_id}')
+        _SQL('events').update(Record(canceled=True), f'id={event_id}')
         self.load()
         self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_CANCEL,
                             { 'event': event, 'guild': self.key, 'interaction': interaction })

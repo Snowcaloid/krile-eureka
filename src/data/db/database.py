@@ -1,6 +1,4 @@
-from enum import Enum
 from typing import Any, List, Union
-from centralized_data import Bindable
 import psycopg2
 import os
 from datetime import datetime
@@ -15,7 +13,7 @@ def pg_timestamp(timestamp: datetime):
 PgColumnValue = Union[Any, str, int, bool, datetime, UNASSIGNED_TYPE]
 
 
-class Database(Bindable):
+class Database:
     """Runtime database access dict
 
     Properties
@@ -29,8 +27,7 @@ class Database(Bindable):
         Currently used cursor for the connection
     """
 
-    def constructor(self):
-        super().constructor()
+    def __init__(self):
         self._connection_counter: int = 0
         self._connection: Any = None
         self._cursor: Any = None

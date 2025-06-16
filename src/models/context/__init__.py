@@ -37,7 +37,7 @@ class ExecutionContext:
 
     def __enter__(self):
         if self._level > 0:
-            self._transaction_.__enter__()
+            self.transaction.__enter__()
 
         self._level += 1
         return self
@@ -45,7 +45,7 @@ class ExecutionContext:
     def __exit__(self, exc_type, exc_value, traceback):
         self._level -= 1
         if self._level <= 0:
-            self._transaction_.__exit__(exc_type, exc_value, traceback)
+            self.transaction.__exit__(exc_type, exc_value, traceback)
             self._level = 0
             if exc_type is not None:
                 self.log(f"FATAL - an error occured: {exc_value}")
@@ -61,7 +61,7 @@ class ExecutionContext:
         self.permissions.full_check(permissions)
 
     @property
-    def _transaction_(self) -> Transaction:
+    def transaction(self) -> Transaction:
         if self._transaction is None:
             self._transaction = Transaction()
         return self._transaction

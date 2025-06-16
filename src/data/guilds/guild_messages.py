@@ -2,7 +2,7 @@ from typing import List
 
 from centralized_data import GlobalCollection
 
-from data.db.sql import SQL, Record
+from data.db.sql import _SQL, Record
 from utils.basic_types import GuildID, MessageFunction
 
 class GuildMessage:
@@ -13,7 +13,7 @@ class GuildMessage:
     event_type: str
 
     def load(self, id: int) -> None:
-        record = SQL('guild_messages').select(fields=['channel_id', 'message_id', 'event_type', 'function'],
+        record = _SQL('guild_messages').select(fields=['channel_id', 'message_id', 'event_type', 'function'],
                                               where=f'id={id}')
         if record:
             self.id = id
@@ -33,7 +33,7 @@ class GuildMessages(GlobalCollection[GuildID]):
     def load(self) -> None:
         self._list.clear()
         if self.key is None: return
-        for record in SQL('guild_messages').select(fields=['id'],
+        for record in _SQL('guild_messages').select(fields=['id'],
                                                    where=f'guild_id={self.key}',
                                                    all=True):
             channel = GuildMessage()
@@ -53,9 +53,9 @@ class GuildMessages(GlobalCollection[GuildID]):
         return None
 
     def add(self, message_id: int, channel_id: int, function: MessageFunction, event_type: str = '') -> None:
-        SQL('guild_messages').insert(Record(guild_id=self.key, channel_id=channel_id, function=function.value, event_type=event_type, message_id=message_id))
+        _SQL('guild_messages').insert(Record(guild_id=self.key, channel_id=channel_id, function=function.value, event_type=event_type, message_id=message_id))
         self.load()
 
     def remove(self, message_id: int) -> None:
-        SQL('guild_messages').delete(f'guild_id={self.key} and message_id={message_id}')
+        _SQL('guild_messages').delete(f'guild_id={self.key} and message_id={message_id}')
         self.load()

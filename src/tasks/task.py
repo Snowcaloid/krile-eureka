@@ -3,7 +3,7 @@ from typing import Any, List
 from datetime import datetime
 
 from utils.basic_types import TaskExecutionType
-from data.db.sql import SQL
+from data.db.sql import _SQL
 from centralized_data import PythonAsset
 from abc import abstractmethod
 
@@ -44,7 +44,7 @@ class Task:
         self._task_templates = task_templates
 
     def load(self, id: int) -> None:
-        record = SQL('tasks').select(fields=['execution_time', 'data', 'task_type'],
+        record = _SQL('tasks').select(fields=['execution_time', 'data', 'task_type'],
                                      where=f'id={id}')
         if record:
             self.id = id

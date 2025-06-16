@@ -1,7 +1,6 @@
 
 from typing import override
 
-from data.db.sql import SQL
 from utils.basic_types import EventCategory
 from data_providers.event_templates import EventTemplateProvider
 from data_writers._base import BaseWriter
@@ -98,12 +97,12 @@ class EventTemplatesWriter(BaseWriter[EventTemplateStruct]):
             self._validate_input(context, struct, found_struct is not None, False)
             context.log('Syncing event template...')
             if found_struct:
-                SQL('event_templates').update(
+                context.transaction.sql('event_templates').update(
                     struct.to_record(),
                     where=f'guild_id={struct.guild_id} and event_type=\'{struct.event_type}\''
                 )
             else:
-                SQL('event_templates').insert(struct.to_record())
+                context.transaction.sql('event_templates').insert(struct.to_record())
             context.log(f'Event type {struct.event_type} synced successfully.')
 
     @override
@@ -112,5 +111,5 @@ class EventTemplatesWriter(BaseWriter[EventTemplateStruct]):
             context.log('Removing event template...')
             found_struct = EventTemplateProvider().find(struct)
             self._validate_input(context, struct, found_struct is not None, True)
-            SQL('event_templates').delete(struct.to_record())
+            context.transaction.sql('event_templates').delete(struct.to_record())
             context.log(f'Event type {struct.event_type} removed successfully.')

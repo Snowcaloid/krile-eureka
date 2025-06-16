@@ -1,16 +1,17 @@
 import asyncio
+from types import CoroutineType
 
 from centralized_data import Bindable
 from discord import Guild, Intents, Member, Role, TextChannel
 from discord.ext.commands import Bot as DiscordBot
-from typing import Any, Callable, Coroutine, Sequence
+from typing import Any, Callable, Sequence
 
 class Bot(Bindable):
     """General bot class."""
     class _InnerClient(DiscordBot):
         def __init__(self):
-            self.krile_setup_hook: Callable[[DiscordBot], Coroutine[None, None, None]]
-            self.krile_reload_hook: Callable[[DiscordBot, bool], Coroutine[None, None, None]]
+            self.krile_setup_hook: Callable[[DiscordBot], CoroutineType[Any, Any, None]]
+            self.krile_reload_hook: Callable[[DiscordBot, bool], CoroutineType[Any, Any, None]]
             intents = Intents.all()
             intents.message_content = True
             intents.emojis = True

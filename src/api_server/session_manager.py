@@ -4,7 +4,7 @@ from flask import request
 from flask_jwt_extended import JWTManager, create_access_token, current_user, get_jwt, verify_jwt_in_request
 from flask_jwt_extended.exceptions import UserClaimsVerificationError
 from api_server import ApiNamespace
-from data.db.sql import SQL, Record
+from data.db.sql import _SQL, Record
 from centralized_data import Bindable
 
 from typing import Any, Dict, List, override
@@ -30,7 +30,7 @@ class SessionManager(Bindable):
 
     def load(self) -> None:
         self._user_cache.clear()
-        for record in SQL('api_users').select(fields=['id', 'name', 'user_token', 'session_token']):
+        for record in _SQL('api_users').select(fields=['id', 'name', 'user_token', 'session_token']):
             self._user_cache.append(User(record['id'], record['name'], record['user_token'], record['session_token']))
 
     def get_user_by_id(self, id: int) -> User:
@@ -43,13 +43,13 @@ class SessionManager(Bindable):
         return next((user for user in self._user_cache if user.session_token == token), None)
 
     def add_user(self, id: int, name: str) -> User:
-        SQL('api_users').insert(Record(id=id, name=name))
+        _SQL('api_users').insert(Record(id=id, name=name))
         self.load()
         return self.get_user_by_id(id)
 
     def login(self, user: User) -> str:
         user.user_token = create_access_token(identity=user, expires_delta=False) # this isnt a refresh token because i'm lazy
-        SQL('api_users').update(Record(user_token=user.user_token), f'id={user.id}')
+        _SQL('api_users').update(Record(user_token=user.user_token), f'id={user.id}')
         self.load()
         return user.user_token
 
@@ -60,7 +60,7 @@ class SessionManager(Bindable):
                 "permissions": [asdict(permission) for permission in PermissionManager(user.id).calculate()]
             },
             expires_delta=timedelta(days=5))
-        SQL('api_users').update(Record(session_token=user.session_token), f'id={user.id}')
+        _SQL('api_users').update(Record(session_token=user.session_token), f'id={user.id}')
         self.load()
         return user.session_token
 

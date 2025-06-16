@@ -5,8 +5,8 @@ columns:
   unique: true
 - name: guild_id
   type: BIGINT
-- name: event_type
-  type: VARCHAR(30)
+- name: guild_name
+  type: VARCHAR(100)
 - name: channel_id
   type: BIGINT
 - name: channel_name
@@ -14,6 +14,8 @@ columns:
 - name: function
   type: VARCHAR(30)
 - name: denominator
+  type: VARCHAR(30)
+- name: event_type
   type: VARCHAR(30)
 - name: event_category
   type: VARCHAR(30)

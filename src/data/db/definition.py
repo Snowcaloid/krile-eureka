@@ -4,7 +4,7 @@ from centralized_data import YamlAsset, YamlAssetLoader
 from centralized_data import YamlAsset, YamlAssetLoader
 from discord import Client
 
-from data.db.sql import SQL, Batch, Record
+from data.db.sql import _SQL, ReadOnlyConnection, Record
 from utils.functions import filter_choices_by_current, is_null_or_unassigned
 from discord.app_commands import Choice
 
@@ -53,18 +53,18 @@ class TableDefinitions(YamlAssetLoader[TableDefinition]):
         if next((table for table in self.loaded_assets if table.name == 'pings'), None) is None:
             return
 
-        for record in SQL('pings').select(all=True):
+        for record in _SQL('pings').select(all=True):
             if is_null_or_unassigned(record['ping_type']):
                 record['ping_type'] += 3 #type: ignore
 
-            SQL('roles').insert(Record(
+            _SQL('roles').insert(Record(
                 guild_id=record['guild_id'],
                 role_id=record['tag'],
                 event_type=record['schedule_type'],
                 function=record['ping_type']
             ))
-            SQL('pings').delete(f'id={record["id"]}')
-        SQL('pings').drop()
+            _SQL('pings').delete(f'id={record["id"]}')
+        _SQL('pings').drop()
 
     def _migrate_events_to_event_users(self) -> None:
         events_table = next((table for table in self.loaded_assets if table.name == 'events'))
@@ -72,7 +72,7 @@ class TableDefinitions(YamlAssetLoader[TableDefinition]):
         if next((True for column in events_table.columns if column.get('name') == 'pl1'), None) is not None:
             return
 
-        for record in SQL('events').select(all=True):
+        for record in _SQL('events').select(all=True):
             users = [
                 record['pl1'], record['pl2'], record['pl3'],
                 record['pl4'], record['pl5'], record['pl6'],
@@ -81,20 +81,20 @@ class TableDefinitions(YamlAssetLoader[TableDefinition]):
             for i, user_id in enumerate(users):
                 if user_id is None: continue
                 user_name = '<migrated user, name not available>'
-                SQL('event_users').insert(Record(
+                _SQL('event_users').insert(Record(
                     event_id=record['id'],
                     user_id=user_id,
                     user_name=user_name,
                     party=i+1,
                     is_party_leader=True
                 ))
-            SQL('events').update(Record(
+            _SQL('events').update(Record(
                 pl1=None, pl2=None, pl3=None,
                 pl4=None, pl5=None, pl6=None,
                 pls=None
             ), where=f'id={record["id"]}')
 
-        with Batch() as batch:
+        with ReadOnlyConnection() as batch:
             batch._database.query('alter table events drop column if exists pl1')
             batch._database.query('alter table events drop column if exists pl2')
             batch._database.query('alter table events drop column if exists pl3')
@@ -116,7 +116,7 @@ class TableDefinitions(YamlAssetLoader[TableDefinition]):
         super().constructor()
         self.client = client
 
-        with Batch() as batch:
+        with ReadOnlyConnection() as batch:
             for table in self.loaded_assets:
                 batch._database.query(table.to_sql_create())
                 batch._database.query(table.to_sql_alter())
