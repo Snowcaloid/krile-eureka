@@ -2,7 +2,6 @@ from datetime import datetime
 from centralized_data import Bindable
 from discord import Embed, Message, TextChannel
 from utils.basic_types import MessageFunction
-from data.guilds.guild_messages import GuildMessages
 from data.weather.weather import EurekaWeathers, EurekaZones, current_weather, next_day, next_night, next_weather, to_eorzea_time, weather_emoji
 from utils.functions import DiscordTimestampType, get_discord_timestamp
 
@@ -17,13 +16,6 @@ class UIWeatherPost(Bindable):
     def message_cache(self) -> MessageCache: ...
 
     async def rebuild(self, guild_id: int, message: Message = None) -> Message:
-        if message is None:
-            message_data = GuildMessages(guild_id).get(MessageFunction.WEATHER_POST)
-            if message_data is None: return
-            channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
-            if channel is None: return
-            message = await self.message_cache.get(message_data.message_id, channel)
-
         if message is None: return
         current_time = to_eorzea_time(datetime.utcnow())
         is_night = current_time.hour > 17 or current_time.hour < 6
@@ -52,14 +44,3 @@ class UIWeatherPost(Bindable):
             f'{weather_emoji[EurekaWeathers.SNOW]} Next 2x Snow: {next_weather(EurekaZones.HYDATOS, EurekaWeathers.SNOW, 2)}\n'
         ))
         message = await message.edit(embed=embed)
-
-    async def remove(self, guild_id: int) -> None:
-        messages = GuildMessages(guild_id)
-        message_data = messages.get(MessageFunction.WEATHER_POST)
-        if message_data is None: return
-        channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
-        if channel is None: return
-        message = await self.message_cache.get(message_data.message_id, channel)
-        if message is None: return
-        await message.delete()
-        messages.remove(message_data.message_id)

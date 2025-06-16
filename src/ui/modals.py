@@ -17,9 +17,9 @@ class EurekaTrackerModal(Modal):
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
-    from ui.ui_eureka_info import UIEurekaInfoPost
-    @UIEurekaInfoPost.bind
-    def ui_eureka_info(self) -> UIEurekaInfoPost: ...
+    from ui.eureka_info import EurekaInfoPost
+    @EurekaInfoPost.bind
+    def ui_eureka_info(self) -> EurekaInfoPost: ...
 
     def __init__(self, *, zone: EurekaInstance = None) -> None:
         self.zone = zone

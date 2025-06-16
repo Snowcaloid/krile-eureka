@@ -10,9 +10,9 @@ class Task_MarkRunAsFinished(TaskTemplate):
     @Bot.bind
     def bot(self) -> Bot: ...
 
-    from ui.ui_schedule import UISchedule
-    @UISchedule.bind
-    def ui_schedule(self) -> UISchedule: ...
+    from ui.schedule import SchedulePost
+    @SchedulePost.bind
+    def ui_schedule(self) -> SchedulePost: ...
 
     @override
     def type(self) -> TaskExecutionType: return TaskExecutionType.MARK_RUN_AS_FINISHED

@@ -11,7 +11,6 @@ from data_providers.roles import RolesProvider
 from utils.basic_types import MessageFunction, RoleFunction
 from utils.basic_types import EventCategory
 from utils.basic_types import ChannelFunction
-from data.guilds.guild_messages import GuildMessages
 from ui.base_button import delete_buttons, save_buttons
 from utils.basic_types import ButtonType
 from ui.views import PersistentView

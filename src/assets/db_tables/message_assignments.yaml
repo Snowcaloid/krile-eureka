@@ -16,9 +16,3 @@ columns:
   type: BIGINT
 - name: function
   type: VARCHAR(30)
-- name: denominator
-  type: VARCHAR(30)
-- name: event_type
-  type: VARCHAR(30)
-- name: event_category
-  type: VARCHAR(30)

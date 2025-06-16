@@ -20,9 +20,9 @@ class EurekaTrackerZoneSelect(Select):
     @EurekaInfo.bind
     def _eureka_info(self) -> EurekaInfo: ...
 
-    from ui.ui_eureka_info import UIEurekaInfoPost
-    @UIEurekaInfoPost.bind
-    def _ui_eureka_info(self) -> UIEurekaInfoPost: ...
+    from ui.eureka_info import EurekaInfoPost
+    @EurekaInfoPost.bind
+    def _ui_eureka_info(self) -> EurekaInfoPost: ...
 
     def __init__(self, *, generate: bool = False):
         self.generate = generate

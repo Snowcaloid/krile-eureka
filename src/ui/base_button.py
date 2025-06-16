@@ -21,7 +21,7 @@ def save_buttons(message: Message, view: View):
                                                      pl=btn.struct.party,
                                                      channel_id=message.channel.id,
                                                      message_id=message.id,
-                                                     event_id=btn.struct.eent_id))
+                                                     event_id=btn.struct.event_id))
 
 
 def delete_button(button_id: str) -> None:

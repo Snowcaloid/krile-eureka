@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Optional
 from data.db.sql import Transaction
 from models.permissions import Permissions
 from utils.logger import BaseLogger
@@ -25,11 +25,12 @@ class ExecutionContext:
     ```
     """
     user_id: int
+    guild_id: int
     logger: BaseLogger
     """Handles logging."""
-    on_flush: ContextResponse = None #type: ignore
+    on_flush: Optional[ContextResponse] = None #type: ignore
     """Event handler for additional actions when the log is flushed."""
-    permissions: Permissions = None #type: ignore
+    permissions: Optional[Permissions] = None
     """Current permissions of the context."""
     _message: str = ''
     _level: int = 0

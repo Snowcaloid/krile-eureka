@@ -1,9 +1,11 @@
 from datetime import datetime
 from typing import override
 
-from utils.basic_types import TaskExecutionType
-from data.cache.message_cache import MessageCache
-from data.guilds.guild_messages import GuildMessages
+from data_providers.channel_assignments import ChannelAssignmentProvider
+from data_providers.events import EventsProvider
+from models.channel_assignment import ChannelAssignmentStruct
+from models.event import EventStruct
+from utils.basic_types import ChannelDenominator, ChannelFunction, TaskExecutionType
 from tasks.task import TaskTemplate
 
 
@@ -22,14 +24,20 @@ class Task_RemoveRecruitmentPost(TaskTemplate):
     @override
     async def execute(self, obj: dict) -> None:
         if obj and obj["guild"] and obj["message_id"]:
-            messages = GuildMessages(obj["guild"])
-            message_data = messages.get_by_message_id(obj["message_id"])
-            if message_data:
-                channel = self.bot.get_text_channel(message_data.channel_id)
-                if channel:
-                    message = await MessageCache().get(message_data.message_id, channel)
-                    if message:
-                        await message.delete()
-                messages.remove(message_data.message_id)
+            event_struct = EventsProvider().find(EventStruct(
+                guild_id=obj["guild"],
+                recruitment_post_id=obj["message_id"]
+            ))
+            if not event_struct: return
+            channel_assignment_struct = ChannelAssignmentProvider().find(ChannelAssignmentStruct(
+                guild_id=event_struct.guild_id,
+                function=ChannelFunction.RECRUITMENT,
+                denominator=ChannelDenominator.EVENT_TYPE,
+                event_type=event_struct.event_type
+            ))
+            if not channel_assignment_struct: return
+            message = await self.bot.get_text_channel(channel_assignment_struct.channel_id).fetch_message(event_struct.recruitment_post_id)
+            if message is None: return
+            await message.delete()
 
 

@@ -45,10 +45,10 @@ def _load_singleton(singleton: Singleton, initial: bool = False):
         singleton.load()
 
 from ui.button_loader import ButtonLoader
-from ui.ui_schedule import UISchedule
+from ui.schedule import SchedulePost
 
 async def reload_hook(client: DiscordBot, initial: bool):
-    ui_schedule = UISchedule()
+    ui_schedule = SchedulePost()
     MessageCache().clear()
     ButtonLoader().load()
     for guild in client.guilds:

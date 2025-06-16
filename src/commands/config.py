@@ -23,13 +23,13 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @Bot.bind
     def bot(self) -> Bot: ...
 
-    from ui.ui_schedule import UISchedule
-    @UISchedule.bind
-    def ui_schedule(self) -> UISchedule: ...
+    from ui.schedule import SchedulePost
+    @SchedulePost.bind
+    def ui_schedule(self) -> SchedulePost: ...
 
-    from ui.ui_eureka_info import UIEurekaInfoPost
-    @UIEurekaInfoPost.bind
-    def ui_eureka_info(self) -> UIEurekaInfoPost: ...
+    from ui.eureka_info import EurekaInfoPost
+    @EurekaInfoPost.bind
+    def ui_eureka_info(self) -> EurekaInfoPost: ...
 
     from data.validation.user_input import UserInput
     @UserInput.bind

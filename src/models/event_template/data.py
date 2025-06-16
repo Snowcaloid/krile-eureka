@@ -31,7 +31,7 @@ class EventTemplateData(YamlAsset):
     def json_string(self) -> str:
         return dumps(self.source)
 
-    def _handle_support_text(self, use_support: bool, template_text: str) -> str:
+    def _handle_support_text(self, disable_support: bool, template_text: str) -> str:
         index_of_no_support = template_text.find('%!support=') if '%!support=' in template_text else -1
         no_support_text = template_text[index_of_no_support + len('%!support='):] if '%!support=' in template_text else ''
         if index_of_no_support == -1:
@@ -44,10 +44,12 @@ class EventTemplateData(YamlAsset):
         elif '%!support=' in template_text:
             template_text = template_text[:template_text.find('%!support=')]
 
-        if self.use_support and use_support:
+        if disable_support:
+            return template_text.replace('%support', no_support_text)
+        elif self.use_support:
             return template_text.replace('%support', support_text)
         else:
-            return template_text.replace('%support', no_support_text)
+            return template_text.replace('%support', '')
 
     @property
     def type(self) -> str:
@@ -83,7 +85,7 @@ class EventTemplateData(YamlAsset):
     def recruitment_post_text(self,
                               rl: str, pl1: str, pl2: str, pl3: str,
                               pl4: str, pl5: str, pl6: str, pls: str,
-                              use_support: bool) -> str:
+                              disable_support: bool) -> str:
         value = self.source.get('recruitment_post_text', (
             f'Raid Leader: %rl\n'
             f'1: %pl1\n'
@@ -97,7 +99,7 @@ class EventTemplateData(YamlAsset):
             '%support=Support: %pls\n'
             '%!support=Support party has been excluded manually by the raid leader.\n'
         ))
-        value = self._handle_support_text(use_support, value)
+        value = self._handle_support_text(disable_support, value)
 
         return value.replace('%rl', rl).replace('%pl1', pl1).replace('%pl2', pl2).replace('%pl3', pl3).replace(
             '%pl4', pl4).replace('%pl5', pl5).replace('%pl6', pl6).replace('%pls', pls)
@@ -191,7 +193,7 @@ class EventTemplateData(YamlAsset):
         ))
         return value.replace('%passcode', str(passcode).zfill(4))
 
-    def raid_leader_dm_text(self, passcode_main: int, passcode_supp: int, use_support: bool) -> str:
+    def raid_leader_dm_text(self, passcode_main: int, passcode_supp: int, disable_support: bool) -> str:
         value = self.source.get('raid_leader_dm_text', (
             f'Passcode for all parties will be: **%passcode_main**\n'
             '%support\n'
@@ -200,7 +202,7 @@ class EventTemplateData(YamlAsset):
             '%support=Passcode for the Support Party will be: **%passcode_support**\n'
             '%!support=Support party has been excluded manually by the raid leader. The support passcode will not be posted. In case this is changed, the passcode is **%passcode_support**.'
         ))
-        value = self._handle_support_text(use_support, value)
+        value = self._handle_support_text(disable_support, value)
         return value.replace('%passcode_main', str(passcode_main).zfill(4)).replace('%passcode_support', str(passcode_supp).zfill(4))
 
     @property
@@ -215,11 +217,11 @@ class EventTemplateData(YamlAsset):
     def main_passcode_delay(self) -> timedelta:
         return timedelta(minutes=self.source.get('main_passcode_delay', 15))
 
-    def schedule_entry_text(self, rl: str, time: datetime, custom: str, use_support: bool) -> str:
+    def schedule_entry_text(self, rl: str, time: datetime, custom: str, disable_support: bool) -> str:
         value = self.source.get('schedule_entry_text', (
             '(%time ST (%localtime LT)): %description (%rl)%support%!support= __(No support)__'
         ))
-        value = self._handle_support_text(use_support, value)
+        value = self._handle_support_text(disable_support, value)
         if '%type' in value and custom != '':
             custom = f'[{custom}]'
 

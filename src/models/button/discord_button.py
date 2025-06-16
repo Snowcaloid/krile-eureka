@@ -21,7 +21,7 @@ class DiscordButton(Button):
                  ):
         self.struct = button_struct
         self.template: ButtonTemplate = self.button_templates.get(button_struct.button_type)
-        super().__init__(style=button_struct.style,label=button_struct.label,disabled=disabled,custom_id=button_struct.button_type,
+        super().__init__(style=button_struct.style,label=button_struct.label,disabled=disabled,custom_id=button_struct.button_id,
                          row=button_struct.row,emoji=button_struct.emoji)
 
     @override

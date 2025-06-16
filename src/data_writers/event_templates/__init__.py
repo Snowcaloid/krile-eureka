@@ -111,5 +111,5 @@ class EventTemplatesWriter(BaseWriter[EventTemplateStruct]):
             context.log('Removing event template...')
             found_struct = EventTemplateProvider().find(struct)
             self._validate_input(context, struct, found_struct is not None, True)
-            context.transaction.sql('event_templates').delete(struct.to_record())
+            context.transaction.sql('event_templates').delete(found_struct.to_record())
             context.log(f'Event type {struct.event_type} removed successfully.')

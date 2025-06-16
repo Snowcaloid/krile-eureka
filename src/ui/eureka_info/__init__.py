@@ -1,67 +1,35 @@
+from uuid import uuid4
 from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
+from data_providers.message_assignments import MessageAssignmentsProvider
+from models.button import ButtonStruct
 from models.button.discord_button import DiscordButton
+from models.message_assignment import MessageAssignmentStruct
 from utils.basic_types import EurekaInstance
 from utils.basic_types import MessageFunction
-from data.guilds.guild_messages import GuildMessages
 from ui.base_button import save_buttons
 from utils.basic_types import ButtonType
 from ui.views import PersistentView
 from data.weather.weather import EurekaWeathers, EurekaZones, next_4_weathers, next_weather, weather_emoji
 from utils.functions import DiscordTimestampType, get_discord_timestamp
 
-class UIEurekaInfoPost(Bindable):
+class EurekaInfoPost(Bindable):
     """Eureka Info post."""
     from bot import Bot
     @Bot.bind
     def bot(self) -> Bot: ...
 
-    from data.cache.message_cache import MessageCache
-    @MessageCache.bind
-    def message_cache(self) -> MessageCache: ...
-
     from data.eureka_info import EurekaInfo
     @EurekaInfo.bind
     def eureka_info(self) -> EurekaInfo: ...
 
-    async def create(self, guild_id: int) -> Message:
-        message_data = GuildMessages(guild_id).get(MessageFunction.EUREKA_INSTANCE_INFO)
-        if message_data is None: return
-        channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
-        if channel is None: return
-        message = await self.message_cache.get(message_data.message_id, channel)
-        if message is None: return
-        view = PersistentView()
-        view.add_item(DiscordButton(ButtonType.ASSIGN_TRACKER ,style=ButtonStyle.success, label='Assign an existing tracker', row=0, index=0))
-        view.add_item(DiscordButton(ButtonType.GENERATE_TRACKER, style=ButtonStyle.primary, label='Generate a tracker', row=0, index=1))
-        message = await message.edit(view=view)
-        await self.rebuild(guild_id)
-        save_buttons(message, view)
-
-    def get_trackers_text(self, zone: EurekaInstance) -> str:
-        result = ''
-        trackers = self.eureka_info.get(zone)
-        if trackers:
-            for tracker in trackers:
-                result = result + f'* {tracker.url} [{get_discord_timestamp(tracker.timestamp, DiscordTimestampType.RELATIVE)}]\n'
-        else:
-            result = 'No tracker data.\n'
-        return result
-
-    async def rebuild(self, guild_id: int) -> Message:
-        message_data = GuildMessages(guild_id).get(MessageFunction.EUREKA_INSTANCE_INFO)
-        if message_data is None: return
-        channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
-        if channel is None: return
-        message = await self.message_cache.get(message_data.message_id, channel)
-        if message is None: return
-
+    def _embed(self) -> Embed:
         anemos_trackers = self.get_trackers_text(EurekaInstance.ANEMOS)
         pagos_trackers = self.get_trackers_text(EurekaInstance.PAGOS)
         pyros_trackers = self.get_trackers_text(EurekaInstance.PYROS)
         hydatos_trackers = self.get_trackers_text(EurekaInstance.HYDATOS)
 
-        embed = Embed(title='Eureka Info', description=(
+        return Embed(title='Eureka Info', description=(
             f'## Anemos {next_4_weathers(EurekaZones.ANEMOS)}\n'
             f'Current Anemos Trackers:\n'
             f'{anemos_trackers}'
@@ -82,15 +50,43 @@ class UIEurekaInfoPost(Bindable):
             f'{hydatos_trackers}'
             f'{weather_emoji[EurekaWeathers.SNOW]} Next 2x Snow: {next_weather(EurekaZones.HYDATOS, EurekaWeathers.SNOW, 2)}'
         ))
-        return await message.edit(embed=embed)
 
-    async def remove(self, guild_id: int) -> None:
-        messages = GuildMessages(guild_id)
-        message_data = messages.get(MessageFunction.EUREKA_INSTANCE_INFO)
-        if message_data is None: return
-        channel: TextChannel = self.bot._client.get_channel(message_data.channel_id)
-        if channel is None: return
-        message = await self.message_cache.get(message_data.message_id, channel)
-        if message is None: return
-        await message.delete()
-        messages.remove(message_data.message_id)
+    async def create(self, channel: TextChannel) -> Message:
+        view = PersistentView()
+        view.add_item(DiscordButton(button_struct=ButtonStruct(
+            button_type=ButtonType.ASSIGN_TRACKER,
+            style=ButtonStyle.success,
+            label='Assign an existing tracker',
+            row=0, index=0,
+            button_id=str(uuid4())
+        )))
+        view.add_item(DiscordButton(button_struct=ButtonStruct(
+            button_type=ButtonType.GENERATE_TRACKER,
+            style=ButtonStyle.primary,
+            label='Generate a tracker',
+            row=0, index=1,
+            button_id=str(uuid4())
+        )))
+        message = await channel.send(view=view, embed=self._embed())
+        save_buttons(message, view)
+        return await channel.fetch_message(message.id)
+
+    def get_trackers_text(self, zone: EurekaInstance) -> str:
+        result = ''
+        trackers = self.eureka_info.get(zone)
+        if trackers:
+            for tracker in trackers:
+                result = result + f'* {tracker.url} [{get_discord_timestamp(tracker.timestamp, DiscordTimestampType.RELATIVE)}]\n'
+        else:
+            result = 'No tracker data.\n'
+        return result
+
+    async def rebuild(self, guild_id: int) -> None:
+        message_assignment_struct = MessageAssignmentsProvider().find(MessageAssignmentStruct(
+            guild_id=guild_id,
+            function=MessageFunction.EUREKA_INSTANCE_INFO
+        ))
+        if not message_assignment_struct: return
+        message = await self.bot.get_text_channel(message_assignment_struct.channel_id).fetch_message(message_assignment_struct.message_id)
+        if not message: return
+        await message.edit(embed=self._embed())

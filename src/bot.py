@@ -2,7 +2,7 @@ import asyncio
 from types import CoroutineType
 
 from centralized_data import Bindable
-from discord import Guild, Intents, Member, Role, TextChannel
+from discord import Guild, Intents, Member, Role, TextChannel, User
 from discord.ext.commands import Bot as DiscordBot
 from typing import Any, Callable, Sequence
 
@@ -64,3 +64,8 @@ class Bot(Bindable):
     def guilds(self) -> Sequence[Guild]:
         """Get a list of all guilds the bot is in."""
         return self._client.guilds
+
+    @property
+    def user(self) -> User:
+        """Get the bot's user object."""
+        return self._client.user # type: ignore seriously...

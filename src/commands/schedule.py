@@ -13,9 +13,9 @@ from utils.logger import feedback_and_log, guild_log_message
 # schedule
 ###################################################################################
 class ScheduleCommands(GroupCog, group_name='schedule', group_description='Commands regarding scheduling runs.'):
-    from ui.ui_schedule import UISchedule
-    @UISchedule.bind
-    def ui_schedule(self) -> UISchedule: ...
+    from ui.schedule import SchedulePost
+    @SchedulePost.bind
+    def ui_schedule(self) -> SchedulePost: ...
 
     from ui.ui_recruitment_post import UIRecruitmentPost
     @UIRecruitmentPost.bind

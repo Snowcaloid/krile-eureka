@@ -71,16 +71,12 @@ class ChannelDenominator(Enum):
 class MessageFunction(Enum):
     NONE = ''
     SCHEDULE = 'schedule'
-    RECRUITMENT_POST = 'recruitment_post'
-    WEATHER_POST = 'weather_post'
     EUREKA_INSTANCE_INFO = 'eureka_instance_info'
 
     @classmethod
     def all_function_choices(cls) -> List[Choice]:
         return [
             Choice(name='Schedule Posts', value=cls.SCHEDULE.value),
-            Choice(name='Party leader posts', value=cls.RECRUITMENT_POST.value),
-            Choice(name='Eureka weather posts', value=cls.WEATHER_POST.value),
             Choice(name='Eureka info', value=cls.EUREKA_INSTANCE_INFO.value)
         ]
 
