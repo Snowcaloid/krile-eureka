@@ -37,6 +37,9 @@ class BaseStruct(ABC):
         "Override this method to provide the database table name for the struct."
     )
 
+    @abstractmethod
+    def type_name(self) -> str: ...
+
     @classmethod
     def from_record(cls, record: Record) -> Self:
         self = cls(**record)
@@ -46,6 +49,9 @@ class BaseStruct(ABC):
     @abstractmethod
     def fixup_types(self) -> None: ...
     """Override to fix types that aren't compatible with the database."""
+
+    @abstractmethod
+    def identity(self) -> Self: ...
 
     def to_record(self) -> Record:
         return Record(**self._to_constructor_dict())

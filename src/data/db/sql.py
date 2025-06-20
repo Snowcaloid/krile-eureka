@@ -126,8 +126,22 @@ class _SQL:
         returning = f' returning {returning_field}' if returning_field else ''
         return self._connection.custom_sql(f'insert into {self.table_name} ({fields}) values ({values}){returning}')
 
-    def update(self, record: Record, where: str) -> None:
+    @overload
+    def update(self, record: Record, condition: Record) -> None: ...
+    """Update records in the table based on a Record."""
+
+    @overload
+    def update(self, record: Record, condition: str) -> None: ...
+    """Update records in the table based on a Record and a where clause."""
+
+    def update(self, record: Record, condition: Union[Record, str]) -> None:
         set_fields = ', '.join([f'{field} = {self._convert_to_sql(value)}' for field, value in record.items()])
+        if isinstance(condition, str):
+            where = condition
+        elif isinstance(condition, Record):
+            where = ' and '.join([f'{field} = {self._convert_to_sql(value)}' for field, value in condition.items()])
+        else:
+            raise TypeError(f'Unsupported type for condition: {type(condition)}')
         self._connection.custom_sql(f'update {self.table_name} set {set_fields} where {where}')
 
     @overload
