@@ -5,7 +5,7 @@ from typing import Any, Callable, List, override
 from datetime import datetime
 from uuid import uuid4
 
-from utils.basic_types import TaskExecutionType
+from utils.basic_types import TaskType
 from data.db.sql import _SQL, Record
 from tasks.task import Task, TaskTemplate
 from centralized_data import PythonAssetLoader
@@ -19,7 +19,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
         self.executing: bool = False
         self.load()
 
-    def task_template(self, type: TaskExecutionType) -> TaskTemplate:
+    def task_template(self, type: TaskType) -> TaskTemplate:
         return next(task for task in self.loaded_assets if task.type() == type)
 
     @override
@@ -38,7 +38,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
     def sort_runtime_tasks_by_time(self) -> None:
         self._runtime_tasks = sorted(self._runtime_tasks, key=lambda task: task.time)
 
-    def add_task(self, time: datetime, task_type: TaskExecutionType, data: dict = None) -> Any:
+    def add_task(self, time: datetime, task_type: TaskType, data: dict = None) -> Any:
         if self.task_template(task_type).runtime_only():
             task = Task(self.loaded_assets)
             task.time = time
@@ -57,7 +57,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
             ))
             self.load()
 
-    def contains(self, type: TaskExecutionType) -> bool:
+    def contains(self, type: TaskType) -> bool:
         for task in self._db_tasks:
             if task.type == type:
                 return True
@@ -102,14 +102,14 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
             _SQL('tasks').delete(f'id={task.id}')
             self.load()
 
-    def remove_all(self, type: TaskExecutionType):
+    def remove_all(self, type: TaskType):
         if self.task_template(type).runtime_only():
             self._runtime_tasks = list(filter(lambda task: task.type != type, self._runtime_tasks))
         else:
             _SQL('tasks').delete(f'task_type={type.value}')
             self.load()
 
-    def remove_task_by_data(self, type: TaskExecutionType, data: dict):
+    def remove_task_by_data(self, type: TaskType, data: dict):
         if data is None:
             return
 
@@ -121,7 +121,7 @@ class Tasks(PythonAssetLoader[TaskTemplate]):
 
     @classmethod
     def run_async_method(cls, method: Callable[...], *args, **kwargs) -> None:
-        cls().add_task(datetime.utcnow(), TaskExecutionType.RUN_ASYNC_METHOD, {
+        cls().add_task(datetime.utcnow(), TaskType.RUN_ASYNC_METHOD, {
             "method": method,
             "args": args,
             "kwargs": kwargs

@@ -1,6 +1,6 @@
 from typing import override
 
-from utils.basic_types import TaskExecutionType
+from utils.basic_types import TaskType
 from data.events.schedule import Schedule
 from tasks.task import TaskTemplate
 
@@ -15,7 +15,7 @@ class Task_MarkRunAsFinished(TaskTemplate):
     def ui_schedule(self) -> SchedulePost: ...
 
     @override
-    def type(self) -> TaskExecutionType: return TaskExecutionType.MARK_RUN_AS_FINISHED
+    def type(self) -> TaskType: return TaskType.MARK_RUN_AS_FINISHED
 
     @override
     async def execute(self, obj: dict) -> None:

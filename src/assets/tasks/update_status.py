@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import override
 
 from discord import Activity, ActivityType, Status
-from utils.basic_types import TaskExecutionType
+from utils.basic_types import TaskType
 from data.db.sql import _SQL, ReadOnlyConnection
 from data.events.event import Event
 from utils.basic_types import EventCategory
@@ -19,12 +19,12 @@ class Task_UpdateStatus(TaskTemplate):
     def tasks(self) -> Tasks: ...
 
     @override
-    def type(self) -> TaskExecutionType: return TaskExecutionType.UPDATE_STATUS
+    def type(self) -> TaskType: return TaskType.UPDATE_STATUS
 
     @override
     async def handle_exception(self, e: Exception, obj: dict) -> None:
-        self.tasks.remove_all(TaskExecutionType.UPDATE_STATUS)
-        self.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskExecutionType.UPDATE_STATUS)
+        self.tasks.remove_all(TaskType.UPDATE_STATUS)
+        self.tasks.add_task(datetime.utcnow() + timedelta(minutes=1), TaskType.UPDATE_STATUS)
 
     @override
     def runtime_only(self) -> bool: return True
@@ -63,8 +63,8 @@ class Task_UpdateStatus(TaskTemplate):
                 desc = f'{event_description} in {desc} ({self.bot.get_guild(event.guild_id).name})'
                 await self.bot._client.change_presence(activity=Activity(type=ActivityType.playing, name=desc), status=Status.online)
         finally:
-            self.tasks.remove_all(TaskExecutionType.UPDATE_STATUS)
-            self.tasks.add_task(next_exec, TaskExecutionType.UPDATE_STATUS)
+            self.tasks.remove_all(TaskType.UPDATE_STATUS)
+            self.tasks.add_task(next_exec, TaskType.UPDATE_STATUS)
 
 
 

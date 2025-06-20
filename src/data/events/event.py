@@ -8,7 +8,7 @@ from data.db.sql import _SQL, Record, Transaction
 from models.event_template.data import EventTemplateData
 from data.events.event_templates import EventTemplates
 from utils.basic_types import ChannelFunction
-from utils.basic_types import TaskExecutionType
+from utils.basic_types import TaskType
 
 from utils.functions import DiscordTimestampType, generate_passcode, get_discord_timestamp, user_display_name
 
@@ -308,23 +308,23 @@ class Event:
         self.load(self.id)
 
     def create_tasks(self) -> None:
-        self._tasks.add_task(self.time, TaskExecutionType.MARK_RUN_AS_FINISHED, {"id": self.id, "guild": self.guild_id})
+        self._tasks.add_task(self.time, TaskType.MARK_RUN_AS_FINISHED, {"id": self.id, "guild": self.guild_id})
         if self.use_recruitment_posts and self.delete_recruitment_posts:
             channel_data = GuildChannels(self.guild_id).get(ChannelFunction.RECRUITMENT, self.type)
             if channel_data:
-                self._tasks.add_task(self.time + timedelta(hours=12), TaskExecutionType.REMOVE_RECRUITMENT_POST, {"guild": self.guild_id, "message_id": self.recruitment_post})
+                self._tasks.add_task(self.time + timedelta(hours=12), TaskType.REMOVE_RECRUITMENT_POST, {"guild": self.guild_id, "message_id": self.recruitment_post})
         if not self.auto_passcode: return
-        self._tasks.add_task(self.time - self.main_passcode_delay, TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
-        self._tasks.add_task(self.time - self.pl_passcode_delay, TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
+        self._tasks.add_task(self.time - self.main_passcode_delay, TaskType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
+        self._tasks.add_task(self.time - self.pl_passcode_delay, TaskType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
         if self.use_support:
-            self._tasks.add_task(self.time - self.support_passcode_delay, TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
+            self._tasks.add_task(self.time - self.support_passcode_delay, TaskType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
 
     def delete_tasks(self) -> None:
-        self._tasks.remove_task_by_data(TaskExecutionType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
-        self._tasks.remove_task_by_data(TaskExecutionType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
-        self._tasks.remove_task_by_data(TaskExecutionType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
-        self._tasks.remove_task_by_data(TaskExecutionType.MARK_RUN_AS_FINISHED, {"id": self.id, "guild": self.guild_id})
-        self._tasks.remove_task_by_data(TaskExecutionType.REMOVE_RECRUITMENT_POST, {"guild": self.guild_id, "message_id": self.recruitment_post})
+        self._tasks.remove_task_by_data(TaskType.SEND_PL_PASSCODES, {"guild": self.guild_id, "entry_id": self.id})
+        self._tasks.remove_task_by_data(TaskType.POST_SUPPORT_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
+        self._tasks.remove_task_by_data(TaskType.POST_MAIN_PASSCODE, {"guild": self.guild_id, "entry_id": self.id})
+        self._tasks.remove_task_by_data(TaskType.MARK_RUN_AS_FINISHED, {"id": self.id, "guild": self.guild_id})
+        self._tasks.remove_task_by_data(TaskType.REMOVE_RECRUITMENT_POST, {"guild": self.guild_id, "message_id": self.recruitment_post})
 
     def recreate_tasks(self) -> None:
         self.delete_tasks()

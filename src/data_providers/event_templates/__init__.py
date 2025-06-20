@@ -18,10 +18,14 @@ class EventTemplateProvider(BaseProvider[EventTemplateStruct]):
     def find(self, struct: EventTemplateStruct) -> EventTemplateStruct:
         custom_template = super().find(struct)
         if custom_template is not None: return custom_template
-        return next(
+        data = next(
             (
                 template for template in self._default_templates.loaded_assets
                 if template.type == struct.event_type
-            ),
-            None
-        ) # type: ignore
+            ), None
+        )
+        if data is None: return None #type: ignore
+        return EventTemplateStruct(
+            event_type=data.type,
+            data=data
+        )

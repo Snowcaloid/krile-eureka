@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import override
 from discord import Embed, TextChannel
 from models.channel_assignment import ChannelAssignmentStruct
-from utils.basic_types import ChannelFunction, RoleFunction, TaskExecutionType
+from utils.basic_types import ChannelFunction, RoleFunction, TaskType
 from tasks.task import TaskTemplate
 
 
@@ -12,7 +12,7 @@ class Task_PostMainPasscode(TaskTemplate):
     def _bot(self) -> Bot: ...
 
     @override
-    def type(self) -> TaskExecutionType: return TaskExecutionType.POST_MAIN_PASSCODE
+    def type(self) -> TaskType: return TaskType.POST_MAIN_PASSCODE
 
     @override
     def description(self, data: dict, timestamp: datetime) -> str:

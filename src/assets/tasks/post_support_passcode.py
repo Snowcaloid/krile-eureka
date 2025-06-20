@@ -5,7 +5,7 @@ from models.channel_assignment import ChannelAssignmentStruct
 from models.role_assignment import RoleAssignmentStruct
 from data_providers.channel_assignments import ChannelAssignmentProvider
 from data_providers.role_assignments import RoleAssignmentsProvider
-from utils.basic_types import ChannelFunction, RoleFunction, TaskExecutionType
+from utils.basic_types import ChannelFunction, RoleFunction, TaskType
 from data.events.schedule import Schedule
 from tasks.task import TaskTemplate
 
@@ -16,7 +16,7 @@ class Task_PostSupportPasscode(TaskTemplate):
     def _bot(self) -> Bot: ...
 
     @override
-    def type(self) -> TaskExecutionType: return TaskExecutionType.POST_SUPPORT_PASSCODE
+    def type(self) -> TaskType: return TaskType.POST_SUPPORT_PASSCODE
 
     @override
     def description(self, data: dict, timestamp: datetime) -> str:

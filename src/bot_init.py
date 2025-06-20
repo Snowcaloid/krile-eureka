@@ -9,7 +9,7 @@ from discord.ext.commands import Bot as DiscordBot, guild_only, Context, Greedy
 
 # TODO: webserver - from api_server import ApiServer
 from data_providers.context import basic_context
-from utils.basic_types import TaskExecutionType
+from utils.basic_types import TaskType
 from bot import Bot
 from data.cache.message_cache import MessageCache
 from tasks import Tasks
@@ -58,10 +58,10 @@ async def reload_hook(client: DiscordBot, initial: bool):
     tasks = Tasks()
     _load_singleton(tasks, initial)
 
-    if not tasks.contains(TaskExecutionType.UPDATE_STATUS):
-        tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_STATUS)
-    if not tasks.contains(TaskExecutionType.UPDATE_EUREKA_INFO_POSTS):
-        tasks.add_task(datetime.utcnow(), TaskExecutionType.UPDATE_EUREKA_INFO_POSTS)
+    if not tasks.contains(TaskType.UPDATE_STATUS):
+        tasks.add_task(datetime.utcnow(), TaskType.UPDATE_STATUS)
+    if not tasks.contains(TaskType.UPDATE_EUREKA_INFO_POSTS):
+        tasks.add_task(datetime.utcnow(), TaskType.UPDATE_EUREKA_INFO_POSTS)
 
 client = Bot()._client
 

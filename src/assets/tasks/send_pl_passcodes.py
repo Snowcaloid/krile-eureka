@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import override
 from discord import Embed
-from utils.basic_types import TaskExecutionType
+from utils.basic_types import TaskType
 from data.events.schedule import Schedule
 from tasks.task import TaskTemplate
 from utils.logger import GuildLogger
@@ -13,7 +13,7 @@ class Task_SendPLPasscodes(TaskTemplate):
     def bot(self) -> Bot: ...
 
     @override
-    def type(self) -> TaskExecutionType: return TaskExecutionType.SEND_PL_PASSCODES
+    def type(self) -> TaskType: return TaskType.SEND_PL_PASSCODES
 
     @override
     def description(self, data: dict, timestamp: datetime) -> str:

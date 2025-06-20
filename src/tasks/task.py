@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, List
 from datetime import datetime
 
-from utils.basic_types import TaskExecutionType
+from utils.basic_types import TaskType
 from data.db.sql import _SQL
 from centralized_data import PythonAsset
 from abc import abstractmethod
@@ -14,7 +14,7 @@ class TaskTemplate(PythonAsset):
     def base_asset_class_name(self) -> str: return 'TaskTemplate'
 
     @abstractmethod
-    def type(self) -> TaskExecutionType: return TaskExecutionType.NONE
+    def type(self) -> TaskType: return TaskType.NONE
 
     async def handle_exception(self, e: Exception, obj: dict) -> None:
         if obj.get("guild"):
@@ -50,10 +50,10 @@ class Task:
             self.id = id
             self.time = record['execution_time']
             self.data = record['data']
-            self.template = next(task for task in self._task_templates if task.type() == TaskExecutionType(record['task_type']))
+            self.template = next(task for task in self._task_templates if task.type() == TaskType(record['task_type']))
 
     @property
-    def type(self) -> TaskExecutionType:
+    def type(self) -> TaskType:
         return self.template.type()
 
     @property

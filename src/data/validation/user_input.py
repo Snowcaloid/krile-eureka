@@ -5,7 +5,7 @@ from datetime import datetime
 from centralized_data import Bindable
 from discord import Member, TextChannel
 
-from utils.basic_types import EurekaInstance, NotoriousMonster, TaskExecutionType
+from utils.basic_types import EurekaInstance, NotoriousMonster, TaskType
 from utils.basic_types import EventCategory
 from utils.basic_types import NOTORIOUS_MONSTERS
 from data.events.event_templates import EventTemplates
@@ -138,7 +138,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -154,7 +154,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -170,7 +170,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -186,7 +186,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -203,7 +203,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -219,7 +219,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -235,7 +235,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -251,7 +251,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -267,7 +267,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -284,7 +284,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -301,7 +301,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -317,7 +317,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -333,7 +333,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -349,7 +349,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -365,7 +365,7 @@ class _FailRaiser(Bindable):
         if result:
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [
@@ -402,7 +402,7 @@ class UserInput(Bindable):
         elif not event_model.get("datetime"):
             interaction.signature = self.tasks.add_task(
                 datetime.utcnow(),
-                TaskExecutionType.RUN_ASYNC_METHOD,
+                TaskType.RUN_ASYNC_METHOD,
                 {
                     "method": feedback_and_log,
                     "args": [

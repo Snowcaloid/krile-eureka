@@ -1,7 +1,7 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from centralized_data import GlobalCollection
-from utils.basic_types import GuildID, TaskExecutionType
+from utils.basic_types import GuildID, TaskType
 from data.db.sql import _SQL, Record
 from data.events.event import Event
 
@@ -67,7 +67,7 @@ class Schedule(GlobalCollection[GuildID]):
             'id')
         self.load()
         result = self.get(id)
-        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_UPDATE,
+        self.tasks.add_task(datetime.utcnow(), TaskType.EVENT_UPDATE,
                             { 'event': result, 'interaction': interaction })
         return result
 
@@ -75,7 +75,7 @@ class Schedule(GlobalCollection[GuildID]):
         event = self.get(id)
         old_event = deepcopy(event)
         event.unmarshal(model)
-        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_UPDATE,
+        self.tasks.add_task(datetime.utcnow(), TaskType.EVENT_UPDATE,
                             { 'event': event, 'changes': model, 'interaction': interaction, 'old_event': old_event })
         return event
 
@@ -87,7 +87,7 @@ class Schedule(GlobalCollection[GuildID]):
         event = self.get(event_id)
         _SQL('events').update(Record(canceled=True), f'id={event_id}')
         self.load()
-        self.tasks.add_task(datetime.utcnow(), TaskExecutionType.EVENT_CANCEL,
+        self.tasks.add_task(datetime.utcnow(), TaskType.EVENT_CANCEL,
                             { 'event': event, 'guild': self.key, 'interaction': interaction })
 
     def contains(self, event_id: int) -> bool:

@@ -5,7 +5,7 @@ from data_providers.channel_assignments import ChannelAssignmentProvider
 from data_providers.events import EventsProvider
 from models.channel_assignment import ChannelAssignmentStruct
 from models.event import EventStruct
-from utils.basic_types import ChannelDenominator, ChannelFunction, TaskExecutionType
+from utils.basic_types import ChannelDenominator, ChannelFunction, TaskType
 from tasks.task import TaskTemplate
 
 
@@ -15,7 +15,7 @@ class Task_RemoveRecruitmentPost(TaskTemplate):
     def bot(self) -> Bot: ...
 
     @override
-    def type(self) -> TaskExecutionType: return TaskExecutionType.REMOVE_RECRUITMENT_POST
+    def type(self) -> TaskType: return TaskType.REMOVE_RECRUITMENT_POST
 
     @override
     def description(self, data: dict, timestamp: datetime) -> str:

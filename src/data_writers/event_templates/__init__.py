@@ -86,8 +86,6 @@ class EventTemplatesWriter(BaseWriter[EventTemplateStruct]):
         if not exists:
             assert not is_null_or_unassigned(struct.event_type), 'missing event type'
             assert not is_null_or_unassigned(struct.data), 'missing data'
-            assert EventTemplateProvider().find(EventTemplateStruct(guild_id=struct.guild_id, event_type=struct.event_type)) is None, \
-                f'event template for type {struct.event_type} already exists in guild {struct.guild_id}.'
         self._validate_data(struct)
 
     @override

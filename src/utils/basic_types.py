@@ -134,7 +134,7 @@ class RoleDenominator(Enum):
         return function in self.functions()
 
 
-class TaskExecutionType(Enum):
+class TaskType(Enum):
     NONE = ''
     UPDATE_STATUS = 'update_status'
     SEND_PL_PASSCODES = 'send_pl_passcodes'
