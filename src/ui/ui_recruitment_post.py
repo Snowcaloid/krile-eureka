@@ -3,6 +3,9 @@ from centralized_data import Bindable
 from discord import ButtonStyle, Embed, Message, TextChannel
 from data.events.event import Event
 from data.events.schedule import Schedule
+from data_providers.context import basic_context
+from data_writers.buttons import ButtonsWriter
+from models.button import ButtonStruct
 from models.button.discord_button import DiscordButton
 from models.channel_assignment import ChannelAssignmentStruct
 from models.role_assignment import RoleAssignmentStruct
@@ -11,9 +14,10 @@ from data_providers.role_assignments import RoleAssignmentsProvider
 from utils.basic_types import MessageFunction, RoleFunction
 from utils.basic_types import EventCategory
 from utils.basic_types import ChannelFunction
-from ui.base_button import delete_buttons, save_buttons
+from ui.base_button import save_buttons
 from utils.basic_types import ButtonType
 from ui.views import PersistentView
+from utils.logger import FileLogger
 
 class UIRecruitmentPost(Bindable):
     """Party leader post."""
@@ -62,7 +66,9 @@ class UIRecruitmentPost(Bindable):
         if message is None: return
         embed = Embed(title=event.recruitment_post_title, description=event.recruitment_post_text)
         if recreate_view:
-            delete_buttons(event.recruitment_post)
+            ButtonsWriter().remove(
+                ButtonStruct(message_id=event.recruitment_post),
+                basic_context(0, 0, FileLogger(guild_id)))
             view = PersistentView()
             for i in range(1, 8):
                 label = event.pl_button_texts[i-1]

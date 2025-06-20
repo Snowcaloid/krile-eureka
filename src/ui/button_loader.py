@@ -1,11 +1,12 @@
 from centralized_data import Bindable
 
-from data.db.sql import _SQL, ReadOnlyConnection
+from data_providers.context import basic_context
+from data_writers.buttons import ButtonsWriter
 from models.button import ButtonStruct
 from models.button.discord_button import DiscordButton
 from data_providers.buttons import ButtonsProvider
-from ui.base_button import delete_buttons
 from ui.views import PersistentView
+from utils.logger import FileLogger
 
 class ButtonLoader(Bindable):
     from bot import Bot
@@ -14,18 +15,25 @@ class ButtonLoader(Bindable):
 
     """Loading and deleting Buttons from DB."""
     def load(self) -> None:
-        with ReadOnlyConnection() as connection: #TODO: move this into the provider or somewhere else to avoid double db access
-            for message_record in connection.sql('buttons').select(fields=['message_id'],
-                                                        group_by=['message_id'],
-                                                        all=True):
-                view = PersistentView()
-                for record in connection.sql('buttons').select(fields=['button_id'],
-                                                    where=f"message_id = '{message_record["message_id"]}'",
-                                                    all=True):
-                    discord_button = DiscordButton(ButtonsProvider().find(
-                        ButtonStruct(button_id=record['button_id'])))
-                    view.add_item(discord_button)
-                self.bot._client.add_view(view)
+        button_structs = ButtonsProvider().find_all()
+
+        # sort by message_id
+        button_structs.sort(key=lambda x: x.message_id)
+
+        # create a view for each message_id
+        views = {}
+        for button_struct in button_structs:
+            if button_struct.message_id not in views:
+                views[button_struct.message_id] = PersistentView()
+            discord_button = DiscordButton(button_struct)
+            views[button_struct.message_id].add_item(discord_button)
+
+        for message_id, view in views.items():
+            view.message_id = message_id
+            self.bot._client.add_view(view)
 
     def delete(self, message_id: int) -> None:
-        delete_buttons(message_id)
+        ButtonsWriter().remove(
+            ButtonStruct(message_id=message_id),
+            basic_context(0, 0, FileLogger())
+        )

@@ -22,8 +22,10 @@ columns:
   type: INTEGER
 - name: index
   type: INTEGER
-- name: role
+- name: role_id
   type: BIGINT
+- name: role_name
+  type: VARCHAR(100)
 - name: party
   type: INTEGER
 - name: event_id

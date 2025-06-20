@@ -29,14 +29,18 @@ class BaseProvider[T: BaseStruct](ABC):
                 return False
         return True
 
-    def _load(self, struct: T) -> None:
+    def _load(self, struct: Optional[T]) -> None:
         """
         Load the struct from the database and add it to the list.
         """
         with ReadOnlyConnection() as connection:
             self._list.clear()
-            for record in connection.sql(self.struct_type.db_table_name()).select(filter=struct.to_record(), all=True):
-                self._list.append(self.struct_type.from_record(record))
+            if struct is None:
+                for record in connection.sql(self.struct_type.db_table_name()).select(all=True):
+                    self._list.append(self.struct_type.from_record(record))
+            else:
+                for record in connection.sql(self.struct_type.db_table_name()).select(filter=struct.to_record(), all=True):
+                    self._list.append(self.struct_type.from_record(record))
 
     def find(self, struct: T) -> T:
         """
@@ -44,7 +48,7 @@ class BaseProvider[T: BaseStruct](ABC):
         """
         return next((self.find_all(struct)), None) #type: ignore
 
-    def find_all(self, struct: T) -> List[T]:
+    def find_all(self, struct: Optional[T] = None) -> List[T]:
         """
         Find all structs in the list that match the provided struct.
         """

@@ -30,14 +30,17 @@ from discord.ui import TextInput
 from discord import ChannelType, TextChannel
 
 from bot import Bot
+from data_providers.context import basic_context
+from data_writers.buttons import ButtonsWriter
+from models.button import ButtonStruct
 from models.button.button_matrix import ButtonMatrix
 from models.button.discord_button import DiscordButton
 from utils.basic_types import BUTTON_TYPE_CHOICES, ButtonType
-from ui.base_button import delete_buttons, save_buttons
+from ui.base_button import save_buttons
 from utils.basic_types import BUTTON_STYLE_CHOICES
 from ui.views import TemporaryView
-from utils.logger import guild_log_message
 from utils.functions import find_nearest_role
+from utils.logger import FileLogger
 from .utils.views import BaseView, message_jump_button
 from .utils.constants import EMOJIS, HTTP_URL_REGEX
 from .utils.text_format import truncate
@@ -551,7 +554,10 @@ class ReplaceMessageModal(discord.ui.Modal):
             raise ValueError('Invalid message ID')
 
         try:
-            delete_buttons(message.id)
+            ButtonsWriter().remove(
+                ButtonStruct(message_id=message.id),
+                basic_context(0, 0, FileLogger(self.channel.guild.id))
+            )
             view=self.buttons.as_view(True)
             msg = await message.edit(embed=self.embed, view=view)
             save_buttons(msg, view)
@@ -560,7 +566,7 @@ class ReplaceMessageModal(discord.ui.Modal):
             await interaction.response.edit_message(content=f"{EMOJIS['yes']} - Embed replaced in {self.channel.mention}.",
                 view=confirmed_view)
         except discord.HTTPException:
-            await interaction.response.edit_message(f"{EMOJIS['no']} - Couldn't replaced the embed in {self.channel.mention}.",
+            await interaction.response.edit_message(content=f"{EMOJIS['no']} - Couldn't replaced the embed in {self.channel.mention}.",
                 view=None)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
@@ -660,7 +666,7 @@ class AddButtonModal(discord.ui.Modal):
         self.button.label = label
         self.button.style = color
         self.button.custom_id = str(uuid4())
-        self.button.template = self.button.button_templates.get(button_type)
+        self.button.template = self.button._button_templates.get(button_type)
         self.button.disabled = True
         self.buttons[self.button.row][self.button.index] = self.button
 
@@ -750,7 +756,7 @@ class EditButtonModal(discord.ui.Modal):
         self.button.emoji = emoji
         self.button.role = role
         self.button.style = color
-        self.button.template = self.button.button_templates.get(button_type)
+        self.button.template = self.button._button_templates.get(button_type)
         self.button.disabled = True
         self.parent_view.message = await self.parent_view.message.edit(view=self.buttons.as_view())
         await interaction.response.defer()

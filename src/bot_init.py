@@ -8,11 +8,12 @@ from discord import HTTPException, Member, Object, RawMessageDeleteEvent
 from discord.ext.commands import Bot as DiscordBot, guild_only, Context, Greedy
 
 # TODO: webserver - from api_server import ApiServer
-from ui.base_button import delete_buttons
+from data_providers.context import basic_context
 from utils.basic_types import TaskExecutionType
 from bot import Bot
 from data.cache.message_cache import MessageCache
 from tasks import Tasks
+from utils.logger import GuildLogger
 
 from commands.admin import AdminCommands
 from commands.ba import BACommands
@@ -67,27 +68,26 @@ client = Bot()._client
 # What the bot does upon connecting to discord for the first time
 @client.event
 async def on_ready():
+    assert client.user is not None, "Client user is None, something went wrong during initialization."
     print(f'{client.user} has connected to Discord!')
     await client.reload_data_classes(True) #
     for guild in client.guilds:
-        from utils.logger import guild_log_message
-        message = (
-            f'{client.user.mention} has successfully started.\n'
-        )
-        await guild_log_message(guild.id, message)
+        GuildLogger(guild.id).log(f'{client.user.mention} has successfully started.\n')
 
     # TODO: webserver - ApiServer().start()
 
 @client.event
 async def on_member_join(member: Member):
-    await guild_log_message(member.guild.id, f'{member.mention} joined the server.')
+    GuildLogger(member.guild.id).log(f'{member.mention} joined the server.')
 
 @client.event
 async def on_raw_message_delete(payload: RawMessageDeleteEvent):
-    delete_buttons(payload.message_id)
-    message_cache = MessageCache()
-    if await message_cache.get(payload.message_id, None) is None: return
-    message_cache.remove(payload.message_id)
+    from data_writers.buttons import ButtonsWriter
+    from models.button import ButtonStruct
+    from utils.logger import FileLogger
+    ButtonsWriter().remove(
+        ButtonStruct(message_id=payload.message_id),
+        basic_context(0, 0, FileLogger(payload.guild_id)))
 
 @client.command()
 @guild_only()

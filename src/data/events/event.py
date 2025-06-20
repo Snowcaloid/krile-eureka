@@ -1,9 +1,9 @@
 
 from utils.basic_types import EventCategory
-from discord import Interaction, Member
+from discord import Member
 from indexedproperty import indexedproperty
 from datetime import datetime, timedelta
-from typing import List, Tuple, Type
+from typing import List, Tuple
 from data.db.sql import _SQL, Record, Transaction
 from models.event_template.data import EventTemplateData
 from data.events.event_templates import EventTemplates

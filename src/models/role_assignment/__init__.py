@@ -76,6 +76,7 @@ class RoleAssignmentStruct(BaseStruct):
             result.append(f"Function: {other.function.name} -> {self.function.name}")
         if not result:
             return "No changes"
+        return '\n'.join(result)
 
     def marshal(self) -> dict:
         return {

@@ -27,8 +27,3 @@ def save_buttons(message: Message, view: View):
 def delete_button(button_id: str) -> None:
     with Transaction() as transaction:
         transaction.sql('buttons').delete(f"button_id='{button_id}'")
-
-
-def delete_buttons(message_id: str) -> None:
-    with Transaction() as transaction:
-        transaction.sql('buttons').delete(f'message_id={message_id}')

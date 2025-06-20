@@ -12,7 +12,7 @@ class DiscordButton(Button):
     template: ButtonTemplate
 
     @ButtonTemplates.bind
-    def button_templates(self) -> ButtonTemplates: return ...
+    def _button_templates(self) -> ButtonTemplates: ...
 
     def __init__(self,
                  button_struct: ButtonStruct,
@@ -20,11 +20,16 @@ class DiscordButton(Button):
                  disabled: bool = False,
                  ):
         self.struct = button_struct
-        self.template: ButtonTemplate = self.button_templates.get(button_struct.button_type)
-        super().__init__(style=button_struct.style,label=button_struct.label,disabled=disabled,custom_id=button_struct.button_id,
-                         row=button_struct.row,emoji=button_struct.emoji)
+        self.template: ButtonTemplate = self._button_templates.get(button_struct.button_type)
+        super().__init__(style=button_struct.style,
+                         label=button_struct.label,
+                         disabled=disabled,
+                         custom_id=button_struct.button_id,
+                         row=button_struct.row,
+                         emoji=button_struct.emoji)
 
     @override
     async def callback(self, interaction: Interaction):
+        assert interaction.message is not None, "cannot execute button callback without a message"
         if self.struct.message_id is None or interaction.message.id == self.struct.message_id:
             await self.template.callback(interaction, self)
