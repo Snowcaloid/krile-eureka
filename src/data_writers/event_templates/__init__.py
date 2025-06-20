@@ -1,5 +1,5 @@
 
-from typing import override
+from typing import Type, override
 
 from utils.basic_types import EventCategory
 from data_providers.event_templates import EventTemplateProvider
@@ -14,6 +14,9 @@ class EventTemplatesWriter(BaseWriter[EventTemplateStruct]):
     from bot import Bot
     @Bot.bind
     def _bot(self) -> Bot: ...
+
+    @override
+    def provider(self) -> EventTemplateProvider: return EventTemplateProvider()
 
     def _assert_guild_id(self, struct: EventTemplateStruct) -> None:
         assert not is_null_or_unassigned(struct.guild_id), 'missing Guild ID'
@@ -74,40 +77,16 @@ class EventTemplatesWriter(BaseWriter[EventTemplateStruct]):
                 assert struct.data.support_passcode_delay is not None, \
                     'missing support passcode delay in event template data'
 
-    def _validate_input(self,
-                        context: ExecutionContext,
+    @override
+    def _validate_input(self, context: ExecutionContext,
                         struct: EventTemplateStruct,
-                        exists: bool,
+                        old_struct: EventTemplateStruct | None,
                         deleting: bool) -> None:
         context.assert_permissions(Permissions(modules=ModulePermissions(event_templates=PermissionLevel.FULL)))
         self._assert_guild_id(struct)
         if deleting:
-            assert exists, f'struct <{struct}> does not exist and cannot be deleted.'
-        if not exists:
+            assert old_struct, f'struct <{struct}> does not exist and cannot be deleted.'
+        if not old_struct:
             assert not is_null_or_unassigned(struct.event_type), 'missing event type'
             assert not is_null_or_unassigned(struct.data), 'missing data'
         self._validate_data(struct)
-
-    @override
-    def sync(self, struct: EventTemplateStruct, context: ExecutionContext) -> None:
-        with context:
-            found_struct = EventTemplateProvider().find(struct)
-            self._validate_input(context, struct, found_struct is not None, False)
-            context.log('Syncing event template...')
-            if found_struct:
-                context.transaction.sql('event_templates').update(
-                    struct.to_record(),
-                    where=f'guild_id={struct.guild_id} and event_type=\'{struct.event_type}\''
-                )
-            else:
-                context.transaction.sql('event_templates').insert(struct.to_record())
-            context.log(f'Event type {struct.event_type} synced successfully.')
-
-    @override
-    def remove(self, struct: EventTemplateStruct, context: ExecutionContext) -> None:
-        with context:
-            context.log('Removing event template...')
-            found_struct = EventTemplateProvider().find(struct)
-            self._validate_input(context, struct, found_struct is not None, True)
-            context.transaction.sql('event_templates').delete(found_struct.to_record())
-            context.log(f'Event type {struct.event_type} removed successfully.')

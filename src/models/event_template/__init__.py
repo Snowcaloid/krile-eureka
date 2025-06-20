@@ -13,8 +13,14 @@ class EventTemplateStruct(BaseStruct):
     data: EventTemplateData = Unassigned #type: ignore
 
     @classmethod
-    def db_table_name(cls) -> str:
-        return 'event_templates'
+    def db_table_name(cls) -> str: return 'event_templates'
+
+    @override
+    def type_name(self) -> str: return 'event template'
+
+    @override
+    def identity(self) -> EventTemplateStruct:
+        return EventTemplateStruct(guild_id=self.guild_id, event_type=self.event_type)
 
     @override
     def fixup_types(self) -> None:

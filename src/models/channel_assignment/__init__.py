@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import override
+from typing import Self, override
 from bot import Bot
 from utils.basic_types import EventCategory
 from models._base import BaseStruct
@@ -19,14 +19,19 @@ class ChannelAssignmentStruct(BaseStruct):
     event_category: EventCategory = Unassigned #type: ignore
     notorious_monster: NotoriousMonster = Unassigned #type: ignore
     eureka_instance: EurekaInstance = Unassigned #type: ignore
-    eureka_instance_name: str = Unassigned #type: ignore
 
     @Bot.bind
     def _bot(self) -> Bot: ...
 
     @classmethod
-    def db_table_name(cls) -> str:
-        return 'channel_assignments'
+    def db_table_name(cls) -> str: return 'channel_assignments'
+
+    @override
+    def type_name(self) -> str: return 'channel assignment'
+
+    @override
+    def identity(self) -> Self:
+        return self # Currently, all of the fields are used to identify the struct, so we return self.
 
     @override
     def fixup_types(self) -> None:
@@ -91,8 +96,6 @@ class ChannelAssignmentStruct(BaseStruct):
             result.append(f"Notorious Monster: {other.notorious_monster.name} -> {self.notorious_monster.name}")
         if isinstance(self.eureka_instance, EurekaInstance) and other.eureka_instance != self.eureka_instance:
             result.append(f"Eureka Instance: {other.eureka_instance.name} ({other.eureka_instance.value}) -> {self.eureka_instance.name} ({self.eureka_instance.value})")
-        if isinstance(self.eureka_instance_name, str) and other.eureka_instance_name != self.eureka_instance_name:
-            result.append(f"Eureka Instance Name: {other.eureka_instance_name} -> {self.eureka_instance_name}")
         if not result:
             return "No changes"
         return '\n'.join(result)
@@ -110,6 +113,5 @@ class ChannelAssignmentStruct(BaseStruct):
             'denominator': self.marshal_value(self.denominator.name),
             'event_category': self.marshal_value(self.event_category.name),
             'notorious_monster': self.marshal_value(self.notorious_monster.name),
-            'eureka_instance': self.marshal_value(self.eureka_instance.name),
-            'eureka_instance_name': self.marshal_value(self.eureka_instance_name)
+            'eureka_instance': self.marshal_value(self.eureka_instance.name)
         }

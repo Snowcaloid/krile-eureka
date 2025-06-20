@@ -1,4 +1,5 @@
 
+from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -13,6 +14,16 @@ class TaskStruct(BaseStruct):
     execution_time: datetime = Unassigned #type: ignore
     task_type: TaskType = Unassigned #type: ignore
     data: dict = Unassigned #type: ignore
+
+    @classmethod
+    def db_table_name(cls) -> str: return 'tasks'
+
+    @override
+    def type_name(self) -> str: return 'task'
+
+    @override
+    def identity(self) -> TaskStruct:
+        return TaskStruct(id=self.id)
 
     @override
     def fixup_types(self) -> None:

@@ -13,10 +13,6 @@ class BaseWriter[T: BaseStruct](ABC):
     def provider(self) -> BaseProvider[T]: ...
 
     @abstractmethod
-    def struct_type(self) -> Type[T]: ...
-    """Override to provide the type of the struct this provider works with."""
-
-    @abstractmethod
     def _validate_input(self, context: ExecutionContext,
                         struct: T,
                         old_struct: T | None,

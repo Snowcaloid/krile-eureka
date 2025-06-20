@@ -1,4 +1,4 @@
-from typing import override
+from typing import Type, override
 from data_providers.events import EventsProvider
 from models.button import ButtonStruct
 from models.context import ExecutionContext
@@ -13,12 +13,16 @@ class ButtonsWriter(BaseWriter[ButtonStruct]):
     @Bot.bind
     def _bot(self) -> Bot: ...
 
-    def _validate_input(self, struct: ButtonStruct,
-                        context: ExecutionContext,
-                        exists: bool,
+    @override
+    def provider(self) -> ButtonsProvider: return ButtonsProvider()
+
+    @override
+    def _validate_input(self, context: ExecutionContext,
+                        struct: ButtonStruct,
+                        old_struct: ButtonStruct | None,
                         deleting: bool) -> None:
         if deleting:
-            assert exists, f'cannot delete button {struct} that does not exist.'
+            assert old_struct, f'cannot delete button {struct} that does not exist.'
         assert not is_null_or_unassigned(struct.button_id), 'missing button ID'
         assert not is_null_or_unassigned(struct.label), 'missing button label'
         assert not is_null_or_unassigned(struct.button_type), 'missing button type'
@@ -40,26 +44,3 @@ class ButtonsWriter(BaseWriter[ButtonStruct]):
                 assert not is_null_or_unassigned(struct.event_id), 'missing event ID for recruitment button'
                 event_struct = EventsProvider().find(EventStruct(guild_id=context.guild_id, id=struct.event_id))
                 assert event_struct, f'event #{struct.event_id} not found for recruitment button'
-
-    @override
-    def sync(self, struct: ButtonStruct, context: ExecutionContext) -> None:
-        with context:
-            found_struct = ButtonsProvider().find(struct)
-            self._validate_input(struct, context, found_struct is not None, False)
-            if found_struct:
-                edited_struct = found_struct.intersect(struct)
-                context.transaction.sql('buttons').update(
-                    edited_struct.to_record(),
-                    f'id={found_struct.button_id}')
-                context.log(f'Changes: ```{edited_struct.changes_since(found_struct)}```')
-            else:
-                context.transaction.sql('buttons').insert(struct.to_record())
-            context.log(f'successfully synced button {struct}.')
-
-    @override
-    def remove(self, struct: ButtonStruct, context: ExecutionContext) -> None:
-        with context:
-            found_struct = ButtonsProvider().find(struct)
-            self._validate_input(struct, context, found_struct is not None, True)
-            context.transaction.sql('buttons').delete(f'button_id={found_struct.button_id}')
-            context.log(f'successfully removed button {struct}.')

@@ -24,8 +24,13 @@ class ButtonStruct(BaseStruct):
     event_id: int = Unassigned #type: ignore
 
     @classmethod
-    def db_table_name(cls) -> str:
-        return 'buttons'
+    def db_table_name(cls) -> str: return 'buttons'
+
+    @override
+    def type_name(self) -> str: return 'button'
+
+    @override
+    def identity(self) -> ButtonStruct: return ButtonStruct(button_id=self.button_id, message_id=self.message_id)
 
     @override
     def fixup_types(self) -> None:

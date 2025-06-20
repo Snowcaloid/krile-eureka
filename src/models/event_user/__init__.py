@@ -10,18 +10,31 @@ from utils.functions import is_null_or_unassigned
 
 @dataclass
 class EventUserStruct(BaseStruct):
-    id: int = Unassigned
-    event_id: int = Unassigned
-    user_id: int = Unassigned
-    user_name: str = Unassigned
-    is_party_leader: bool = Unassigned
-    party: int = Unassigned
-    slot: int = Unassigned
-    slot_name: str = Unassigned
+    id: int = Unassigned #type: ignore
+    event_id: int = Unassigned #type: ignore
+    user_id: int = Unassigned #type: ignore
+    user_name: str = Unassigned #type: ignore
+    is_party_leader: bool = Unassigned #type: ignore
+    party: int = Unassigned #type: ignore
+    slot: int = Unassigned #type: ignore
+    slot_name: str = Unassigned #type: ignore
 
     @classmethod
-    def db_table_name(cls) -> str:
-        return 'event_users'
+    def db_table_name(cls) -> str: return 'event_users'
+
+    @override
+    def type_name(self) -> str: return 'event user'
+
+    @override
+    def identity(self) -> EventUserStruct:
+        return EventUserStruct(
+            id=self.id,
+            event_id=self.event_id,
+            user_id=self.user_id
+        )
+
+    @override
+    def fixup_types(self) -> None: ...
 
     @override
     def __repr__(self) -> str:

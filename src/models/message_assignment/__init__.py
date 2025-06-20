@@ -18,8 +18,13 @@ class MessageAssignmentStruct(BaseStruct):
     function: MessageFunction = Unassigned #type: ignore
 
     @classmethod
-    def db_table_name(cls) -> str:
-        return 'message_assignments'
+    def db_table_name(cls) -> str: return 'message_assignments'
+
+    @override
+    def type_name(self) -> str: return 'message assignment'
+
+    @override
+    def identity(self) -> MessageAssignmentStruct: return self # Currently, all fields are part of the identity
 
     @override
     def fixup_types(self) -> None:

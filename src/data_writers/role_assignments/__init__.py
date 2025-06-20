@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import override
-from data_providers.role_assignments import RoleAssignmentsProvider
 from models.role_assignment import RoleAssignmentStruct
 from models.context import ExecutionContext
 from models.permissions import ModulePermissions, PermissionLevel, Permissions
@@ -32,17 +31,16 @@ class RoleAssignmentsWriter(BaseWriter[RoleAssignmentStruct]):
                     return not is_null_or_unassigned(struct.eureka_instance)
             return False
 
-
-    def _validate_input(self,
-                        context: ExecutionContext,
+    @override
+    def _validate_input(self, context: ExecutionContext,
                         struct: RoleAssignmentStruct,
-                        exists: bool,
+                        old_struct: RoleAssignmentStruct | None,
                         deleting: bool) -> None:
         context.assert_permissions(Permissions(modules=ModulePermissions(roles=PermissionLevel.FULL)))
         self._assert_guild_id(struct)
         if deleting:
-            assert exists, f"Role {struct} does not exist in the database."
-        if not exists:
+            assert old_struct, f"Role {struct} does not exist in the database."
+        if not old_struct:
             assert not is_null_or_unassigned(struct.role_id), 'missing role ID'
             assert not is_null_or_unassigned(struct.function), 'missing function'
         if deleting:
@@ -68,28 +66,3 @@ class RoleAssignmentsWriter(BaseWriter[RoleAssignmentStruct]):
         if not is_null_or_unassigned(struct.role_id):
             assert self._bot.get_text_channel(struct.role_id), \
                 f'cannot find discord role with ID: {struct.role_id}'
-
-    @override
-    def sync(self, role: RoleAssignmentStruct, context: ExecutionContext) -> None:
-        with context:
-            context.log('syncing role ...')
-            found_role = RoleAssignmentsProvider().find(role)
-            self._validate_input(context, role, found_role is not None, False)
-            if found_role:
-                edited_role = found_role.intersect(role)
-                context.transaction.sql('role_assignments').update(
-                    edited_role.to_record(),
-                    f'id={found_role.id}')
-                context.log(f'Changes: `{edited_role.changes_since(found_role)}`')
-            else:
-                context.transaction.sql('role_assignments').insert(role.to_record())
-            context.log(f'role assignment synced successfully: `{role}`')
-
-    @override
-    def remove(self, role: RoleAssignmentStruct, context: ExecutionContext) -> None:
-        with context:
-            context.log('removing role ...')
-            found_role = RoleAssignmentsProvider().find(role)
-            self._validate_input(context, role, found_role is not None, True)
-            context.transaction.sql('role_assignments').delete(found_role.to_record())
-            context.log(f'role assignment removed successfully: `{role}`')

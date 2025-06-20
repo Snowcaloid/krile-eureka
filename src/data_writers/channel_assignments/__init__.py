@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import override
+from typing import Type, override
 
 from data_providers.channel_assignments import ChannelAssignmentProvider
 from models.channel_assignment import ChannelAssignmentStruct
@@ -14,6 +14,9 @@ class ChannelAssignmentsWriter(BaseWriter[ChannelAssignmentStruct]):
     from bot import Bot
     @Bot.bind
     def _bot(self) -> Bot: ...
+
+    @override
+    def provider(self) -> ChannelAssignmentProvider: return ChannelAssignmentProvider()
 
     def _assert_guild_id(self, struct: ChannelAssignmentStruct) -> None:
         assert not is_null_or_unassigned(struct.guild_id), \
@@ -33,16 +36,16 @@ class ChannelAssignmentsWriter(BaseWriter[ChannelAssignmentStruct]):
                     return not is_null_or_unassigned(struct.eureka_instance)
             return False
 
-    def _validate_input(self,
-                        context: ExecutionContext,
+    @override
+    def _validate_input(self, context: ExecutionContext,
                         struct: ChannelAssignmentStruct,
-                        exists: bool,
+                        old_struct: ChannelAssignmentStruct | None,
                         deleting: bool) -> None:
         context.assert_permissions(Permissions(modules=ModulePermissions(channels=PermissionLevel.FULL)))
         self._assert_guild_id(struct)
         if deleting:
-            assert exists, f'struct <{struct}> does not exist and cannot be deleted.'
-        if not exists:
+            assert old_struct, f'struct <{struct}> does not exist and cannot be deleted.'
+        if not old_struct:
             assert not is_null_or_unassigned(struct.channel_id), 'missing channel ID'
             assert not is_null_or_unassigned(struct.function), 'missing function'
         if deleting:
@@ -68,30 +71,3 @@ class ChannelAssignmentsWriter(BaseWriter[ChannelAssignmentStruct]):
         if not is_null_or_unassigned(struct.channel_id):
             assert self._bot.get_text_channel(struct.channel_id), \
                 f'cannot find discord channel with ID: {struct.channel_id}'
-
-    @override
-    def sync(self, channel: ChannelAssignmentStruct,
-             context: ExecutionContext) -> None:
-        with context:
-            context.log('syncing channel ...')
-            found_channel = ChannelAssignmentProvider().find(channel)
-            self._validate_input(context, channel, found_channel is not None, False)
-            if found_channel:
-                edited_channel = found_channel.intersect(channel)
-                context.transaction.sql('channel_assignments').update(
-                    edited_channel.to_record(),
-                    f'id={found_channel.id}')
-                context.log(f'Changes: `{edited_channel.changes_since(found_channel)}`')
-            else:
-                context.transaction.sql('channel_assignments').insert(channel.to_record())
-            context.log(f'channel assignment synced successfully: `{channel}`')
-
-    @override
-    def remove(self, channel: ChannelAssignmentStruct,
-               context: ExecutionContext) -> None:
-        with context:
-            context.log('removing channel ...')
-            found_channel = ChannelAssignmentProvider().find(channel)
-            self._validate_input(context, channel, found_channel is not None, True)
-            context.transaction.sql('channel_assignments').delete(found_channel.to_record())
-            context.log(f'channel assignment removed successfully: `{channel}`')

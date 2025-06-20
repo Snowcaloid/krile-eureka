@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
-from typing import override
+from typing import Self, override
 from models._base import BaseStruct
 from utils.basic_types import Unassigned
 
@@ -26,8 +26,13 @@ class EventStruct(BaseStruct):
     is_signup: bool = Unassigned #type: ignore
 
     @classmethod
-    def db_table_name(cls) -> str:
-        return 'events'
+    def db_table_name(cls) -> str: return 'events'
+
+    @override
+    def type_name(self) -> str: return 'event'
+
+    @override
+    def identity(self) -> EventStruct: return EventStruct(id=self.id)
 
     from bot import Bot
     @Bot.bind

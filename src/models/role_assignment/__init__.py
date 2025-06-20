@@ -27,8 +27,13 @@ class RoleAssignmentStruct(BaseStruct):
     def _bot(self) -> Bot: ...
 
     @classmethod
-    def db_table_name(cls) -> str:
-        return 'roles'
+    def db_table_name(cls) -> str: return 'role_assignments'
+
+    @override
+    def type_name(self) -> str: return 'role assignment'
+
+    @override
+    def identity(self) -> RoleAssignmentStruct: return self # Currently, all fields are part of the identity
 
     @override
     def fixup_types(self) -> None:
