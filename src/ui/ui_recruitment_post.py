@@ -5,9 +5,9 @@ from data.events.event import Event
 from data.events.schedule import Schedule
 from models.button.discord_button import DiscordButton
 from models.channel_assignment import ChannelAssignmentStruct
-from models.roles import RoleStruct
+from models.role_assignment import RoleAssignmentStruct
 from data_providers.channel_assignments import ChannelAssignmentProvider
-from data_providers.roles import RolesProvider
+from data_providers.role_assignments import RoleAssignmentsProvider
 from utils.basic_types import MessageFunction, RoleFunction
 from utils.basic_types import EventCategory
 from utils.basic_types import ChannelFunction
@@ -36,7 +36,7 @@ class UIRecruitmentPost(Bindable):
         if channel_struct is None: return
         channel: TextChannel = self._bot._client.get_channel(channel_struct.channel_id)
         if channel is None: return
-        mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
+        mention_string = RoleAssignmentsProvider().as_discord_mention_string(RoleAssignmentStruct(
             guild_id=guild_id,
             event_type=event.type,
             function=RoleFunction.RECRUITMENT_POST_PING

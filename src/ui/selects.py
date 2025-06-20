@@ -4,8 +4,8 @@ from discord import ButtonStyle, Interaction, Message, SelectOption
 from discord.ui import Button, Select
 
 from models.channel_assignment import ChannelAssignmentStruct
-from models.roles import RoleStruct
-from data_providers.roles import RolesProvider
+from models.role_assignment import RoleAssignmentStruct
+from data_providers.role_assignments import RoleAssignmentsProvider
 from data_writers.channel_assignments import ChannelAssignmentsWriter
 from utils.basic_types import EurekaInstance, RoleFunction
 from utils.basic_types import ChannelFunction
@@ -82,7 +82,7 @@ class EurekaTrackerZoneSelect(Select):
             ))
             if channel_struct:
                 channel = interaction.guild.get_channel(channel_struct.channel_id)
-                mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
+                mention_string = RoleAssignmentsProvider().as_discord_mention_string(RoleAssignmentStruct(
                     guild_id=interaction.guild_id,
                     event_type=str(zone.value),
                     function=RoleFunction.EUREKA_TRACKER_NOTIFICATION

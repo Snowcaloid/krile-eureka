@@ -6,19 +6,21 @@ columns:
   primary_key: true
 - name: guild_id
   type: BIGINT
+- name: guild_name
+  type: VARCHAR(100)
 - name: role_id
   type: BIGINT
-- name: event_category
-  type: VARCHAR(15)
-- name: event_type
-  type: VARCHAR(15)
+- name: role_name
+  type: VARCHAR(100)
 - name: function
-  type: INTEGER
+  type: VARCHAR(30)
 - name: denominator
-  type: INTEGER
+  type: VARCHAR(30)
+- name: event_type
+  type: VARCHAR(30)
+- name: event_category
+  type: VARCHAR(30)
 - name: notorious_monster
   type: VARCHAR(30)
 - name: eureka_instance
-  type: INTEGER
-- name: eureka_instance_name
-  type: VARCHAR(50)
+  type: VARCHAR(30)

@@ -2,9 +2,9 @@ from datetime import datetime
 from typing import override
 from discord import Embed, Guild, TextChannel
 from models.channel_assignment import ChannelAssignmentStruct
-from models.roles import RoleStruct
+from models.role_assignment import RoleAssignmentStruct
 from data_providers.channel_assignments import ChannelAssignmentProvider
-from data_providers.roles import RolesProvider
+from data_providers.role_assignments import RoleAssignmentsProvider
 from utils.basic_types import ChannelFunction, RoleFunction, TaskExecutionType
 from data.events.schedule import Schedule
 from tasks.task import TaskTemplate
@@ -38,7 +38,7 @@ class Task_PostSupportPasscode(TaskTemplate):
             if not isinstance(guild, Guild): return
             channel = guild.get_channel(channel_struct.channel_id)
             if not isinstance(channel, TextChannel): return
-            mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
+            mention_string = RoleAssignmentsProvider().as_discord_mention_string(RoleAssignmentStruct(
                 guild_id=guild.id,
                 event_category=event.type,
                 function=RoleFunction.SUPPORT_PASSCODE_PING

@@ -24,8 +24,8 @@ class Task_PostMainPasscode(TaskTemplate):
         if obj and obj["guild"] and obj["entry_id"]:
             from data.events.schedule import Schedule
             from data_providers.channel_assignments import ChannelAssignmentProvider
-            from data_writers.roles import RolesProvider
-            from models.roles import RoleStruct
+            from data_writers.role_assignments import RoleAssignmentsProvider
+            from models.role_assignment import RoleAssignmentStruct
 
             event = Schedule(obj["guild"]).get(obj["entry_id"])
             if event is None: return
@@ -37,7 +37,7 @@ class Task_PostMainPasscode(TaskTemplate):
             if channel_struct is None: return
             channel = self._bot._client.get_channel(channel_struct.channel_id)
             if not isinstance(channel, TextChannel): return
-            mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
+            mention_string = RoleAssignmentsProvider().as_discord_mention_string(RoleAssignmentStruct(
                 guild_id=obj["guild"],
                 event_category=event.type,
                 function=RoleFunction.MAIN_PASSCODE_PING

@@ -78,12 +78,12 @@ class ChannelAssignmentsWriter(BaseWriter[ChannelAssignmentStruct]):
             self._validate_input(context, channel, found_channel is not None, False)
             if found_channel:
                 edited_channel = found_channel.intersect(channel)
-                context.transaction.sql('channels').update(
+                context.transaction.sql('channel_assignments').update(
                     edited_channel.to_record(),
                     f'id={found_channel.id}')
                 context.log(f'Changes: `{edited_channel.changes_since(found_channel)}`')
             else:
-                context.transaction.sql('channels').insert(channel.to_record())
+                context.transaction.sql('channel_assignments').insert(channel.to_record())
             context.log(f'channel assignment synced successfully: `{channel}`')
 
     @override
@@ -93,5 +93,5 @@ class ChannelAssignmentsWriter(BaseWriter[ChannelAssignmentStruct]):
             context.log('removing channel ...')
             found_channel = ChannelAssignmentProvider().find(channel)
             self._validate_input(context, channel, found_channel is not None, True)
-            context.transaction.sql('channels').delete(found_channel.to_record())
+            context.transaction.sql('channel_assignments').delete(found_channel.to_record())
             context.log(f'channel assignment removed successfully: `{channel}`')

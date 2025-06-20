@@ -3,10 +3,10 @@ from typing import Generator
 from discord import Member
 from centralized_data import Bindable
 from utils.basic_types import EventCategory
-from data_providers.roles import RolesProvider
-from models.roles import RoleStruct
+from data_providers.role_assignments import RoleAssignmentsProvider
+from models.role_assignment import RoleAssignmentStruct
 from models.permissions import (NO_ACCESS, PermissionLevel, ModulePermissions, EventAdministrationPermissions, Permissions, FULL_ACCESS, ADMIN_ACCESS, DEV_ACCESS)
-from utils.basic_types import GuildID, ChannelFunction
+from utils.basic_types import GuildID, RoleFunction
 
 class PermissionProvider(Bindable):
     from bot import Bot
@@ -15,9 +15,9 @@ class PermissionProvider(Bindable):
 
     def evaluate_permissions_for_user(self, guild_id: GuildID, user_id: int) -> Permissions:
         if guild_id is None or user_id is None: return NO_ACCESS
-        user = self.bot._client.get_user(user_id)
+        user = self.bot.get_user(user_id)
         if user is None: return NO_ACCESS
-        guild = self.bot._client.get_guild(guild_id)
+        guild = self.bot.get_guild(guild_id)
         if guild is None: return NO_ACCESS
         if self._is_owner(user_id): return FULL_ACCESS
         if self._is_developer(guild_id, user): return DEV_ACCESS
@@ -28,16 +28,16 @@ class PermissionProvider(Bindable):
         )
 
     def _is_developer(self, guild_id: GuildID, user: Member) -> bool:
-        role = RolesProvider().find(RoleStruct(
+        role = RoleAssignmentsProvider().find(RoleAssignmentStruct(
             guild_id=guild_id,
-            function=ChannelFunction.DEVELOPER
+            function=RoleFunction.DEVELOPER
         ))
         return not user.get_role(role.role_id) is None
 
     def _is_admin(self, guild_id: GuildID, user: Member) -> bool:
-        role = RolesProvider().find(RoleStruct(
+        role = RoleAssignmentsProvider().find(RoleAssignmentStruct(
             guild_id=guild_id,
-            function=ChannelFunction.ADMIN
+            function=RoleFunction.ADMIN
         ))
         return not user.get_role(role.role_id) is None
 
@@ -45,9 +45,9 @@ class PermissionProvider(Bindable):
         return user_id == int(getenv('OWNER_ID'))
 
     def _is_raid_leader(self, guild_id: GuildID, user: Member) -> bool:
-        for role in RolesProvider().find_all(RoleStruct(
+        for role in RoleAssignmentsProvider().find_all(RoleAssignmentStruct(
             guild_id=guild_id,
-            function=ChannelFunction.RAID_LEADER
+            function=RoleFunction.RAID_LEADER
         )):
             if user.get_role(role.role_id) is not None:
                 return True

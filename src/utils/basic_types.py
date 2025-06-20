@@ -44,13 +44,7 @@ class ChannelDenominator(Enum):
         """Return a list of GuildChannelFunction that this ChannelDenominator is used for."""
         match self:
             case ChannelDenominator.NONE: return [ChannelFunction.NONE]
-            case ChannelDenominator.EVENT_TYPE: return [
-                ChannelFunction.PASSCODES,
-                ChannelFunction.SUPPORT_PASSCODES,
-                ChannelFunction.RECRUITMENT,
-                ChannelFunction.EVENT_NOTIFICATION
-            ]
-            case ChannelDenominator.EVENT_CATEGORY: return [
+            case ChannelDenominator.EVENT_TYPE | ChannelDenominator.EVENT_CATEGORY: return [
                 ChannelFunction.PASSCODES,
                 ChannelFunction.SUPPORT_PASSCODES,
                 ChannelFunction.RECRUITMENT,
@@ -107,10 +101,37 @@ class RoleFunction(Enum):
 
 
 class RoleDenominator(Enum):
+    NONE = ''
     EVENT_TYPE = 'event_type'
     EVENT_CATEGORY = 'event_category'
     NOTORIOUS_MONSTER = 'notorious_monster'
     EUREKA_INSTANCE = 'eureka_instance'
+
+    def functions(self) -> List[RoleFunction]:
+        """Return a list of RoleFunction that this RoleDenominator is used for."""
+        match self:
+            case RoleDenominator.NONE: return [
+                RoleFunction.DEVELOPER,
+                RoleFunction.ADMIN
+            ]
+            case RoleDenominator.EVENT_TYPE | RoleDenominator.EVENT_CATEGORY: return [
+                RoleFunction.RAID_LEADER,
+                RoleFunction.MAIN_PASSCODE_PING,
+                RoleFunction.SUPPORT_PASSCODE_PING,
+                RoleFunction.RECRUITMENT_POST_PING,
+                RoleFunction.RUN_NOTIFICATION
+            ]
+            case RoleDenominator.EUREKA_INSTANCE: return [
+                RoleFunction.EUREKA_TRACKER_NOTIFICATION
+            ]
+            case RoleDenominator.NOTORIOUS_MONSTER: return [
+                RoleFunction.NOTORIOUS_MONSTER_NOTIFICATION
+            ]
+        return []
+
+    def is_allowed_function(self, function: RoleFunction) -> bool:
+        """Check if the function is allowed for this RoleDenominator."""
+        return function in self.functions()
 
 
 class TaskExecutionType(Enum):

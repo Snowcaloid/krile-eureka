@@ -3,8 +3,8 @@ import os
 from typing import List
 from centralized_data import Bindable
 from discord import Member
-from models.roles import RoleStruct
-from data_providers.roles import RolesProvider
+from models.role_assignment import RoleAssignmentStruct
+from data_providers.role_assignments import RoleAssignmentsProvider
 from utils.discord_types import InteractionLike
 from utils.basic_types import EventCategory
 from utils.basic_types import RoleFunction
@@ -19,7 +19,7 @@ class PermissionValidator(Bindable):
 
     def is_developer(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
-            role_struct = RolesProvider().find(RoleStruct(
+            role_struct = RoleAssignmentsProvider().find(RoleAssignmentStruct(
                 function=RoleFunction.DEVELOPER
             ))
             if is_null_or_unassigned(role_struct.role_id): return self.is_owner(interaction)
@@ -28,7 +28,7 @@ class PermissionValidator(Bindable):
 
     def is_admin(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
-            role_struct = RolesProvider().find(RoleStruct(
+            role_struct = RoleAssignmentsProvider().find(RoleAssignmentStruct(
                 function=RoleFunction.ADMIN
             ))
             if is_null_or_unassigned(role_struct.role_id): return self.is_developer(interaction)
@@ -37,7 +37,7 @@ class PermissionValidator(Bindable):
 
     def is_raid_leader(self, interaction: InteractionLike) -> bool:
         if self.is_in_guild(interaction):
-            role_structs = RolesProvider().find_all(RoleStruct(
+            role_structs = RoleAssignmentsProvider().find_all(RoleAssignmentStruct(
                 function=RoleFunction.RAID_LEADER
             ))
             for role_struct in role_structs:
@@ -47,10 +47,10 @@ class PermissionValidator(Bindable):
         return False
 
     def get_raid_leader_permissions(self, member: Member) -> List[EventCategory]:
-        admin_role_struct = RolesProvider().find(RoleStruct(
+        admin_role_struct = RoleAssignmentsProvider().find(RoleAssignmentStruct(
             function=RoleFunction.ADMIN
         ))
-        rl_role_structs = RolesProvider().find_all(RoleStruct(
+        rl_role_structs = RoleAssignmentsProvider().find_all(RoleAssignmentStruct(
             function=RoleFunction.RAID_LEADER
         ))
         categories: List[EventCategory] = []

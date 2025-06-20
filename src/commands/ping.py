@@ -3,9 +3,9 @@ from discord.ext.commands import GroupCog
 from discord.app_commands import command
 from utils.autocomplete import AutoComplete
 from models.channel_assignment import ChannelAssignmentStruct
-from models.roles import RoleStruct
+from models.role_assignment import RoleAssignmentStruct
 from data_providers.channel_assignments import ChannelAssignmentProvider
-from data_providers.roles import RolesProvider
+from data_providers.role_assignments import RoleAssignmentsProvider
 from utils.basic_types import ChannelFunction, RoleFunction, NotoriousMonster
 from utils.basic_types import NOTORIOUS_MONSTERS
 from utils.logger import guild_log_message
@@ -36,7 +36,7 @@ class PingCommands(GroupCog, group_name='ping', group_description='Ping people f
         if channel_struct:
             channel = self._bot._client.get_channel(channel_struct.channel_id)
             if channel:
-                mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
+                mention_string = RoleAssignmentsProvider().as_discord_mention_string(RoleAssignmentStruct(
                     guild_id=interaction.guild_id,
                     event_type=notorious_monster.value,
                     function=RoleFunction.NOTORIOUS_MONSTER_NOTIFICATION

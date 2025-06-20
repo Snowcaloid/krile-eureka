@@ -5,11 +5,11 @@ from discord import Embed, Interaction, Role
 from discord.channel import TextChannel
 from utils.basic_types import EventCategory
 from data.events.event_templates import EventTemplates
-from models.roles import RoleStruct
+from models.role_assignment import RoleAssignmentStruct
 from data_providers.context import discord_context
 from data_writers.channel_assignments import ChannelAssignmentsWriter
 from models.channel_assignment import ChannelAssignmentStruct
-from data_writers.roles import RolesWriter
+from data_writers.role_assignments import RoleAssignmentsWriter
 from utils.basic_types import EurekaInstance, RoleFunction, NotoriousMonster
 from utils.autocomplete import AutoComplete
 from utils.basic_types import ChannelFunction, MessageFunction, ChannelFunction
@@ -109,7 +109,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def set_admin(self, interaction: Interaction, role: Role):
         await default_defer(interaction)
-        RolesWriter(interaction.guild_id).sync(RoleStruct(
+        RoleAssignmentsWriter(interaction.guild_id).sync(RoleAssignmentStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.ADMIN
@@ -121,7 +121,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def set_developer(self, interaction: Interaction, role: Role):
         await default_defer(interaction)
-        RolesWriter(interaction.guild_id).sync(RoleStruct(
+        RoleAssignmentsWriter(interaction.guild_id).sync(RoleAssignmentStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.DEVELOPER
@@ -134,7 +134,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def add_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
-        RolesWriter(interaction.guild_id).sync(RoleStruct(
+        RoleAssignmentsWriter(interaction.guild_id).sync(RoleAssignmentStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.RAID_LEADER,
@@ -147,7 +147,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def remove_raid_leader_role(self, interaction: Interaction, role: Role, event_category: str):
         await default_defer(interaction)
-        RolesWriter(interaction.guild_id).remove(RoleStruct(
+        RoleAssignmentsWriter(interaction.guild_id).remove(RoleAssignmentStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.RAID_LEADER,
@@ -160,7 +160,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_add_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
         await default_defer(interaction)
-        RolesWriter(interaction.guild_id).sync(RoleStruct(
+        RoleAssignmentsWriter(interaction.guild_id).sync(RoleAssignmentStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction(ping_type),
@@ -173,7 +173,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_remove_role(self, interaction: Interaction, ping_type: int, event_type: str, role: Role):
         await default_defer(interaction)
-        RolesWriter(interaction.guild_id).remove(RoleStruct(
+        RoleAssignmentsWriter(interaction.guild_id).remove(RoleAssignmentStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction(ping_type),
@@ -186,7 +186,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_add_eureka_role(self, interaction: Interaction, instance: str, role: Role):
         await default_defer(interaction)
-        RolesWriter(interaction.guild_id).sync(RoleStruct(
+        RoleAssignmentsWriter(interaction.guild_id).sync(RoleAssignmentStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.EUREKA_TRACKER_NOTIFICATION,
@@ -199,7 +199,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_remove_eureka_role(self, interaction: Interaction, instance: str, role: Role):
         await default_defer(interaction)
-        RolesWriter(interaction.guild_id).remove(RoleStruct(
+        RoleAssignmentsWriter(interaction.guild_id).remove(RoleAssignmentStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.EUREKA_TRACKER_NOTIFICATION,
@@ -212,7 +212,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_add_nm_role(self, interaction: Interaction, notorious_monster: str, role: Role):
         await default_defer(interaction)
-        RolesWriter(interaction.guild_id).sync(RoleStruct(
+        RoleAssignmentsWriter(interaction.guild_id).sync(RoleAssignmentStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.NOTORIOUS_MONSTER_NOTIFICATION,
@@ -225,7 +225,7 @@ class ConfigCommands(GroupCog, group_name='config', group_description='Config co
     @check(PermissionValidator().is_admin)
     async def ping_remove_nm_role(self, interaction: Interaction, notorious_monster: str, role: Role):
         await default_defer(interaction)
-        RolesWriter(interaction.guild_id).remove(RoleStruct(
+        RoleAssignmentsWriter(interaction.guild_id).remove(RoleAssignmentStruct(
             guild_id=interaction.guild_id,
             role_id=role.id,
             function=RoleFunction.NOTORIOUS_MONSTER_NOTIFICATION,

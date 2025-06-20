@@ -5,14 +5,14 @@ from typing import Optional, override
 from data_providers.channel_assignments import ChannelAssignmentProvider
 from data_providers.event_templates import EventTemplateProvider
 from data_providers.events import EventsProvider
-from data_providers.roles import RolesProvider
+from data_providers.role_assignments import RoleAssignmentsProvider
 from data_writers._base import BaseWriter
 from models.channel_assignment import ChannelAssignmentStruct
 from models.context import ExecutionContext
 from models.event import EventStruct
 from models.event_template import EventTemplateStruct
 from models.permissions import ModulePermissions, PermissionLevel, Permissions
-from models.roles import RoleStruct
+from models.role_assignment import RoleAssignmentStruct
 from utils.basic_types import ChannelFunction, RoleDenominator, RoleFunction
 from utils.functions import is_null_or_unassigned
 
@@ -32,7 +32,7 @@ class EventsWriter(BaseWriter[EventStruct]):
                         struct: EventStruct,
                         old_struct: Optional[EventStruct],
                         deleting: bool) -> None:
-        context.assert_permissions(Permissions(modules=ModulePermissions(channels=PermissionLevel.FULL)))
+        context.assert_permissions(Permissions(modules=ModulePermissions(events=PermissionLevel.FULL)))
         self._assert_guild_id(struct)
         if deleting:
             assert old_struct, f'struct <{struct}> does not exist and cannot be deleted.'
@@ -54,9 +54,9 @@ class EventsWriter(BaseWriter[EventStruct]):
         if not is_null_or_unassigned(validating_struct.raid_leader):
             rl = self._bot.get_member(validating_struct.guild_id, validating_struct.raid_leader)
             assert rl, f'Invalid raid leader ID: {validating_struct.raid_leader}'
-            role_struct = RolesProvider().find_by_event_template(
+            role_struct = RoleAssignmentsProvider().find_by_event_template(
                 event_template,
-                RoleStruct(function=RoleFunction.RAID_LEADER)
+                RoleAssignmentStruct(function=RoleFunction.RAID_LEADER)
             )
             if role_struct:
                 assert rl.get_role(role_struct.id), \

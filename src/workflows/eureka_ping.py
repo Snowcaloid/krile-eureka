@@ -3,9 +3,9 @@
 from centralized_data import Bindable
 from models.channel_assignment import ChannelAssignmentStruct
 from models.context import ExecutionContext
-from models.roles import RoleStruct
+from models.role_assignment import RoleAssignmentStruct
 from data_providers.channel_assignments import ChannelAssignmentProvider
-from data_providers.roles import RolesProvider
+from data_providers.role_assignments import RoleAssignmentsProvider
 from tasks import Tasks
 from utils.basic_types import (
     NOTORIOUS_MONSTERS, ChannelDenominator, ChannelFunction,
@@ -33,7 +33,7 @@ class EurekaPingWorkflow(Bindable):
                     function=ChannelFunction.NM_PINGS,
                 ))
                 if channel_struct is None: continue
-                role_mention_string = RolesProvider().as_discord_mention_string(RoleStruct(
+                role_mention_string = RoleAssignmentsProvider().as_discord_mention_string(RoleAssignmentStruct(
                     guild_id=guild.id,
                     denominator=RoleDenominator.NOTORIOUS_MONSTER,
                     notorious_monster=notorious_monster,
