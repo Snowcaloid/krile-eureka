@@ -2,6 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
+from json import dumps
 from typing import Any, Callable, Dict, List, Optional, Self, Tuple, TypeVar, Union, overload, override
 
 from data.db.database import Database, PgColumnValue, pg_timestamp
@@ -84,6 +85,8 @@ class _SQL:
             return f"'{value}'"
         if isinstance(value, datetime):
             return pg_timestamp(value)
+        if isinstance(value, dict):
+            return f"'{dumps(value)}'::json"
         return 'null'
 
     def select(self, *,
