@@ -385,7 +385,7 @@ class ScheduledEvent:
         return self.base.support_passcode_delay()
 
     def _pl_placeholder(self, member: Member) -> str:
-        return member.display_name if member else 'TBD'
+        return f'{member.display_name} ({member.mention})' if member else 'TBD'
 
     @property
     def pl_post_text(self) -> str:
